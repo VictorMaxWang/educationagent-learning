@@ -1,0 +1,751 @@
+/* ============================================================
+   萌宠日常（PetView）：档案 / 诊断 / 健康 / 记录 / 定时 / 知识
+   复用 App.css 的主题变量（--surface / --primary / --text 等）
+   ============================================================ */
+.pet-wrap {
+  max-width: 1000px;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+/* 左侧宠物列表 */
+.pet-sidebar {
+  flex-shrink: 0;
+  width: 190px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  background: var(--surface);
+  position: sticky;
+  top: 12px;
+}
+.pet-sidebar-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+  padding: 2px 6px;
+}
+.pet-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.pet-list-empty {
+  color: var(--text-faint);
+  font-size: 12px;
+  padding: 10px 6px;
+}
+.pet-list-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s ease;
+}
+.pet-list-item:hover {
+  border-color: var(--primary);
+  background: var(--hover);
+}
+.pet-list-item.active {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+.pet-list-emoji {
+  font-size: 16px;
+}
+.pet-list-name {
+  flex: 1;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pet-list-add {
+  margin-top: 6px;
+  padding: 8px;
+  border: 1px dashed var(--border-strong);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 13px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s ease;
+}
+.pet-list-add:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+/* 右侧主区 */
+.pet-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.pet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.pet-head h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+.pet-head-title {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.pet-head-sub {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary);
+  background: var(--primary-soft);
+  padding: 2px 10px;
+  border-radius: 999px;
+}
+.pet-head-ops {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pet-select {
+  padding: 8px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  outline: none;
+}
+.pet-select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.12);
+}
+.pet-del {
+  color: #DC2626;
+  border-color: var(--border-strong);
+}
+.pet-del:hover {
+  border-color: #DC2626;
+  background: #FEF2F2;
+}
+.pet-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 12px;
+}
+.pet-tab {
+  padding: 8px 18px;
+  border: none;
+  border-radius: 10px;
+  background: var(--hover);
+  color: var(--text-2);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s ease;
+}
+.pet-tab:hover {
+  color: var(--primary);
+}
+.pet-tab.active {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+.pet-toast {
+  position: fixed;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 999;
+  padding: 10px 20px;
+  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--primary);
+  color: var(--primary);
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 6px 20px rgba(16, 24, 40, 0.12);
+}
+.pet-empty {
+  padding: 60px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-muted);
+  font-size: 15px;
+}
+.pet-empty-icon {
+  font-size: 44px;
+}
+.pet-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.pet-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 16px;
+}
+.pet-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+.pet-panel-wide {
+  grid-column: 1 / -1;
+}
+.pet-panel-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+.pet-panel-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.pet-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.pet-field-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.pet-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+  min-width: 120px;
+}
+.pet-field-grow {
+  flex: 2;
+}
+.pet-field > span {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.pet-field input,
+.pet-field select,
+.pet-select {
+  padding: 8px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+}
+.pet-field input:focus,
+.pet-field select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.12);
+}
+.pet-textarea {
+  padding: 10px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  resize: vertical;
+}
+.pet-textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.12);
+}
+.pet-err {
+  color: #DC2626;
+  font-size: 13px;
+}
+.pet-subtle {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.pet-text-block {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-2);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-family: inherit;
+  max-height: 260px;
+  overflow-y: auto;
+}
+.pet-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.pet-info-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+}
+.pet-info-row span {
+  color: var(--text-muted);
+}
+.pet-info-row b {
+  color: var(--text);
+}
+.pet-score-btn {
+  align-self: flex-start;
+}
+/* 诊断拖拽区 */
+.pet-drop {
+  border-style: dashed;
+  border-color: var(--primary-light);
+}
+.pet-drop.dragover {
+  border-color: var(--primary);
+  background: var(--primary-faint);
+  box-shadow: 0 0 0 4px rgba(var(--primary-rgb), 0.12);
+}
+.pet-dropzone {
+  border: 2px dashed var(--primary-light);
+  border-radius: 12px;
+  background: var(--surface-2);
+  padding: 26px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+.pet-dropzone:hover {
+  border-color: var(--primary);
+  background: var(--primary-faint);
+}
+.pet-drop-icon {
+  font-size: 32px;
+  line-height: 1;
+}
+.pet-drop-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+.pet-diag-img-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.pet-diag-img {
+  width: 100%;
+  max-height: 200px;
+  object-fit: contain;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+}
+.pet-diag-img-meta {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.link-btn {
+  border: none;
+  background: none;
+  color: var(--primary);
+  cursor: pointer;
+  font-size: 12px;
+  font-family: inherit;
+  padding: 0;
+}
+.pet-block-btn {
+  width: 100%;
+}
+.pet-diag-section b {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--text);
+}
+.pet-diag-section p {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 14px;
+  line-height: 1.7;
+}
+.pet-diag-keywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+.pet-kw {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 600;
+}
+.pet-history {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.pet-history-item {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: var(--surface-2);
+}
+.pet-history-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: baseline;
+}
+.pet-history-head b {
+  color: var(--text);
+  font-size: 14px;
+}
+.pet-history-head span {
+  font-size: 12px;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+.pet-history-sub {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+/* 定时任务 */
+.pet-schedule-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.pet-schedule-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: var(--surface-2);
+}
+.pet-schedule-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.pet-schedule-info b {
+  color: var(--text);
+  font-size: 14px;
+}
+.pet-schedule-info span {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.pet-schedule-ops {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+/* 知识 */
+.pet-food-result {
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.pet-food-result.safe {
+  background: var(--primary-soft);
+  color: var(--text);
+}
+.pet-food-result.toxic {
+  background: #FEF2F2;
+  color: #7F1D1D;
+  border: 1px solid #FECACA;
+}
+.pet-food-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.pet-food-head b {
+  font-size: 15px;
+}
+.pet-food-head .lv-致命 { color: #DC2626; font-weight: 700; }
+.pet-food-head .lv-危险 { color: #EA580C; font-weight: 700; }
+.pet-food-head .lv-中等 { color: #CA8A04; font-weight: 700; }
+.pet-food-head .lv-轻度 { color: #65A30D; font-weight: 700; }
+.pet-food-line {
+  font-size: 13px;
+  color: var(--text-2);
+}
+.pet-age-result {
+  border-radius: 10px;
+  padding: 14px;
+  background: var(--primary-soft);
+}
+.pet-age-main {
+  font-size: 15px;
+  color: var(--text);
+}
+.pet-age-main b {
+  font-size: 26px;
+  color: var(--primary);
+}
+/* 新建宠物弹窗 */
+.pet-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(16, 24, 40, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pet-modal {
+  width: min(480px, calc(100vw - 48px));
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 20px 50px rgba(16, 24, 40, 0.2);
+}
+.pet-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.pet-modal-head h3 {
+  margin: 0;
+  font-size: 17px;
+  color: var(--text);
+}
+.pet-modal-close {
+  border: none;
+  background: none;
+  font-size: 16px;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 4px;
+}
+.pet-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* ===== 仪表盘 ===== */
+.pet-dash {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.pet-dash-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 12px;
+}
+.pet-dash-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--primary);
+  border-radius: 12px;
+  padding: 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: center;
+  transition: box-shadow 0.15s;
+}
+.pet-dash-card:hover { box-shadow: 0 2px 8px rgba(16, 24, 40, 0.06); }
+.pet-dash-card-icon { font-size: 22px; }
+.pet-dash-card-val { font-size: 17px; font-weight: 700; color: var(--text); }
+.pet-dash-card-lbl { font-size: 11px; color: var(--text-muted); }
+
+.pet-dash-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+.pet-chart-svg { width: 100%; height: auto; display: block; }
+
+.pet-donut-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 4px 0;
+}
+.pet-donut-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.pet-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+}
+.pet-legend-dot {
+  width: 9px; height: 9px; border-radius: 3px; flex-shrink: 0;
+}
+.pet-legend-name { color: var(--text-2); }
+.pet-legend-pct { color: var(--text-muted); margin-left: auto; }
+
+.pet-gauge-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0;
+}
+.pet-gauge-label { font-size: 13px; font-weight: 600; color: var(--text); }
+
+.pet-uid-input {
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.pet-uid-input:focus { border-color: var(--primary); color: var(--text); }
+
+/* ===== 宠物切换下拉（参考 health member-dropdown） ===== */
+.pet-dropdown {
+  position: relative;
+  flex-shrink: 0;
+}
+.pet-dropdown-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+.pet-dropdown-trigger:hover {
+  border-color: var(--primary);
+}
+.pet-dropdown-avatar {
+  font-size: 15px;
+  line-height: 1;
+}
+.pet-dropdown-name {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pet-dropdown-arrow {
+  font-size: 10px;
+  transition: transform 0.15s;
+  color: var(--text-muted);
+}
+.pet-dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+.pet-dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  min-width: 170px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  z-index: 100;
+  overflow: hidden;
+}
+.pet-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  cursor: pointer;
+  font-size: 13px;
+  font-family: inherit;
+  transition: background 0.1s;
+  color: var(--text);
+}
+.pet-dropdown-item:hover {
+  background: var(--hover);
+}
+.pet-dropdown-item.active {
+  background: var(--primary-soft);
+  font-weight: 600;
+  color: var(--primary);
+}
+.pet-dropdown-empty {
+  color: var(--text-muted);
+  cursor: default;
+}
+.pet-dropdown-add {
+  color: var(--text-muted);
+  border-top: 1px solid var(--border);
+  font-weight: 400;
+}
+.pet-dropdown-add:hover {
+  color: var(--primary);
+}

@@ -1,0 +1,134 @@
+/* ===== 法律 RAG 检索页（tools/LawRagView）===== */
+.law-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.law-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  background: var(--surface-2);
+}
+.law-status.online {
+  color: #389e0d;
+  border-color: #b7eb8f;
+  background: #f6ffed;
+}
+.law-status.offline {
+  color: #d9534f;
+  border-color: #f0c9c7;
+  background: #fff1f0;
+}
+.law-status.indexing {
+  color: #d46b08;
+  border-color: #ffd591;
+  background: #fff7e6;
+}
+.law-refresh {
+  margin-left: auto;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: inherit;
+  padding: 0 2px;
+}
+.law-libs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.law-lib {
+  padding: 6px 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: 13px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s ease;
+}
+.law-lib.active {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-weight: 600;
+}
+.law-question {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  padding: 10px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--text);
+  background: var(--surface-2);
+  line-height: 1.6;
+}
+.law-question:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+.law-result {
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.law-answer {
+  background: var(--primary-soft);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.law-answer-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 8px;
+}
+.law-answer-body {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text-2);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.law-articles {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.law-articles-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+.law-article {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: var(--surface-2);
+}
+.law-article-meta {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+.law-article-content {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-2);
+  white-space: pre-wrap;
+  word-break: break-word;
+}

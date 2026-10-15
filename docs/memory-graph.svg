@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 910" width="1000" height="910" font-family="Microsoft YaHei, PingFang SC, Hiragino Sans GB, sans-serif">
+<title>记忆脑图（分代同心环布局）</title>
+<rect x="0" y="0" width="1000" height="910" fill="#FFFFFF"/>
+<text x="32" y="38" font-size="19" font-weight="600" fill="#111827">记忆脑图 · 分代同心环布局</text>
+<text x="32" y="60" font-size="12" fill="#6B7280">数据源 GET /api/memory/graph?userId= — 根节点在圆心，越靠外环越接近被回收</text>
+<circle cx="500.0" cy="380.0" r="120.0" fill="none" stroke="#E5E7EB" stroke-width="1"/>
+<circle cx="500.0" cy="380.0" r="200.0" fill="none" stroke="#E5E7EB" stroke-width="1"/>
+<circle cx="500.0" cy="380.0" r="280.0" fill="none" stroke="#E5E7EB" stroke-width="1"/>
+<circle cx="500.0" cy="380.0" r="320.0" fill="none" stroke="#E5E7EB" stroke-width="1"/>
+<text x="380.0" y="380.0" font-size="10.5" fill="#6B7280" text-anchor="end" font-style="italic">OLD · 120px</text>
+<text x="302.5" y="411.3" font-size="10.5" fill="#6B7280" text-anchor="end" font-style="italic">SURVIVOR · 200px</text>
+<text x="427.5" y="109.5" font-size="10.5" fill="#6B7280" text-anchor="middle" font-style="italic">NEW · 280px</text>
+<text x="180.0" y="380.0" font-size="10.5" fill="#6B7280" text-anchor="end" font-style="italic">PENDING_GC · 320px</text>
+<g stroke="#D1D5DB" opacity="0.45">
+<line x1="500.0" y1="380.0" x2="620.0" y2="380.0" stroke-width="1.6"/>
+<line x1="500.0" y1="380.0" x2="440.0" y2="483.9" stroke-width="1.6"/>
+<line x1="500.0" y1="380.0" x2="440.0" y2="276.1" stroke-width="1.0"/>
+<line x1="500.0" y1="380.0" x2="662.8" y2="496.2" stroke-width="1.0"/>
+<line x1="500.0" y1="380.0" x2="383.8" y2="542.8" stroke-width="1.0"/>
+<line x1="500.0" y1="380.0" x2="337.2" y2="263.8" stroke-width="1.0"/>
+<line x1="500.0" y1="380.0" x2="276.2" y2="548.3" stroke-width="1.0"/>
+<line x1="500.0" y1="380.0" x2="270.8" y2="219.2" stroke-width="1.0"/>
+<line x1="500.0" y1="380.0" x2="780.0" y2="375.3" stroke-width="1.0"/>
+<line x1="500.0" y1="380.0" x2="408.7" y2="686.7" stroke-width="1.0"/>
+<line x1="500.0" y1="380.0" x2="280.0" y2="147.6" stroke-width="1.0"/>
+<line x1="500.0" y1="380.0" x2="811.2" y2="305.7" stroke-width="1.0"/>
+</g>
+<g stroke="#2a78d6" opacity="0.55" stroke-dasharray="3 3">
+<line x1="620.0" y1="380.0" x2="440.0" y2="483.9" stroke-width="1.0"/>
+<line x1="440.0" y1="276.1" x2="590.9" y2="644.8" stroke-width="1.0"/>
+<line x1="662.8" y1="496.2" x2="383.8" y2="542.8" stroke-width="1.0"/>
+<line x1="616.2" y1="217.2" x2="582.1" y2="112.3" stroke-width="1.0"/>
+<line x1="337.2" y1="263.8" x2="440.0" y2="276.1" stroke-width="1.0"/>
+</g>
+<circle cx="620.0" cy="380.0" r="16.6" fill="#0d366b" stroke="#FFFFFF" stroke-width="2"><title>用户叫张三\n分代：OLD｜类型：BASIC｜重要度：9｜访问：12 次｜年龄：210 天</title></circle>
+<circle cx="440.0" cy="483.9" r="15.3" fill="#0d366b" stroke="#FFFFFF" stroke-width="2"><title>用户是软件工程师\n分代：OLD｜类型：SEMANTIC｜重要度：9｜访问：9 次｜年龄：180 天</title></circle>
+<circle cx="440.0" cy="276.1" r="13.3" fill="#0d366b" stroke="#FFFFFF" stroke-width="2"><title>用户住在杭州\n分代：OLD｜类型：BASIC｜重要度：8｜访问：7 次｜年龄：150 天</title></circle>
+<circle cx="662.8" cy="496.2" r="9.8" fill="#2a78d6" stroke="#FFFFFF" stroke-width="2"><title>用户喜欢喝咖啡\n分代：SURVIVOR｜类型：SEMANTIC｜重要度：6｜访问：4 次｜年龄：90 天</title></circle>
+<circle cx="383.8" cy="542.8" r="9.2" fill="#2a78d6" stroke="#FFFFFF" stroke-width="2"><title>用户不喜欢香菜\n分代：SURVIVOR｜类型：SEMANTIC｜重要度：6｜访问：3 次｜年龄：75 天</title></circle>
+<circle cx="337.2" cy="263.8" r="7.8" fill="#2a78d6" stroke="#FFFFFF" stroke-width="2"><title>用户养了一只猫\n分代：SURVIVOR｜类型：SEMANTIC｜重要度：5｜访问：2 次｜年龄：60 天</title></circle>
+<circle cx="616.2" cy="217.2" r="7.8" fill="#2a78d6" stroke="#FFFFFF" stroke-width="2"><title>用户在准备考研\n分代：SURVIVOR｜类型：EPISODIC｜重要度：5｜访问：2 次｜年龄：40 天</title></circle>
+<circle cx="590.9" cy="644.8" r="6.0" fill="#86b6ef" stroke="#FFFFFF" stroke-width="2"><title>用户昨天去了西湖\n分代：NEW｜类型：EPISODIC｜重要度：3｜访问：0 次｜年龄：1 天</title></circle>
+<circle cx="276.2" cy="548.3" r="6.0" fill="#86b6ef" stroke="#FFFFFF" stroke-width="2"><title>用户想学 Rust\n分代：NEW｜类型：SEMANTIC｜重要度：3｜访问：1 次｜年龄：3 天</title></circle>
+<circle cx="270.8" cy="219.2" r="6.0" fill="#86b6ef" stroke="#FFFFFF" stroke-width="2"><title>用户下周去北京出差\n分代：NEW｜类型：EPISODIC｜重要度：3｜访问：0 次｜年龄：2 天</title></circle>
+<circle cx="582.1" cy="112.3" r="6.0" fill="#86b6ef" stroke="#FFFFFF" stroke-width="2"><title>用户最近在减肥\n分代：NEW｜类型：EPISODIC｜重要度：3｜访问：1 次｜年龄：5 天</title></circle>
+<circle cx="780.0" cy="375.3" r="6.0" fill="#86b6ef" stroke="#FFFFFF" stroke-width="2"><title>用户买了机械键盘\n分代：NEW｜类型：EPISODIC｜重要度：3｜访问：0 次｜年龄：6 天</title></circle>
+<circle cx="408.7" cy="686.7" r="6.0" fill="#d03b3b" stroke="#FFFFFF" stroke-width="2"><title>用户说过天气不错\n分代：PENDING_GC｜类型：EPISODIC｜重要度：1｜访问：0 次｜年龄：20 天</title></circle>
+<circle cx="280.0" cy="147.6" r="6.0" fill="#d03b3b" stroke="#FFFFFF" stroke-width="2"><title>用户顺口提过讨厌堵车\n分代：PENDING_GC｜类型：EPISODIC｜重要度：1｜访问：0 次｜年龄：12 天</title></circle>
+<circle cx="811.2" cy="305.7" r="6.0" fill="#d03b3b" stroke="#FFFFFF" stroke-width="2"><title>用户问过地铁末班车\n分代：PENDING_GC｜类型：EPISODIC｜重要度：3｜访问：0 次｜年龄：68 天</title></circle>
+<text x="643.5" y="383.5" font-size="10" fill="#6B7280" text-anchor="start">用户叫张三</text>
+<text x="428.8" y="506.8" font-size="10" fill="#6B7280" text-anchor="end">用户是软件工程师</text>
+<text x="429.8" y="262.0" font-size="10" fill="#6B7280" text-anchor="end">用户住在杭州</text>
+<text x="676.5" y="509.5" font-size="10" fill="#6B7280" text-anchor="start">用户喜欢喝咖啡</text>
+<text x="374.4" y="559.4" font-size="10" fill="#6B7280" text-anchor="end">用户不喜欢香菜</text>
+<text x="325.2" y="258.7" font-size="10" fill="#6B7280" text-anchor="end">用户养了一只猫</text>
+<text x="624.8" y="208.7" font-size="10" fill="#6B7280" text-anchor="start">用户在准备考研</text>
+<text x="590.9" y="663.8" font-size="10" fill="#6B7280" text-anchor="middle">用户昨天去了西湖</text>
+<text x="265.8" y="559.7" font-size="10" fill="#6B7280" text-anchor="end">用户想学 Rust</text>
+<text x="260.1" y="215.2" font-size="10" fill="#6B7280" text-anchor="end">用户下周去北京出差</text>
+<text x="582.1" y="98.3" font-size="10" fill="#6B7280" text-anchor="middle">用户最近在减肥</text>
+<text x="793.0" y="378.6" font-size="10" fill="#6B7280" text-anchor="start">用户买了机械键盘</text>
+<text x="408.7" y="705.7" font-size="10" fill="#6B7280" text-anchor="middle">用户说过天气不错</text>
+<text x="271.1" y="141.7" font-size="10" fill="#6B7280" text-anchor="end">用户顺口提过讨厌堵车</text>
+<text x="823.9" y="306.2" font-size="10" fill="#6B7280" text-anchor="start">用户问过地铁末班车</text>
+<circle cx="500.0" cy="380.0" r="30.0" fill="#6B7280" stroke="#FFFFFF" stroke-width="2"><title>用户画像（根节点）</title></circle>
+<text x="500.0" y="426.0" font-size="12" font-weight="600" fill="#6B7280" text-anchor="middle">用户画像</text>
+<line x1="0" y1="760.0" x2="1000" y2="760.0" stroke="#E5E7EB" stroke-width="1"/>
+<circle cx="39.0" cy="790.0" r="7" fill="#0d366b"/>
+<text x="52.0" y="794.0" font-size="12" fill="#111827">OLD 稳固事实</text>
+<circle cx="150.6" cy="790.0" r="7" fill="#2a78d6"/>
+<text x="163.6" y="794.0" font-size="12" fill="#111827">SURVIVOR 有用</text>
+<circle cx="286.8" cy="790.0" r="7" fill="#86b6ef"/>
+<text x="299.8" y="794.0" font-size="12" fill="#111827">NEW 新生成</text>
+<circle cx="390.2" cy="790.0" r="7" fill="#d03b3b"/>
+<text x="403.2" y="794.0" font-size="12" fill="#111827">PENDING_GC 待回收</text>
+<circle cx="551.0" cy="790.0" r="7" fill="#6B7280"/>
+<text x="564.0" y="794.0" font-size="12" fill="#111827">根节点</text>
+<line x1="32.0" y1="816.0" x2="52.0" y2="816.0" stroke="#D1D5DB" stroke-width="2" opacity="0.6"/>
+<text x="60" y="820.0" font-size="12" fill="#111827">HIERARCHY 归属边（12 条）—— 画像类记忆直接挂根节点</text>
+<line x1="32.0" y1="836.0" x2="52.0" y2="836.0" stroke="#2a78d6" stroke-width="2" stroke-dasharray="3 3" opacity="0.7"/>
+<text x="60" y="840.0" font-size="12" fill="#111827">SIMILARITY 语义边（5 条）—— 余弦相似度 ≥ 0.7</text>
+<text x="32" y="866.0" font-size="11.5" fill="#6B7280">环半径 = 分代（OLD 120px → SURVIVOR 200 → NEW 280 → PENDING_GC 320）；节点大小 = 10 × (1 + ln(1+访问次数) × 重要度/10)，绘制时 clamp 到 6~30</text>
+<text x="32" y="886.0" font-size="11.5" fill="#6B7280">EPISODIC 不在"画像类"里；它靠 SIMILARITY 边关联，<tspan font-weight="600">一条边都没有时补一条归属边</tspan>，避免孤立点</text>
+<text x="32" y="906.0" font-size="11.5" fill="#6B7280">PENDING_GC 表示下次衰减（每日 03:00）就会被删除：重要度 &lt; 2，或情景记忆超过 60 天</text>
+<text x="32" y="926.0" font-size="11.5" fill="#6B7280">注：界面里只有半径 ≥ 12 的节点常驻显示标签（其余靠 hover）；本图为了静态可读全部标注，并已把标签移到节点外侧避让</text>
+</svg>

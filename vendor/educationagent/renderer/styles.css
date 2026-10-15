@@ -1,0 +1,2 @@
+/* 画布布局及 prose 样式由 SlideCanvas 内联提供；这里只加载本地公式字体。 */
+@import 'katex/dist/katex.min.css';

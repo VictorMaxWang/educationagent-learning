@@ -1,0 +1,392 @@
+.wrapper {
+  position: fixed;
+  z-index: 60; /* 低于设置弹窗(100)，打开设置时播放器在其下 */
+  cursor: grab; /* 可拖动（抓手图标） */
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* 隐藏原生 AudioPlayer，只借音频内核。
+   注意：不能用 display:none（会导致音频无法播放），用 0 尺寸 + 透明隐藏 */
+.audioHidden {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 隐藏按钮（卡片右上角） */
+.hideBtn {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted, #999);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 2px 4px;
+  z-index: 5;
+}
+.hideBtn:hover {
+  color: var(--text, #333);
+}
+
+/* 隐藏后的小圆点按钮（点它恢复播放器） */
+.miniFab {
+  position: fixed;
+  left: 240px;
+  bottom: 12px;
+  z-index: 60;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  border: 1px solid var(--border, #f0d8e0);
+  background: var(--surface, #fff);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  font-size: 18px;
+  cursor: pointer;
+}
+.miniFab:hover {
+  background: var(--primary-soft, #f5f5f5);
+}
+
+.playerCard {
+  width: 260px;
+  padding: 8px;
+  background: var(--surface, #ffffff);
+  border: 1px solid var(--border, #f0d8e0);
+  border-radius: 14px;
+  box-shadow: 0 4px 14px rgba(232, 184, 204, 0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* 横向主行：黑胶在左，信息/控制在右 */
+.mainRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 黑胶容器 */
+.diskBox {
+  position: relative;
+  width: 70px;
+  height: 70px;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.disk {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  cursor: pointer; /* 点黑胶 = 播放/暂停 */
+}
+
+/* 右侧信息列 */
+.infoCol {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.rotate {
+  animation: spin 8s linear infinite;
+}
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+.diskImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 歌名 */
+.songInfo {
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text, #333);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 进度条（含时间） */
+.progressWrap {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 2px 0 4px;
+}
+.progressBar {
+  flex: 1;
+  height: 4px;
+  background: var(--primary-soft, #f3d9e3);
+  border-radius: 99px;
+  overflow: hidden;
+  cursor: pointer;
+}
+.progressFill {
+  height: 100%;
+  width: 0%;
+  background: var(--primary, #e8b8cc);
+  border-radius: 99px;
+  transition: width 0.2s linear;
+}
+.timeLabel {
+  font-size: 9px;
+  color: var(--text-muted, #999);
+  min-width: 26px;
+  text-align: center;
+}
+
+/* 控制栏 */
+.controlRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 4px 0 0;
+}
+.controlRow button {
+  background: transparent;
+  border: none;
+  font-size: 15px;
+  color: var(--primary-text, #c96a92);
+  cursor: pointer;
+  line-height: 1;
+}
+.controlRow button:hover {
+  color: var(--primary-text-hover, #a85578);
+}
+.btnPlay {
+  font-size: 22px !important;
+}
+
+/* 模式切换（搜索 / 歌单） */
+.modeRow {
+  display: flex;
+  gap: 4px;
+  margin-top: 2px;
+}
+.modeBtn {
+  flex: 1;
+  border: 1px solid var(--border, #eee);
+  background: transparent;
+  border-radius: 6px;
+  font-size: 11px;
+  padding: 3px 0;
+  color: var(--text-muted, #999);
+  cursor: pointer;
+}
+.modeActive {
+  background: var(--primary-soft, #f3d9e3);
+  border-color: var(--primary, #e8b8cc);
+  color: var(--text, #333);
+}
+
+/* 搜索区 */
+.searchBox {
+  position: relative;
+  margin-top: 2px;
+}
+.searchInput {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--border, #eee);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 11px;
+  background: var(--surface-2, #fff);
+  color: var(--text, #333);
+}
+.searchInput:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+.searchResults {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  z-index: 1000;
+  max-height: 160px;
+  overflow-y: auto;
+  background: var(--surface, #fff);
+  border: 1px solid var(--border, #eee);
+  border-radius: 8px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  scrollbar-width: none;
+}
+.searchItem {
+  display: block;
+  width: 100%;
+  border: none;
+  background: transparent;
+  text-align: left;
+  padding: 5px 8px;
+  font-size: 11px;
+  color: var(--text, #333);
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.searchItem:hover {
+  background: var(--primary-soft, #f5f5f5);
+}
+
+/* 歌单区 */
+.playlistHint {
+  font-size: 11px;
+  color: var(--text-muted, #999);
+  padding: 4px 2px;
+}
+.playlistList {
+  max-height: 160px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.playlistTitle {
+  font-size: 10px;
+  color: var(--text-muted, #999);
+  padding: 2px 2px 4px;
+}
+.playlistItem {
+  display: block;
+  width: 100%;
+  border: none;
+  background: transparent;
+  text-align: left;
+  padding: 4px 8px;
+  font-size: 11px;
+  color: var(--text, #333);
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-radius: 6px;
+}
+.playlistItem:hover {
+  background: var(--primary-soft, #f5f5f5);
+}
+
+/* 卡片内两句歌词：当前句 + 下一句（文字居中） */
+.lyricMini {
+  height: 30px;
+  overflow: hidden;
+  text-align: center;
+}
+.lyricMiniLine {
+  height: 15px;
+  line-height: 15px;
+  font-size: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 2px;
+}
+.lyricMiniCurrent {
+  color: var(--primary-text, #c96a92);
+  font-weight: 600;
+}
+.lyricMiniNext {
+  color: var(--text-muted, #999);
+  font-size: 10px;
+}
+
+/* cookie 登录区 */
+.cookieToggle {
+  display: block;
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: var(--text-muted, #999);
+  font-size: 10px;
+  padding: 3px 0 0;
+  cursor: pointer;
+  text-align: left;
+}
+.cookieToggle:hover {
+  color: var(--primary-text, #666);
+}
+.cookieRow {
+  display: flex;
+  gap: 5px;
+  padding: 3px 0 0;
+}
+.cookieInput {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid var(--border, #eee);
+  border-radius: 6px;
+  padding: 3px 6px;
+  font-size: 10px;
+  background: var(--surface-2, #fff);
+  color: var(--text, #333);
+}
+.cookieInput:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+.cookieSave {
+  border: none;
+  border-radius: 6px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: 10px;
+  padding: 0 8px;
+  cursor: pointer;
+}
+
+/* ===== 转为圆形旋转播放按钮（卡片右上角，✕ 左侧） ===== */
+.collapseBtn {
+  position: absolute;
+  top: 6px;
+  right: 30px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted, #999);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 2px 4px;
+  z-index: 5;
+}
+.collapseBtn:hover {
+  color: var(--text, #333);
+}
+
+/* ===== 圆形旋转播放状态：仅一个纯光盘，播放时旋转 ===== */
+.circleDisk {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  background: #1a1a1a;
+}
+.circleDiskImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+}

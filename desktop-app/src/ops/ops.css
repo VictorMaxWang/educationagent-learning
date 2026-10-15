@@ -1,0 +1,516 @@
+/* ============================================================
+   运维观测（路由评测 / 指标监控 / 记忆脑图）
+   ------------------------------------------------------------
+   数据色是「冻结」的，不随 7 套主题走 —— 主题负责表面与文字，
+   图表负责序列色。理由：主题色里 --primary 在 7 套主题间从
+   #6366f1 一直到 #FECBCA（近白），近白的前景色在白色卡片上
+   对比度只有 1.1:1，用它画图等于看不见。
+
+   下面这组值都经过对比度/CVD 校验（surface = #FFFFFF，
+   与本项目全部 7 套主题的 --surface 一致）：
+     · 序列色          #2a78d6  4.42:1
+     · 序数色阶 浅→深   #86b6ef → #2a78d6 → #0d366b
+       浅端 2.11:1（序数色阶要求 ≥2:1）、相邻亮度差 ≥0.06、单一色相
+       与 PENDING_GC 红做 all-pairs：最差 CVD ΔE 19.1、正视 ΔE 20.0
+     · 状态色 命中      #0ca30c  3.35:1
+     · 状态色 待回收    #d03b3b  4.80:1
+   刻意不用的：#fab219（warning，实测 1.83:1 不达标，除非配 icon+label）。
+   ============================================================ */
+
+.ops-root {
+  /* 数据色（冻结，不跟主题） */
+  --ops-series: #2a78d6;
+  --ops-gen-new: #86b6ef;
+  --ops-gen-survivor: #2a78d6;
+  --ops-gen-old: #0d366b;
+  --ops-status-good: #0ca30c;
+  --ops-status-critical: #d03b3b;
+  --ops-grid: var(--border);
+  --ops-axis: var(--border-strong, var(--border));
+  --ops-ink: var(--text);
+  --ops-ink-muted: var(--text-muted);
+
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+}
+
+/* 面板：复用项目既有 mg-panel 的观感，但允许更宽 */
+.ops-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ops-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.ops-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.ops-sub {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ---------- 统计磁贴（标题数字，不是图表） ---------- */
+.ops-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.ops-tile {
+  background: var(--surface-2, var(--surface));
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ops-tile-label {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.ops-tile-value {
+  font-size: 24px;
+  font-weight: 650;
+  line-height: 1.1;
+  color: var(--text);
+}
+
+.ops-tile-unit {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-left: 3px;
+}
+
+.ops-tile-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.ops-tile-value.is-good {
+  color: var(--ops-status-good);
+}
+
+.ops-tile-value.is-bad {
+  color: var(--ops-status-critical);
+}
+
+/* ---------- 图例（≥2 个序列时必须有，身份不能只靠颜色） ---------- */
+.ops-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.ops-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.ops-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  display: inline-block;
+  flex: none;
+}
+
+/* 线型图例项：用一小段线而不是色块，跟图上的边对上 */
+.ops-swatch.is-line {
+  width: 16px;
+  height: 0;
+  border-radius: 0;
+  border-top: 2px solid var(--border-strong, var(--border));
+}
+.ops-swatch.is-line.is-similarity {
+  border-top-color: var(--ops-series);
+  border-top-style: dashed;
+}
+
+/* ---------- 单序列横向条（标称类别：全部同一色相） ---------- */
+.ops-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ops-bar-row {
+  display: grid;
+  grid-template-columns: 132px 1fr 62px;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+}
+
+.ops-bar-name {
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ops-bar-track {
+  height: 14px;
+  background: transparent;
+  position: relative;
+}
+
+/* 4px 圆角数据端，锚在基线上 */
+.ops-bar-fill {
+  height: 14px;
+  border-radius: 0 4px 4px 0;
+  background: var(--ops-series);
+  min-width: 2px;
+  transition: width 0.18s ease-out;
+}
+
+.ops-bar-row:hover .ops-bar-fill {
+  filter: brightness(1.08);
+}
+
+.ops-bar-fill.is-status {
+  background: var(--ops-status-critical);
+}
+
+.ops-bar-value {
+  text-align: right;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- 折线 / 迷你图 ---------- */
+.ops-chart-svg {
+  width: 100%;
+  display: block;
+  overflow: visible;
+}
+
+.ops-axis-text {
+  font-size: 10px;
+  fill: var(--text-muted);
+}
+
+.ops-gridline {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.ops-baseline {
+  stroke: var(--border-strong, var(--border));
+  stroke-width: 1;
+}
+
+.ops-line {
+  fill: none;
+  stroke: var(--ops-series);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.ops-area {
+  fill: var(--ops-series);
+  opacity: 0.10;
+}
+
+.ops-dot {
+  fill: var(--ops-series);
+  stroke: var(--surface);
+  stroke-width: 2;
+}
+
+.ops-ref-line {
+  stroke: var(--ops-status-good);
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+}
+
+/* ---------- 记忆脑图 ---------- */
+.ops-graph-wrap {
+  /* 固定高度 + overflow hidden：避免容器尺寸反馈引发重排死循环 */
+  /* 348 = 页头 + 用户ID输入行 + 统计胶囊行 + 页边距；比原来（300）多一行 */
+  height: calc(100vh - 348px);
+  min-height: 380px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  position: relative;
+}
+
+.ops-graph-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.ops-node {
+  cursor: pointer;
+  transition: opacity 0.15s ease-out;
+}
+
+/* ⚠️ 这里**不能**写 fill: none。
+   JSX 上是用表现属性给的填充（<circle fill={颜色}>），而在 SVG 里
+   **CSS 规则的优先级高于表现属性**（表现属性相当于特异性 0）。
+   一旦这里写了 fill:none，就会把所有节点填成"无"，只剩白描边，
+   在白底画布上整个圆隐形 —— 表现为"看得见连线和标签，就是看不见圆"。 */
+.ops-node-ring {
+  stroke: var(--surface);
+  stroke-width: 2;
+}
+
+/* 边分两种：归属（实线、中性色、更弱）与语义近邻（虚线、序列色）。
+   两者必须能一眼分开——否则"这条记忆属于用户画像"和"这两条记忆像"看起来是同一件事。 */
+.ops-link {
+  stroke: var(--border-strong, var(--border));
+  stroke-width: 1;
+  opacity: 0.5;
+}
+
+.ops-link.is-hierarchy {
+  stroke: var(--border-strong, var(--border));
+  opacity: 0.45;
+}
+
+.ops-link.is-similarity {
+  stroke: var(--ops-series);
+  stroke-dasharray: 3 3;
+  opacity: 0.55;
+}
+
+/* 节点标签：每个节点都常驻显示（不靠 hover/点击）。
+   图上连线密集，纯文字会被连线切得读不出来，所以加一圈白色描边当"底"——
+   paint-order: stroke 让描边画在文字下面，而不是糊在字上。
+   数据色是冻结的，但 --surface 在 7 套主题里都是 #FFFFFF，所以用它是安全的。 */
+.ops-node-label {
+  font-size: 11px;
+  fill: var(--text-muted);
+  paint-order: stroke;
+  stroke: var(--surface);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  pointer-events: none;
+  user-select: none;
+}
+
+.ops-graph-tip {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  max-width: 340px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+  color: var(--text);
+  box-shadow: 0 2px 10px rgba(16, 24, 40, 0.08);
+}
+
+.ops-graph-tip .ops-tip-meta {
+  color: var(--text-muted);
+  font-size: 11px;
+  margin-top: 3px;
+}
+
+/* ---------- 表格视图（可访问性要求：颜色之外要有可读的数值） ---------- */
+.ops-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.ops-table th,
+.ops-table td {
+  text-align: left;
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.ops-table th {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.ops-table td.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+/* 关键词是"标签"性质的信息，比正文弱一档；用序列色点一下，跟分代色块区分开 */
+.ops-kw {
+  color: var(--ops-series);
+  font-size: 11px;
+  word-break: break-all;
+}
+
+/* ---------- 控件 ---------- */
+.ops-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ops-toggle {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.ops-toggle.active {
+  border-color: var(--ops-series);
+  color: var(--ops-series);
+}
+
+.ops-msg {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.ops-msg.is-error {
+  color: var(--ops-status-critical);
+}
+
+.ops-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.ops-status-pill .ops-swatch {
+  border-radius: 50%;
+}
+
+/* ---------- 记忆脑图：工具栏 / 输入 / 统计胶囊 / 图例浮层 ---------- */
+
+.ops-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ops-input {
+  flex: 1 1 320px;
+  min-width: 220px;
+  font-size: 13px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  outline: none;
+}
+
+.ops-input:focus {
+  border-color: var(--ops-series);
+  box-shadow: 0 0 0 3px rgba(42, 120, 214, 0.12);
+}
+
+.ops-btn {
+  font-size: 13px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.ops-btn.is-primary {
+  background: var(--ops-series);
+  border-color: var(--ops-series);
+  color: #fff;
+  font-weight: 500;
+}
+
+.ops-btn.is-primary:hover {
+  filter: brightness(1.08);
+}
+
+/* 统计胶囊：节点数 / 边数 / 记忆条数 */
+.ops-pill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 12px;
+  padding: 3px 12px;
+  border-radius: 999px;
+  background: var(--surface-2, var(--surface));
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.ops-pill.is-warn {
+  color: var(--ops-status-critical);
+  border-color: var(--ops-status-critical);
+}
+
+/* 图例浮层：压在画布右上角，不占布局空间 */
+.ops-legend-float {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: 0 2px 10px rgba(16, 24, 40, 0.06);
+  font-size: 12px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.ops-legend-float .ops-swatch {
+  border-radius: 50%;
+}
+
+/* 节点里的编号徽章：白字压在深色节点上，只在节点够大时画 */
+.ops-node-idx {
+  font-size: 11px;
+  font-weight: 600;
+  fill: #fff;
+  pointer-events: none;
+  user-select: none;
+}

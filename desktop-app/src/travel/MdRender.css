@@ -1,0 +1,109 @@
+/* ==================== Markdown 渲染 ==================== */
+.md-container {
+  width: 100%;
+  overflow-x: auto;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap; /* 保留 AI 回复中的换行，同时渲染 Markdown 语法 */
+  word-break: break-word;
+}
+
+/* 标题 */
+.md-container h1,
+.md-container h2,
+.md-container h3,
+.md-container h4 {
+  margin: 10px 0 6px;
+  font-weight: 600;
+  color: #1f2937;
+}
+.md-container h1 { font-size: 20px; }
+.md-container h2 { font-size: 18px; }
+.md-container h3 { font-size: 16px; }
+.md-container h4 { font-size: 15px; }
+
+/* 段落 */
+.md-container p {
+  margin: 4px 0;
+}
+
+/* 加粗 / 斜体 / 删除线 / 行内代码 */
+.md-container strong { font-weight: 600; }
+.md-container em { font-style: italic; }
+.md-container del { color: #9ca3af; }
+.md-container code {
+  background: #f3f4f6;
+  border-radius: 4px;
+  padding: 1px 4px;
+  font-size: 13px;
+  font-family: Consolas, Monaco, monospace;
+}
+
+/* 代码块 */
+.md-container pre {
+  background: #1f2937;
+  color: #e5e7eb;
+  border-radius: 8px;
+  padding: 12px;
+  overflow-x: auto;
+  margin: 8px 0;
+}
+.md-container pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+}
+
+/* 表格 */
+.md-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 8px 0;
+  border: 1px solid #e5e7eb;
+}
+.md-table-th {
+  background-color: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  padding: 6px 10px;
+  font-weight: 600;
+}
+.md-table-td {
+  border: 1px solid #e5e7eb;
+  padding: 6px 10px;
+}
+.md-table-row:hover {
+  background-color: #f9fafb;
+}
+
+/* 列表 */
+.md-ul {
+  padding-left: 20px;
+  margin: 6px 0;
+}
+.md-ol {
+  padding-left: 22px;
+  margin: 6px 0;
+}
+.md-li {
+  margin: 4px 0;
+}
+
+/* 引用 / 分割线 / 链接 */
+.md-container blockquote {
+  border-left: 3px solid #91caff;
+  padding-left: 10px;
+  margin: 6px 0;
+  color: #6b7280;
+}
+.md-container hr {
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: 8px 0;
+}
+.md-container a {
+  color: #1677ff;
+  text-decoration: none;
+}
+.md-container a:hover {
+  text-decoration: underline;
+}

@@ -1,0 +1,46 @@
+{
+  "name": "@educationagent/dsl",
+  "version": "0.11.3",
+  "description": "The EducationAgent slide DSL: the pure, dependency-free contract (types + JSON Schema + validators + version/migration helpers) that @educationagent/renderer and @educationagent/importer both depend on.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./schema/*": "./dist/schema/*"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
+    "build": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && tsc -p tsconfig.json && node scripts/gen-schema.mjs",
+    "build:schema": "node scripts/gen-schema.mjs",
+    "dev": "tsc -p tsconfig.json --watch",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [
+    "educationagent",
+    "dsl",
+    "slide",
+    "schema",
+    "contract"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "ajv": "^8.17.1",
+    "ts-json-schema-generator": "~2.4.0",
+    "typescript": "^5",
+    "vitest": "^4.1.8"
+  },
+  "private": true
+}

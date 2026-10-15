@@ -1,0 +1,1565 @@
+/* ==================== 出行穿搭（MaimemoOutfit） ==================== */
+.ofit-section {
+  margin-top: 4px;
+}
+.ofit-section-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #4a4a4a;
+  margin: 10px 0 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #f0ede8;
+}
+.ofit-upload {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border: 2px dashed #e8e2dc;
+  border-radius: 12px;
+  background: #fdfbf9;
+}
+.ofit-upload-hint {
+  font-size: 12px;
+  color: #999999;
+}
+/* 多件识别勾选预览 */
+.ofit-pending {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border: 1px solid #f8bbd0;
+  border-radius: 10px;
+  background: #fff7f9;
+}
+.ofit-pending-title {
+  font-size: 13px;
+  color: #4a4a4a;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+.ofit-pending-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 2px;
+  font-size: 13px;
+  color: #4a4a4a;
+  cursor: pointer;
+}
+.ofit-pending-item input {
+  accent-color: #f8bbd0;
+}
+.ofit-wardrobe {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+.ofit-cat {
+  border: 1px solid #f0ede8;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.ofit-cat-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #fdfbf9;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: #4a4a4a;
+}
+.ofit-cat-head:hover {
+  background: #fce4ec;
+}
+.ofit-cat-count {
+  font-size: 12px;
+  color: #999999;
+  font-weight: 400;
+}
+.ofit-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+  padding: 10px;
+}
+.ofit-item-card {
+  position: relative;
+  border: 1px solid #f0ede8;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+}
+.ofit-item-idle {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  z-index: 2;
+  background: #fff2f0;
+  color: #cf1322;
+  border-radius: 8px;
+  padding: 1px 6px;
+  font-size: 11px;
+}
+.ofit-idle-word {
+  background: #fff2f0 !important;
+  color: #cf1322 !important;
+}
+/* 导出图片隐藏目标 */
+.ofit-export-target {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  width: 440px;
+  background: #fff;
+  padding: 16px;
+  color: #333;
+}
+.ofit-export-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 8px;
+}
+.ofit-export-plan {
+  font-size: 14px;
+  line-height: 1.7;
+  color: #333;
+}
+.ofit-item-del {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.35);
+  color: #fff;
+  font-size: 11px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.ofit-item-card:hover .ofit-item-del {
+  opacity: 1;
+}
+.ofit-item-img {
+  width: 100%;
+  height: 110px;
+  object-fit: cover;
+  display: block;
+}
+.ofit-item-noimg {
+  width: 100%;
+  height: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  background: #fce4ec;
+}
+.ofit-item-info {
+  padding: 6px 8px 8px;
+}
+.ofit-item-sub {
+  font-size: 13px;
+  font-weight: 500;
+  color: #4a4a4a;
+  margin-bottom: 4px;
+}
+.ofit-item-cat {
+  width: 100%;
+  padding: 3px 6px;
+  margin-bottom: 4px;
+  border: 1px solid #e8e2dc;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #4a4a4a;
+  background: #fff;
+  cursor: pointer;
+}
+.ofit-item-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.ofit-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+}
+.ofit-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: #4a4a4a;
+}
+.ofit-label {
+  color: #999999;
+  font-size: 12px;
+}
+.ofit-input {
+  padding: 7px 10px;
+  border: 1px solid #e8e2dc;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 13px;
+  outline: none;
+}
+.ofit-input:focus {
+  border-color: #f8bbd0;
+}
+.ofit-check {
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  align-self: end;
+  padding-bottom: 8px;
+}
+.ofit-check input {
+  accent-color: #f8bbd0;
+}
+.ofit-hint {
+  font-size: 11px;
+  color: #f8bbd0;
+}
+.ofit-hints {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+.ofit-chat {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.ofit-stats {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.ofit-stats-total {
+  font-size: 13px;
+  color: #4a4a4a;
+}
+.ofit-followup {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  background: #f8f5f2;
+  border: 1px solid #efe9e4;
+  border-radius: 16px;
+  padding: 8px 10px;
+}
+.ofit-followup-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+}
+/* 虚拟试穿（分步） */
+.ofit-tryon-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid #f0ede8;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  background: #fdfbf9;
+}
+.ofit-tryon-step-done {
+  border-color: #f8bbd0;
+  background: #fff7f9;
+}
+.ofit-tryon-step-num {
+  font-size: 15px;
+  color: #f8bbd0;
+  font-weight: 600;
+}
+.ofit-tryon-step-label {
+  font-size: 14px;
+  color: #4a4a4a;
+  flex-shrink: 0;
+}
+.ofit-tryon-picked {
+  font-size: 13px;
+  color: #4a4a4a;
+  font-weight: 500;
+}
+.ofit-tryon-status {
+  font-size: 13px;
+  color: #389e0d;
+}
+.ofit-tryon-warn {
+  font-size: 13px;
+  color: #cf1322;
+  font-weight: 500;
+}
+/* 看图选衣网格 */
+.ofit-tryon-pick-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.ofit-tryon-pick {
+  position: relative;
+  border: 2px solid #e8e2dc;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  background: #fff;
+  transition: border-color 0.15s;
+}
+.ofit-tryon-pick:hover {
+  border-color: #f8bbd0;
+}
+.ofit-tryon-pick-selected {
+  border-color: #f8bbd0;
+  box-shadow: 0 0 0 2px rgba(248, 187, 208, 0.4);
+}
+.ofit-tryon-pick-img {
+  width: 100%;
+  height: 80px;
+  object-fit: cover;
+  display: block;
+}
+.ofit-tryon-pick-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: #4a4a4a;
+  padding: 4px 6px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ofit-tryon-pick-sub {
+  font-size: 11px;
+  color: #999999;
+  padding: 0 6px 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ofit-tryon-preview {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin: 8px 0;
+}
+.ofit-tryon-person {
+  width: 120px;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 2px solid #f0ede8;
+}
+.ofit-tryon-preview-label {
+  font-size: 11px;
+  color: #999999;
+}
+/* 试穿结果：固定 3:4 比例展示 */
+.ofit-tryon-result-area {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.ofit-tryon-img-wrap {
+  width: 240px;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: 10px;
+  border: 1px solid #f0ede8;
+  background: #fff;
+  flex-shrink: 0;
+}
+.ofit-tryon-result {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ofit-tryon-explain {
+  flex: 1;
+  min-width: 200px;
+  background: #fdfbf9;
+  border: 1px solid #f0ede8;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+/* ===== 多景点行程卡片 ===== */
+.ofit-day-card {
+  border: 1px solid #f0ede8;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 10px;
+  background: #fdfbf9;
+}
+.ofit-day-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.ofit-day-index {
+  font-size: 13px;
+  font-weight: 600;
+  color: #f8bbd0;
+}
+.ofit-day-status {
+  font-size: 12px;
+  color: #999999;
+  border: 1px solid #e8e2dc;
+  border-radius: 8px;
+  padding: 1px 8px;
+}
+.ofit-day-status-mid {
+  color: #d46b08;
+  border-color: #ffd591;
+  background: #fff7e6;
+}
+.ofit-day-status-done {
+  color: #389e0d;
+  border-color: #b7eb8f;
+  background: #f6ffed;
+}
+.ofit-day-card-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+/* 确认后只读汇总 */
+.ofit-confirmed-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid #f0ede8;
+  border-radius: 12px;
+  background: #fdfbf9;
+}
+.ofit-confirmed-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #4a4a4a;
+}
+.ofit-confirmed-idx {
+  color: #f8bbd0;
+  font-weight: 600;
+}
+.ofit-confirmed-name {
+  font-weight: 600;
+  min-width: 90px;
+}
+.ofit-confirmed-info {
+  color: #999999;
+  flex: 1;
+}
+
+/* ===== 景点切换 Tab ===== */
+.ofit-day-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.ofit-day-tab {
+  padding: 5px 12px;
+  border: 1px solid #e8e2dc;
+  border-radius: 16px;
+  background: #fff;
+  font-size: 13px;
+  color: #4a4a4a;
+  cursor: pointer;
+}
+.ofit-day-tab:hover {
+  border-color: #f8bbd0;
+}
+.ofit-day-tab-active {
+  background: #f8bbd0;
+  border-color: #f8bbd0;
+  color: #fff;
+  font-weight: 600;
+}
+
+/* ===== 智能推荐标记 ===== */
+.ofit-rec-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 2;
+  background: #ff7875;
+  color: #fff;
+  border-radius: 8px;
+  padding: 0 6px;
+  font-size: 10px;
+}
+
+/* ===== 分景点方案卡 ===== */
+.ofit-plans {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+.ofit-plan-card {
+  border: 1px solid #f0ede8;
+  border-radius: 12px;
+  padding: 12px;
+  background: #fff;
+}
+.ofit-plan-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.ofit-plan-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #4a4a4a;
+}
+.ofit-plan-fail {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+  color: #cf1322;
+  background: #fff2f0;
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+.ofit-plan-result {
+  margin-top: 8px;
+  width: 160px;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #f0ede8;
+}
+.ofit-plan-outfits {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+.ofit-plan-outfits-label {
+  font-size: 12px;
+  color: #999999;
+}
+.ofit-tryout-btn {
+  padding: 3px 10px;
+  font-size: 12px;
+}
+/* 方案分段落 + 每段标题旁的试穿按钮 */
+.ofit-plan-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ofit-plan-sec {
+  border-top: 1px dashed #f0ede8;
+  padding-top: 8px;
+}
+.ofit-plan-sec-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.ofit-plan-sec-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #4a4a4a;
+}
+.ofit-manual {
+  margin-top: 12px;
+  border: 1px solid #e8e2dc;
+  border-radius: 12px;
+  padding: 12px;
+  background: #fdfbf9;
+}
+
+/* ===== 旅游计划 + 按天穿搭 ===== */
+.ofit-plan-form {
+  padding: 12px;
+  border: 1px solid #f0ede8;
+  border-radius: 12px;
+  background: #fdfbf9;
+  margin-bottom: 10px;
+}
+.ofit-field-wide {
+  grid-column: 1 / -1;
+}
+/* 行程景点 · 拍照参考按钮 */
+.ofit-spot-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.ofit-spot-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #f8bbd0;
+  background: #fff7f9;
+  color: #4a4a4a;
+  border-radius: 14px;
+  padding: 3px 8px 3px 10px;
+  font-size: 12px;
+}
+.ofit-photo-btn {
+  padding: 2px 8px;
+  font-size: 11px;
+}
+
+/* ===== 景点拍照参考弹窗 ===== */
+.photo-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.photo-modal-box {
+  background: #fff;
+  border-radius: 14px;
+  width: min(720px, 92vw);
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 16px;
+}
+.photo-modal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.photo-modal-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #4a4a4a;
+}
+.photo-modal-styles {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.photo-style-active {
+  background: #f8bbd0 !important;
+  border-color: #f8bbd0 !important;
+  color: #fff !important;
+}
+.photo-modal-loading {
+  font-size: 13px;
+  color: #999;
+  padding: 20px 0;
+  text-align: center;
+}
+.photo-modal-images {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 8px 0 12px;
+}
+.photo-modal-img {
+  width: 220px;
+  height: 320px;
+  object-fit: cover;
+  border-radius: 10px;
+  flex-shrink: 0;
+  cursor: zoom-in;
+}
+.photo-modal-tip {
+  font-size: 12px;
+  color: #d46b08;
+  margin-bottom: 8px;
+}
+.photo-modal-guide {
+  border-top: 1px dashed #f0ede8;
+  padding-top: 10px;
+}
+.photo-modal-guide-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #4a4a4a;
+  margin-bottom: 6px;
+}
+.photo-modal-preview {
+  position: fixed;
+  inset: 0;
+  z-index: 1001;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.photo-modal-preview img {
+  max-width: 92vw;
+  max-height: 92vh;
+  object-fit: contain;
+  border-radius: 8px;
+}
+.ofit-copy-prev {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+/* 出行内子模块切换（旅游计划 / 穿搭） */
+.ofit-subview-tabs {
+  display: flex;
+  gap: 8px;
+  margin: 2px 0 10px;
+}
+.ofit-subview-tab {
+  padding: 6px 18px;
+  border: 1px solid #e8e2dc;
+  border-radius: 18px;
+  background: #fff;
+  font-size: 14px;
+  color: #4a4a4a;
+  cursor: pointer;
+}
+.ofit-subview-tab:hover {
+  border-color: #f8bbd0;
+}
+.ofit-subview-tab-active {
+  background: #f8bbd0;
+  border-color: #f8bbd0;
+  color: #fff;
+  font-weight: 600;
+}
+
+/* ===== 交通路线 ===== */
+.ofit-routes {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ofit-route-day {
+  border: 1px solid #f0ede8;
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: #fdfbf9;
+}
+.ofit-route-day-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.ofit-route-day-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #4a4a4a;
+}
+.ofit-route-ai {
+  font-size: 12px;
+  color: #8c8c8c;
+  margin-bottom: 6px;
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+.ofit-route-legs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ofit-route-leg {
+  border-top: 1px dashed #e8e2dc;
+  padding-top: 6px;
+}
+.ofit-route-leg-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #d46b08;
+  margin-bottom: 4px;
+}
+.ofit-route-leg-body {
+  font-size: 12px;
+  color: #595959;
+  white-space: pre-wrap;
+  line-height: 1.6;
+  margin-bottom: 4px;
+}
+
+/* ===== 道旅 · 酒店/机票 ===== */
+.daolv-panel {
+  margin-top: 12px;
+  border: 1px solid #e8e2dc;
+  border-radius: 12px;
+  padding: 12px;
+  background: #fdfbf9;
+}
+.daolv-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.daolv-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #4a4a4a;
+}
+.daolv-ready {
+  font-size: 12px;
+  color: #999999;
+}
+.daolv-hint {
+  font-size: 12px;
+  color: #d46b08;
+  background: #fff7e6;
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+.daolv-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.daolv-tool-active {
+  background: #f8bbd0 !important;
+  border-color: #f8bbd0 !important;
+  color: #fff !important;
+}
+.daolv-desc {
+  font-size: 12px;
+  color: #999999;
+  margin-bottom: 8px;
+}
+.daolv-group {
+  margin-bottom: 4px;
+}
+.daolv-group-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #8c6b4a;
+  margin: 10px 0 6px;
+  padding-bottom: 4px;
+  border-bottom: 1px dashed #e8e2dc;
+}
+.ofit-field-optional {
+  opacity: 0.85;
+}
+.daolv-result {
+  margin-top: 8px;
+  padding: 10px;
+  background: #fff;
+  border: 1px solid #f0ede8;
+  border-radius: 8px;
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 400px;
+  overflow-y: auto;
+  color: #333;
+}
+
+/* ===== 酒店标签：分类折叠 ===== */
+.daolv-tags {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.daolv-tag-group {
+  border: 1px solid #f0ede8;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+.daolv-tag-group-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 10px;
+  border: none;
+  background: #fdfbf9;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: #4a4a4a;
+}
+.daolv-tag-group-head:hover {
+  background: #fce4ec;
+}
+.daolv-tag-count {
+  font-size: 11px;
+  color: #999999;
+  font-weight: 400;
+}
+.daolv-tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 10px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+.daolv-tag-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #4a4a4a;
+  border: 1px solid #e8e2dc;
+  border-radius: 12px;
+  padding: 2px 8px;
+  cursor: pointer;
+  background: #fff;
+}
+.daolv-tag-item input {
+  accent-color: #f8bbd0;
+}
+.daolv-tag-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.daolv-tag-summary {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #389e0d;
+  line-height: 1.6;
+}
+.daolv-tag-pick {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.daolv-tag-echo {
+  font-size: 12px;
+  color: #999999;
+}
+.daolv-debug {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #8c8c8c;
+}
+.daolv-debug summary {
+  cursor: pointer;
+  color: #d46b08;
+}
+.daolv-debug pre {
+  background: #f7f5f2;
+  border: 1px solid #efe9e4;
+  border-radius: 6px;
+  padding: 8px;
+  white-space: pre-wrap;
+  word-break: break-all;
+  font-size: 11px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+/* ===== 标签多选弹窗 ===== */
+.daolv-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.daolv-modal-box {
+  background: #fff;
+  border-radius: 12px;
+  width: min(520px, 92vw);
+  max-height: 82vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.daolv-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #4a4a4a;
+  border-bottom: 1px solid #f0ede8;
+}
+.daolv-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.daolv-modal-body .daolv-tag-group-head {
+  cursor: default;
+}
+.daolv-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 14px;
+  border-top: 1px solid #f0ede8;
+}
+
+/* ===== 酒店搜索结果卡片 ===== */
+.daolv-hotels {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+.daolv-hotel-card {
+  display: flex;
+  gap: 10px;
+  border: 1px solid #f0ede8;
+  border-radius: 10px;
+  padding: 10px;
+  background: #fff;
+}
+.daolv-hotel-img {
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+  background: #f8f5f2;
+}
+.daolv-hotel-info {
+  flex: 1;
+  min-width: 0;
+}
+.daolv-hotel-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.daolv-hotel-en {
+  font-size: 11px;
+  font-weight: 400;
+  color: #999999;
+}
+.daolv-hotel-sub {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0;
+  flex-wrap: wrap;
+}
+.daolv-hotel-stars {
+  color: #f5a623;
+  font-size: 12px;
+}
+.daolv-hotel-price {
+  font-size: 12px;
+  color: #d46b08;
+  font-weight: 600;
+}
+.daolv-hotel-addr {
+  font-size: 12px;
+  color: #595959;
+  margin-bottom: 4px;
+}
+.daolv-hotel-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+.daolv-hotel-link {
+  display: inline-block;
+  font-size: 12px;
+  color: #f8bbd0;
+  font-weight: 600;
+  text-decoration: none;
+}
+.daolv-hotel-link:hover {
+  text-decoration: underline;
+}
+.daolv-hotel-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+.daolv-detail-btn {
+  padding: 3px 10px;
+  font-size: 12px;
+}
+.daolv-hotel-detail {
+  margin-top: 8px;
+  border-top: 1px dashed #f0ede8;
+  padding-top: 8px;
+}
+.daolv-hotel-desc {
+  font-size: 12px;
+  color: #595959;
+  line-height: 1.7;
+  margin-bottom: 6px;
+}
+.daolv-hotel-amenities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.daolv-hotel-amenities-label {
+  font-size: 12px;
+  color: #999999;
+}
+.daolv-detail-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 6px;
+}
+.daolv-detail-row {
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+  color: #4a4a4a;
+  border-bottom: 1px dashed #f5f2ee;
+  padding: 3px 0;
+}
+.daolv-detail-label {
+  flex-shrink: 0;
+  min-width: 76px;
+  color: #999999;
+}
+.daolv-detail-value {
+  word-break: break-word;
+  color: #333;
+}
+/* 详情 · 房型价格 */
+.daolv-roomplans {
+  margin-top: 4px;
+}
+.daolv-roomplans-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #4a4a4a;
+  margin: 8px 0 6px;
+}
+.daolv-roomplan {
+  display: flex;
+  gap: 10px;
+  border: 1px solid #f0ede8;
+  border-radius: 8px;
+  padding: 8px;
+  margin-bottom: 6px;
+  background: #fdfbf9;
+}
+.daolv-roomplan-img {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 6px;
+  flex-shrink: 0;
+  background: #f8f5f2;
+}
+.daolv-roomplan-body {
+  flex: 1;
+  min-width: 0;
+}
+.daolv-roomplan-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4px;
+}
+.daolv-roomplan-meta {
+  font-size: 12px;
+  color: #4a4a4a;
+  margin-bottom: 4px;
+}
+.daolv-roomplan-price {
+  color: #d46b08;
+  font-weight: 600;
+}
+.daolv-roomplan-request {
+  color: #cf1322;
+}
+.daolv-roomplan-cancel {
+  font-size: 11px;
+  color: #8c8c8c;
+  line-height: 1.5;
+}
+/* 行程会话栏（TravelView 包装层） */
+.trv-session-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 680px;
+  width: 100%;
+  margin: 0 auto;
+  flex-wrap: wrap;
+}
+.trv-session-select {
+  flex: 1;
+  min-width: 180px;
+  padding: 8px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  outline: none;
+}
+.trv-session-select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.12);
+}
+.trv-del-btn {
+  color: #DC2626;
+  border-color: var(--border-strong);
+}
+.trv-del-btn:hover {
+  border-color: #DC2626;
+  background: #FEF2F2;
+}
+.trv-empty {
+  padding: 60px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-muted);
+  font-size: 15px;
+}
+.trv-empty-icon {
+  font-size: 44px;
+}
+/* 出行模块：恢复 lsy 原版全宽布局（不套主应用的 680px 窄卡片） */
+.trv-root .mg-panel {
+  flex: 1;
+  max-width: none;
+  width: 100%;
+  margin: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0 0 16px;
+  overflow-y: visible;
+}
+
+/* 侧栏子标题主导航：隐藏 MaimemoOutfit 内部重复的 旅游计划/穿搭 切换条 */
+.trv-root .ofit-subview-tabs {
+  display: none;
+}
+/* ============ 周边餐馆查询（美食推荐） ============ */
+.rest-root {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.rest-center {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.rest-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+.rest-select {
+  width: 100%;
+}
+.rest-pref-toggle {
+  text-align: left;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+.rest-pref-toggle:hover {
+  border-color: var(--primary-text);
+  color: var(--primary-text);
+}
+.rest-pref {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+.rest-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.rest-chip {
+  padding: 6px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s ease;
+}
+.rest-chip:hover {
+  border-color: var(--primary-text);
+  color: var(--primary-text);
+}
+.rest-chip.active {
+  background: var(--primary);
+  border-color: var(--primary-text);
+  color: var(--on-primary);
+}
+.rest-search-btn {
+  margin-top: 4px;
+}
+.rest-msg {
+  font-size: 13px;
+  color: #059669;
+  background: #ECFDF5;
+  border: 1px solid #A7F3D0;
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+.rest-err {
+  font-size: 13px;
+  color: #DC2626;
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+.rest-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.rest-card {
+  display: flex;
+  gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px;
+}
+.rest-photo {
+  width: 84px;
+  height: 84px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+  background: var(--surface-2);
+}
+.rest-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.rest-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+.rest-meta {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.rest-rating {
+  color: #F59E0B;
+  font-weight: 600;
+}
+.rest-cuisine {
+  font-size: 12px;
+  color: var(--primary-text);
+}
+.rest-addr {
+  font-size: 12px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rest-time {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.rest-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 2px;
+}
+.rest-btn {
+  padding: 5px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+.rest-btn:hover:not(:disabled) {
+  border-color: var(--primary-text);
+  color: var(--primary-text);
+}
+.rest-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* 午餐/晚餐 分段大按钮 */
+.rest-period {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+.rest-period-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 0;
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s ease;
+}
+.rest-period-btn:hover {
+  border-color: var(--primary-text);
+  color: var(--primary-text);
+}
+.rest-period-btn.active {
+  background: var(--primary);
+  border-color: var(--primary-text);
+  color: var(--on-primary);
+  box-shadow: 0 2px 8px rgba(var(--primary-rgb), 0.25);
+}
+.rest-period-ico {
+  font-size: 18px;
+}
+
+/* 加入行程弹层按钮：幽灵取消 + 主色确认 */
+.rest-modal-btns {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+.rest-modal-btn {
+  flex: 1;
+  padding: 12px 0;
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s ease;
+}
+.rest-modal-btn.ghost {
+  color: var(--text-muted);
+  border-color: var(--border);
+  background: var(--surface-2);
+}
+.rest-modal-btn.ghost:hover {
+  border-color: var(--border-strong);
+  color: var(--text-2);
+}
+.rest-modal-btn.confirm {
+  background: var(--primary);
+  border-color: var(--primary-text);
+  color: var(--on-primary);
+  box-shadow: 0 2px 8px rgba(var(--primary-rgb), 0.25);
+}
+.rest-modal-btn.confirm:hover {
+  background: var(--primary-hover);
+  border-color: var(--primary-text-hover);
+}
+
+/* ===== 通用弹层（周边餐馆"加入行程"用） ===== */
+.modal-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  width: min(420px, 92vw);
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 16px;
+}
+.modal-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}

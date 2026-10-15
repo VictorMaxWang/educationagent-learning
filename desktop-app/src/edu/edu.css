@@ -1,0 +1,191 @@
+/* AI 普惠教育（生命安全与健康教育 / 青春期性教育 / 教师工作台）专用样式。
+   刻意独立成文件而不是塞进 lawrag.css / ops.css：这块的样式都带"适龄与安全"语义，
+   将来审内容时能一眼看到"哪些 UI 是教育域专有的"。 */
+
+/* ---- 适龄与安全提示（首次进入弹一次，确认后记 localStorage）---- */
+.edu-age-notice {
+  margin: 10px 0 14px;
+  padding: 12px 14px;
+  border-left: 3px solid #d9a441;
+  background: color-mix(in srgb, #d9a441 8%, transparent);
+  border-radius: 6px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-2);
+}
+.edu-age-notice-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: var(--text-1, inherit);
+}
+.edu-age-notice .btn {
+  margin-top: 8px;
+}
+
+/* ---- 危机引导（命中自伤/自杀信号时代替常规回答）---- */
+.edu-crisis-banner {
+  padding: 14px 16px;
+  border-left: 4px solid #d03b3b;
+  background: color-mix(in srgb, #d03b3b 6%, transparent);
+  border-radius: 6px;
+}
+.edu-crisis-title {
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text-1, inherit);
+}
+.edu-crisis-body {
+  font-size: 14px;
+  line-height: 1.9;
+  white-space: pre-wrap;
+  color: var(--text-2);
+}
+
+/* ---- 教师工作台：逐日分布条 ---- */
+.edu-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+.edu-bar-date {
+  width: 92px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.edu-bar-track {
+  height: 14px;
+  border-radius: 7px;
+  background: var(--surface-2, rgba(128, 128, 128, 0.15));
+  min-width: 6px;
+}
+.edu-bar-fill {
+  height: 14px;
+  border-radius: 7px;
+  background: #d03b3b;
+  min-width: 6px;
+}
+
+/* 预警等级：3 级最高。三档都用同一色相的深浅 + 文字标签，
+   不靠颜色单独承载语义（色盲可读），也不把"关注度"做成刺眼的红黄绿三色 */
+.edu-level-3 { background: #d03b3b; }
+.edu-level-2 { background: #e08a3c; }
+.edu-level-1 { background: #c9a227; }
+.edu-level-0 { background: #b9b9b9; }
+
+/* 学情看板里的小条形（知识点 / 专题占比） */
+.edu-stat-bar {
+  height: 12px;
+  border-radius: 6px;
+  background: #2a78d6;
+  min-width: 4px;
+}
+
+/* ==================== 工作台视觉分层（2026-10-15 改版）====================
+   原则：核心数字大而干净，解释文字统一收进底部折叠区，不在卡片里堆说明。
+   颜色只用一处加重——风险等级；其余靠字号与灰阶做层级。 */
+
+/* 顶部右侧控制区 */
+.edu-head-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+/* 顶部右侧那行极简身份信息（班级名 + 时间范围） */
+.edu-head-meta {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* 核心指标大卡片：数字更大、内边距更宽。
+   ⚠️ .ops-tiles 是 CSS Grid（auto-fit + minmax(150px,1fr)），**不是 flex** ——
+   写 flex:1 1 190px 对它无效。所以这里用 grid-template-columns 覆盖，保证四张卡有下限宽度。 */
+.edu-tiles-lg {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+.edu-tile-lg {
+  padding: 18px 20px;
+}
+.edu-tile-lg .ops-tile-value {
+  font-size: 24px;
+  line-height: 1.25;
+}
+/* 教育域所有指标卡的长值都要能换行：class_demo_1 这种 ASCII 长串、
+   「最薄弱知识点」这种中文长词，在窄卡里会撑破容器、被相邻卡压住。
+   （.ops-tile-value 原本没有任何溢出规则，所以这是必须补的） */
+.edu-tile .ops-tile-value,
+.edu-tile-lg .ops-tile-value {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+.edu-tile-lg .ops-tile-hint {
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+/* 文本型取值（班级名、知识点名）：用小一号字号，避免一行放不下两个字就被折断 */
+.edu-value-sm {
+  font-size: 17px !important;
+}
+
+/* 左右分栏（窄屏自动堆叠） */
+.edu-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  align-items: start;
+}
+@media (max-width: 980px) {
+  .edu-cols { grid-template-columns: 1fr; }
+}
+
+/* 底部统一的隐私说明（默认收起，评委想看再点开） */
+.edu-privacy {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+}
+.edu-privacy > summary {
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-muted);
+  user-select: none;
+}
+.edu-privacy ol {
+  margin: 10px 0 0;
+  padding-left: 20px;
+  font-size: 12px;
+  line-height: 2;
+  color: var(--text-muted);
+}
+
+/* 折叠式工具面板（校本/备课/反馈/培训/开关）：默认收起，页面不再又长又挤 */
+.edu-fold {
+  border: 1px solid color-mix(in srgb, currentColor 10%, transparent);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-top: 12px;
+}
+.edu-fold > summary {
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  user-select: none;
+}
+.edu-fold > summary .edu-fold-hint {
+  font-weight: 400;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-left: 8px;
+}
+.edu-bar-value {
+  font-size: 12px;
+  color: var(--text-2);
+}
+.edu-block-title {
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 14px;
+  margin-bottom: 4px;
+}

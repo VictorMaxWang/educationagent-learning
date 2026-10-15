@@ -1,0 +1,28 @@
+# Build output and runtime data
+**/node_modules/
+**/target/
+**/dist/
+**/build/
+data/
+chroma/
+logs/
+output/
+runtime/
+**/test-results/
+**/playwright-report/
+# Local credentials and machine settings
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.sample
+**/application-local.properties
+config/local-secrets.properties
+**/*.pem
+**/*.key
+**/*.pfx
+**/*.p12
+.idea/
+.vscode/
+.codex/
+.agents/
+.claude/

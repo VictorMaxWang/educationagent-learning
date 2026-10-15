@@ -1,0 +1,21 @@
+{
+  "name": "educationagent-workspace",
+  "private": true,
+  "workspaces": ["vendor/educationagent/*", "course-engine"],
+  "scripts": {
+    "build:classroom-engine": "npm run build --workspace @educationagent/dsl && npm run build --workspace @educationagent/generation && npm run build --workspace @educationagent/renderer && npm run build --workspace @educationagent/course-engine",
+    "test:classroom-engine": "npm run test --workspace @educationagent/course-engine"
+  },
+  "engines": { "node": ">=22.19.0" },
+  "dependencies": {
+    "axios": "^1.19.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "echarts": "^6.0.0",
+    "motion": "^12.27.5",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "shiki": "^3.21.0"
+  }
+}
