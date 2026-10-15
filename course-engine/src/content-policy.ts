@@ -100,10 +100,11 @@ function localRuntime(name: 'three' | 'code-runner'): string {
 }
 
 /** 只采纳唯一、可由服务端再次定位的稳定 ID。script/style 内的字符串不算真实目标。 */
-export function interactiveTargets(html: string): { ids: Set<string>; controls: Map<string, 'value' | 'checked'> } {
+export function interactiveTargets(html: string): { ids: Set<string>; controls: Map<string, 'value' | 'checked'>; tags: Map<string, string> } {
   const doc = parse(html);
   const counts = new Map<string, number>();
   const candidates = new Map<string, 'value' | 'checked'>();
+  const tags = new Map<string, string>();
   const excluded = new Set(['html', 'head', 'body', 'script', 'style', 'meta', 'link', 'base', 'iframe', 'object', 'embed', 'canvas']);
   const walk = (node: Node): void => {
     if (element(node)) {
@@ -111,6 +112,7 @@ export function interactiveTargets(html: string): { ids: Set<string>; controls: 
       const id = node.attrs.find(attr => attr.name === 'id')?.value;
       if (id && /^[A-Za-z][A-Za-z0-9_-]{0,126}$/.test(id)) {
         counts.set(id, (counts.get(id) || 0) + 1);
+        tags.set(id, node.tagName);
         if (excluded.has(node.tagName)) counts.set(id, 2);
         const kind = node.attrs.find(attr => attr.name === 'type')?.value?.toLowerCase() || 'text';
         if (['select', 'textarea'].includes(node.tagName) || node.tagName === 'input' && !['file', 'password', 'hidden', 'button', 'submit', 'reset', 'image'].includes(kind)) {
@@ -122,7 +124,8 @@ export function interactiveTargets(html: string): { ids: Set<string>; controls: 
   };
   walk(doc);
   return { ids: new Set([...counts].filter(([, count]) => count === 1).map(([id]) => id)),
-    controls: new Map([...candidates].filter(([id]) => counts.get(id) === 1)) };
+    controls: new Map([...candidates].filter(([id]) => counts.get(id) === 1)),
+    tags: new Map([...tags].filter(([id]) => counts.get(id) === 1)) };
 }
 
 /**
@@ -154,8 +157,12 @@ export function restrictInteractiveHtml(html: string, options: InteractivePolicy
   const cleanHtml = serialize(doc);
   if (options.widgetType === 'code' || options.widgetType === 'game') {
     const targets = interactiveTargets(cleanHtml);
-    const required = options.widgetType === 'code' ? ['code-input', 'run-code', 'stop-code', 'code-output', 'code-status'] : ['game-goal', 'game-score', 'game-feedback', 'game-retry'];
-    if (required.some(id => !targets.ids.has(id))) throw new Error(`${options.widgetType === 'code' ? '编程' : '游戏'}互动缺少必要的操作与反馈控件，请重新生成`);
+    // 接受实测生成页的有限别名，不重命名DOM或改写其CSS/事件绑定，更不补造计分与重试。
+    const roles = options.widgetType === 'code'
+      ? [['code-input'], ['run-code'], ['stop-code'], ['code-output'], ['code-status']]
+      : [['game-goal'], ['game-score', 'score-value'], ['game-feedback'], ['game-retry', 'retry-btn']];
+    if (roles.some(aliases => !aliases.some(id => targets.ids.has(id)))) throw new Error(`${options.widgetType === 'code' ? '编程' : '游戏'}互动缺少必要的操作与反馈控件，请重新生成`);
+    if (options.widgetType === 'game' && !['game-retry', 'retry-btn'].some(id => targets.tags.get(id) === 'button')) throw new Error('游戏互动的重试控件必须是真实唯一的按钮');
     if (options.widgetType === 'code' && targets.controls.get('code-input') !== 'value') throw new Error('编程练习缺少可编辑的代码输入框');
   }
   const csp = `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; font-src data:; worker-src blob:; connect-src 'none'; media-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">`;

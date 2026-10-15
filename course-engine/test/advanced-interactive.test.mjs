@@ -26,6 +26,11 @@ test('new interactive widget kinds survive outline normalization and use their S
       assert.match(ai.calls[0].user, /javascript/); assert.match(scene.content.html, /data-educationagent-runtime="code-runner"/);
       assert.match(scene.content.html, /worker-src blob:/); assert.doesNotMatch(scene.content.html, /unsafe-eval/);
     }
+    if (kind === 'code' || kind === 'game') {
+      assert.match(ai.calls[0].system, /10000字符以内/);
+      assert.match(ai.calls[0].system, kind === 'code' ? /不实现语法高亮/ : /不做大Canvas物理引擎/);
+      assert.doesNotMatch(ai.calls[1].system, /## 本页精简/);
+    }
   }
   assert.equal(normalizeOutline(outline('code'), 'x', 0).widgetOutline.language, 'javascript');
 });
@@ -53,6 +58,29 @@ test('game controls retain executable scoring and reset behavior through content
   nodes.get('game-retry').onclick(); assert.equal(nodes.get('game-score').textContent, '0');
   assert.throws(() => restrictInteractiveHtml('<html><body>仅有游戏介绍</body></html>', { widgetType: 'game' }), /操作与反馈控件/);
   assert.throws(() => restrictInteractiveHtml('<html><body>仅有代码示例</body></html>', { widgetType: 'code' }), /操作与反馈控件/);
+});
+
+test('real generated volume game accepts its existing score-value and retry-btn without renaming or inventing controls', async () => {
+  // 2026-10-15真实模型回复的离线回归。测试只回放固定HTML，不请求模型、不执行该游戏脚本。
+  const generated = await readFile(new URL('./fixtures/generated-volume-game.html', import.meta.url), 'utf8');
+  assert.ok(generated.length > 20_000);
+  const html = restrictInteractiveHtml(generated, { widgetType: 'game' });
+  assert.match(html, /id="score-value"/); assert.match(html, /<button[^>]*id="retry-btn"/);
+  assert.match(html, /getElementById\(['"]score-value['"]\)/);
+  assert.match(html, /onclick="resetGame\(\)"/);
+  assert.doesNotMatch(html, /id="game-score"|id="game-retry"/);
+  assert.doesNotMatch(html, /<script[^>]*\ssrc=/);
+  assert.match(html, /connect-src 'none'/);
+});
+
+test('game role aliases still require unique real elements and an actual retry button', () => {
+  const wrap = (score, retry) => `<html><body><h2 id="game-goal">答对两次</h2>${score}<p id="game-feedback">请选择</p>${retry}</body></html>`;
+  assert.doesNotThrow(() => restrictInteractiveHtml(wrap('<output id="score-value">0</output>', '<button id="retry-btn">重试</button>'), { widgetType: 'game' }));
+  assert.throws(() => restrictInteractiveHtml(wrap('', '<button id="retry-btn">重试</button>'), { widgetType: 'game' }), /操作与反馈控件/);
+  assert.throws(() => restrictInteractiveHtml(wrap('<output id="score-value">0</output><span id="score-value">假重复</span>', '<button id="retry-btn">重试</button>'), { widgetType: 'game' }), /操作与反馈控件/);
+  assert.throws(() => restrictInteractiveHtml(wrap('<output id="score-value">0</output>', '<span id="retry-btn">仅文字不是按钮</span>'), { widgetType: 'game' }), /必须是真实唯一的按钮/);
+  assert.throws(() => restrictInteractiveHtml(wrap('<output id="score-value">0</output>', '<button id="retry-btn">A</button><button id="retry-btn">B</button>'), { widgetType: 'game' }), /操作与反馈控件/);
+  assert.throws(() => restrictInteractiveHtml(wrap('<script>const markup=\'<output id="score-value">0</output>\';</script>', '<button id="retry-btn">重试</button>'), { widgetType: 'game' }), /操作与反馈控件/);
 });
 
 test('widget actions reference unique real DOM targets and whiteboard actions preserve valid drawing order', () => {

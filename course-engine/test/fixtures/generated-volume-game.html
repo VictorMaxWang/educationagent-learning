@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>体积小挑战 · 装货大师</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    background: radial-gradient(circle at 50% 20%, #173a63 0%, #0b1f38 55%, #071426 100%);
+    color: #eaf2ff;
+    overflow: hidden;
+    touch-action: manipulation;
+    user-select: none;
+  }
+  #experiment { position: relative; width: 100%; height: 100vh; max-height: 100dvh; overflow: hidden; }
+
+  /* ---------- HUD ---------- */
+  .hud {
+    position: absolute; top: 0; left: 0; right: 0; z-index: 20;
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    padding: 10px 12px;
+    background: linear-gradient(180deg, rgba(7,20,38,.92), rgba(7,20,38,0));
+    pointer-events: none;
+  }
+  .stat {
+    background: rgba(15,40,70,.72); border: 1px solid rgba(120,180,255,.25);
+    border-radius: 12px; padding: 6px 10px; text-align: center; min-width: 62px;
+    backdrop-filter: blur(2px);
+  }
+  .stat .label { font-size: 11px; color: #9fc0e8; letter-spacing: 1px; }
+  .stat .value { font-size: 20px; font-weight: 800; line-height: 1.1; }
+  #score-value { color: #ffd45e; }
+  #level-value { color: #7ee0ff; }
+  #lives-value { color: #ff8fa3; font-size: 18px; }
+  .goal-wrap { flex: 1; text-align: center; }
+  #game-goal {
+    font-size: 13px; font-weight: 700; color: #cfe6ff;
+    background: rgba(20,55,95,.6); border: 1px solid rgba(120,180,255,.2);
+    border-radius: 10px; padding: 6px 10px; display: inline-block; max-width: 100%;
+  }
+  #game-goal b { color: #ffd45e; }
+  .hud-btns { display: flex; gap: 6px; pointer-events: auto; }
+  .icon-btn {
+    width: 40px; height: 40px; border-radius: 10px; border: 1px solid rgba(120,180,255,.3);
+    background: rgba(20,55,95,.7); color: #cfe6ff; font-size: 18px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .icon-btn:active { transform: scale(.92); }
+
+  /* ---------- Canvas ---------- */
+  #game-canvas { position: absolute; inset: 0; z-index: 1; display: block; }
+
+  /* ---------- Control panel ---------- */
+  .panel {
+    position: absolute; left: 0; right: 0; bottom: 0; z-index: 15;
+    background: linear-gradient(0deg, rgba(7,20,38,.96) 60%, rgba(7,20,38,0));
+    padding: 14px 12px calc(14px + env(safe-area-inset-bottom));
+    display: flex; flex-direction: column; gap: 10px; align-items: center;
+  }
+  .dims { display: flex; gap: 10px; width: 100%; max-width: 460px; justify-content: center; }
+  .dim {
+    flex: 1; background: rgba(20,55,95,.7); border: 1px solid rgba(120,180,255,.25);
+    border-radius: 14px; padding: 8px 6px; text-align: center;
+  }
+  .dim .name { font-size: 12px; color: #9fc0e8; margin-bottom: 4px; }
+  .dim .row { display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .step {
+    width: 44px; height: 44px; border-radius: 10px; border: none; cursor: pointer;
+    background: #2f6fb0; color: #fff; font-size: 24px; font-weight: 800; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step:active { background: #4a8fd0; transform: scale(.9); }
+  .dim .num { font-size: 26px; font-weight: 800; min-width: 34px; color: #fff; }
+  .dim .unit { font-size: 12px; color: #9fc0e8; }
+  .vol-readout {
+    font-size: 15px; color: #cfe6ff; background: rgba(15,40,70,.6);
+    border-radius: 10px; padding: 6px 14px;
+  }
+  .vol-readout b { color: #7ee0ff; font-size: 18px; }
+  .drop-btn {
+    width: 100%; max-width: 460px; padding: 16px; border: none; border-radius: 16px;
+    font-size: 20px; font-weight: 800; color: #062033; cursor: pointer;
+    background: linear-gradient(180deg, #ffe07a, #ffb63d);
+    box-shadow: 0 6px 0 #c9821f, 0 10px 20px rgba(0,0,0,.35);
+    transition: transform .08s, box-shadow .08s;
+  }
+  .drop-btn:active { transform: translateY(5px); box-shadow: 0 1px 0 #c9821f, 0 4px 10px rgba(0,0,0,.3); }
+  .hint { font-size: 12px; color: #8fb4dd; }
+
+  /* ---------- Overlays ---------- */
+  .overlay {
+    position: absolute; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center;
+    background: rgba(5,15,30,.82); backdrop-filter: blur(3px); padding: 20px;
+  }
+  .card {
+    background: linear-gradient(180deg, #16365c, #0e2743);
+    border: 1px solid rgba(120,180,255,.3); border-radius: 22px;
+    padding: 26px 22px; max-width: 420px; width: 100%; text-align: center;
+    box-shadow: 0 20px 50px rgba(0,0,0,.5); animation: pop .35s ease;
+  }
+  @keyframes pop { from { transform: scale(.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .card h1 { margin: 0 0 6px; font-size: 26px; color: #ffd45e; }
+  .card h2 { margin: 0 0 10px; font-size: 22px; color: #7ee0ff; }
+  .card p { margin: 8px 0; font-size: 15px; color: #cfe6ff; line-height: 1.6; }
+  .card .big-num { font-size: 44px; font-weight: 900; color: #ffd45e; margin: 6px 0; }
+  .steps { text-align: left; background: rgba(10,30,55,.6); border-radius: 14px; padding: 12px 14px; margin: 12px 0; }
+  .steps li { margin: 6px 0; font-size: 14px; color: #dcecff; }
+  .primary-btn {
+    margin-top: 14px; padding: 14px 34px; border: none; border-radius: 14px;
+    font-size: 19px; font-weight: 800; color: #062033; cursor: pointer;
+    background: linear-gradient(180deg, #ffe07a, #ffb63d);
+    box-shadow: 0 5px 0 #c9821f;
+  }
+  .primary-btn:active { transform: translateY(4px); box-shadow: 0 1px 0 #c9821f; }
+  .badge-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 10px; }
+  .badge { font-size: 13px; padding: 6px 12px; border-radius: 20px; background: rgba(20,55,95,.7); border: 1px solid rgba(120,180,255,.25); color: #9fc0e8; }
+  .badge.on { background: rgba(255,182,61,.25); color: #ffd45e; border-color: rgba(255,182,61,.5); }
+
+  /* ---------- Toast / feedback ---------- */
+  #toast {
+    position: absolute; top: 70px; left: 50%; transform: translateX(-50%) translateY(-20px);
+    z-index: 30; padding: 10px 20px; border-radius: 14px; font-size: 16px; font-weight: 800;
+    opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s; white-space: nowrap;
+    box-shadow: 0 8px 24px rgba(0,0,0,.4);
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  #toast.good { background: #1f9d55; color: #fff; }
+  #toast.bad { background: #d64545; color: #fff; }
+  #toast.info { background: #2f6fb0; color: #fff; }
+
+  #game-feedback {
+    position: absolute; top: 118px; left: 50%; transform: translateX(-50%);
+    z-index: 25; font-size: 13px; color: #bcd8f5; background: rgba(10,30,55,.7);
+    padding: 6px 14px; border-radius: 12px; max-width: 90%; text-align: center;
+    opacity: 0; transition: opacity .3s; pointer-events: none;
+  }
+  #game-feedback.show { opacity: 1; }
+
+  .hidden { display: none !important; }
+
+  @media (max-width: 380px) {
+    .stat { min-width: 52px; padding: 5px 7px; }
+    .stat .value { font-size: 17px; }
+    #game-goal { font-size: 12px; }
+    .dim .num { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+<div id="experiment">
+  <canvas id="game-canvas"></canvas>
+
+  <!-- HUD -->
+  <div class="hud">
+    <div class="stat"><div class="label">得分</div><div class="value" id="score-value">0</div></div>
+    <div class="goal-wrap"><div id="game-goal">目标：把货物投进容量 <b>—</b> cm³ 的箱子</div></div>
+    <div class="stat"><div class="label">关卡</div><div class="value" id="level-value">1</div></div>
+    <div class="stat"><div class="label">生命</div><div class="value" id="lives-value">♥♥♥</div></div>
+    <div class="hud-btns">
+      <button class="icon-btn" id="pause-btn" title="暂停" onclick="togglePause()">⏸</button>
+      <button class="icon-btn" id="mute-btn" title="声音" onclick="toggleMute()">🔊</button>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+  <div id="game-feedback"></div>
+
+  <!-- Control panel -->
+  <div class="panel" id="control-panel">
+    <div class="dims">
+      <div class="dim">
+        <div class="name">长 a</div>
+        <div class="row">
+          <button class="step" data-dim="a" data-dir="-1" onclick="adjustDim('a',-1)">−</button>
+          <span class="num" id="dim-a">3</span>
+          <button class="step" data-dim="a" data-dir="1" onclick="adjustDim('a',1)">+</button>
+        </div>
+        <div class="unit">cm</div>
+      </div>
+      <div class="dim">
+        <div class="name">宽 b</div>
+        <div class="row">
+          <button class="step" data-dim="b" data-dir="-1" onclick="adjustDim('b',-1)">−</button>
+          <span class="num" id="dim-b">2</span>
+          <button class="step" data-dim="b" data-dir="1" onclick="adjustDim('b',1)">+</button>
+        </div>
+        <div class="unit">cm</div>
+      </div>
+      <div class="dim">
+        <div class="name">高 c</div>
+        <div class="row">
+          <button class="step" data-dim="c" data-dir="-1" onclick="adjustDim('c',-1)">−</button>
+          <span class="num" id="dim-c">2</span>
+          <button class="step" data-dim="c" data-dir="1" onclick="adjustDim('c',1)">+</button>
+        </div>
+        <div class="unit">cm</div>
+      </div>
+    </div>
+    <div class="vol-readout">当前体积 = <b id="vol-value">12</b> cm³</div>
+    <button class="drop-btn" id="drop-btn" onclick="dropCargo()">📦 投入箱子</button>
+    <div class="hint">提示：长方体体积 = 长 × 宽 × 高，先算准再投放！</div>
+  </div>
+
+  <!-- Start overlay -->
+  <div class="overlay" id="start-screen">
+    <div class="card">
+      <h1>体积小挑战 📦</h1>
+      <p>你是仓库装货员！用<b>长、宽、高</b>拼出合适的货物，把它投进箱子。</p>
+      <ul class="steps">
+        <li>① 看箱子的<b>容量</b>（能装多少 cm³）</li>
+        <li>② 调整货物的<b>长 a、宽 b、高 c</b></li>
+        <li>③ 记住：<b>体积 = a × b × c</b></li>
+        <li>④ 让体积<b>刚好等于</b>容量，按「投入」</li>
+        <li>⑤ 太大装不下，太小会浪费——都要扣分！</li>
+      </ul>
+      <p style="font-size:13px;color:#9fc0e8">答对越快，奖励越多 ⚡</p>
+      <button class="primary-btn" id="start-btn" onclick="startGame()">开始游戏 ▶</button>
+    </div>
+  </div>
+
+  <!-- Pause overlay -->
+  <div class="overlay hidden" id="pause-screen">
+    <div class="card">
+      <h2>已暂停 ⏸</h2>
+      <p>休息一下，随时继续。</p>
+      <button class="primary-btn" onclick="togglePause()">继续游戏 ▶</button>
+    </div>
+  </div>
+
+  <!-- Level complete overlay -->
+  <div class="overlay hidden" id="level-screen">
+    <div class="card">
+      <h2 id="level-title">过关啦！🎉</h2>
+      <div class="big-num" id="level-score">+0</div>
+      <p id="level-detail"></p>
+      <button class="primary-btn" onclick="nextLevel()">下一关 ▶</button>
+    </div>
+  </div>
+
+  <!-- Game over overlay -->
+  <div class="overlay hidden" id="over-screen">
+    <div class="card">
+      <h2 id="over-title">任务结束</h2>
+      <div class="big-num" id="final-score">0</div>
+      <p id="best-line"></p>
+      <div class="badge-row" id="badge-row"></div>
+      <button class="primary-btn" id="retry-btn" onclick="resetGame()">重新开始 ↻</button>
+    </div>
+  </div>
+</div>
+
+<script type="application/json" id="widget-config">
+{
+  "type": "game",
+  "gameType": "action",
+  "description": "体积小挑战·装货大师：调整长方体的长宽高，使体积恰好等于箱子容量并投进去。",
+  "gameConfig": {
+    "controls": ["dim_a", "dim_b", "dim_c", "drop"],
+    "formula": "volume = a * b * c",
+    "successCondition": "cargoVolume === boxCapacity",
+    "levels": [
+      { "capacity": 12 }, { "capacity": 24 }, { "capacity": 36 },
+      { "capacity": 48 }, { "capacity": 60 }, { "capacity": 72 }
+    ]
+  },
+  "scoring": { "correctPoints": 10, "speedBonus": 5 },
+  "achievements": [
+    { "id": "first_drop", "name": "初次装货", "icon": "📦" },
+    { "id": "perfect_speed", "name": "闪电手速", "icon": "⚡" },
+    { "id": "no_miss", "name": "零失误", "icon": "🛡️" },
+    { "id": "champion", "name": "装货冠军", "icon": "👑" }
+  ]
+}
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  'use strict';
+
+  // ---------- State construction ----------
+  var state = null;
+  function init() {
+    state = {
+      phase: 'idle',           // idle | playing | resolving | levelDone | paused | over
+      score: 0,
+      lives: 3,
+      levelIndex: 0,
+      capacity: 12,
+      dims: { a: 3, b: 2, c: 2 },
+      levelStart: 0,
+      missCount: 0,
+      totalMisses: 0,
+      perfectFast: false,
+      achievements: {},
+      cargo: null,             // active falling cargo
+      particles: [],
+      shake: 0,
+      lastTs: 0,
+      muted: false
+    };
+  }
+
+  // ---------- Persistence ----------
+  var LS_KEY = 'volume_game_v1';
+  function loadBest() { try { return parseInt(localStorage.getItem(LS_KEY) || '0', 10) || 0; } catch (e) { return 0; } }
+  function saveBest(v) { try { localStorage.setItem(LS_KEY, String(v)); } catch (e) {} }
+  function loadAch() { try { return JSON.parse(localStorage.getItem(LS_KEY + '_ach') || '{}'); } catch (e) { return {}; } }
+  function saveAch(a) { try { localStorage.setItem(LS_KEY + '_ach', JSON.stringify(a)); } catch (e) {} }
+
+  // ---------- Audio ----------
+  var actx = null;
+  function ensureAudio() {
+    if (!actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { actx = null; } }
+    if (actx && actx.state === 'suspended') { try { actx.resume(); } catch (e) {} }
+  }
+  function beep(freq, dur, type, vol) {
+    if (state.muted || !actx) return;
+    try {
+      var o = actx.createOscillator(), g = actx.createGain();
+      o.type = type || 'square'; o.frequency.value = freq;
+      g.gain.setValueAtTime(vol || 0.08, actx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + dur);
+      o.connect(g); g.connect(actx.destination);
+      o.start(); o.stop(actx.currentTime + dur);
+    } catch (e) {}
+  }
+  function sfxGood() { beep(660, 0.12, 'triangle', 0.1); setTimeout(function(){beep(880,0.16,'triangle',0.1);},90); }
+  function sfxBad() { beep(180, 0.22, 'sawtooth', 0.09); }
+  function sfxClick() { beep(420, 0.05, 'square', 0.05); }
+
+  // ---------- Canvas ----------
+  var canvas = document.getElementById('game-canvas');
+  var ctx = canvas.getContext('2d');
+  var W = 0, H = 0, DPR = 1;
+  function resize() {
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = canvas.clientWidth; H = canvas.clientHeight;
+    canvas.width = Math.round(W * DPR); canvas.height = Math.round(H * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+  window.addEventListener('resize', resize);
+
+  // ---------- Layout helpers ----------
+  function layout() {
+    var hudH = 62, panelH = 210;
+    var playTop = hudH + 6;
+    var playBottom = H - panelH;
+    var cx = W / 2;
+    var boxW = Math.min(W * 0.62, 300);
+    var boxH = Math.min((playBottom - playTop) * 0.34, 120);
+    var boxY = playBottom - boxH - 12;
+    var dropY = playTop + 24;
+    return { playTop: playTop, playBottom: playBottom, cx: cx, boxW: boxW, boxH: boxH, boxY: boxY, dropY: dropY };
+  }
+
+  // ---------- Cargo sizing ----------
+  function cargoSize(dims, L) {
+    var maxDim = Math.max(dims.a, dims.b, dims.c);
+    var unit = Math.min(26, (L.boxW * 0.7) / maxDim);
+    return { w: dims.a * unit, h: dims.c * unit, d: dims.b * unit, unit: unit };
+  }
+
+  // ---------- Volume ----------
+  function volumeOf(d) { return d.a * d.b * d.c; }
+
+  // ---------- UI refs ----------
+  var elScore = document.getElementById('score-value');
+  var elLevel = document.getElementById('level-value');
+  var elLives = document.getElementById('lives-value');
+  var elGoal = document.getElementById('game-goal');
+  var elVol = document.getElementById('vol-value');
+  var elA = document.getElementById('dim-a'), elB = document.getElementById('dim-b'), elC = document.getElementById('dim-c');
+  var toastEl = document.getElementById('toast');
+  var fbEl = document.getElementById('game-feedback');
+
+  function updateHUD() {
+    elScore.textContent = state.score;
+    elLevel.textContent = (state.levelIndex + 1);
+    elLives.textContent = '♥'.repeat(Math.max(0, state.lives)) || '💀';
+    elGoal.innerHTML = '目标：把货物投进容量 <b>' + state.capacity + '</b> cm³ 的箱子';
+    elVol.textContent = volumeOf(state.dims);
+    elA.textContent = state.dims.a; elB.textContent = state.dims.b; elC.textContent = state.dims.c;
+  }
+
+  var toastTimer = null;
+  function toast(msg, kind) {
+    toastEl.textContent = msg;
+    toastEl.className = 'show ' + (kind || 'info');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toastEl.className = ''; }, 1400);
+  }
+  function feedback(msg) {
+    fbEl.textContent = msg;
+    fbEl.classList.add('show');
+    clearTimeout(fbEl._t);
+    fbEl._t = setTimeout(function () { fbEl.classList.remove('show'); }, 2600);
+  }
+
+  // ---------- Particles ----------
+  function burst(x, y, color, n) {
+    for (var i = 0; i < (n || 18); i++) {
+      var ang = Math.random() * Math.PI * 2, sp = 2 + Math.random() * 5;
+      state.particles.push({ x: x, y: y, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp - 2, life: 1, color: color, r: 2 + Math.random() * 4 });
+    }
+  }
+
+  // ---------- Achievements ----------
+  var ACH_DEFS = {
+    first_drop: { name: '初次装货', icon: '📦' },
+    perfect_speed: { name: '闪电手速', icon: '⚡' },
+    no_miss: { name: '零失误', icon: '🛡️' },
+    champion: { name: '装货冠军', icon: '👑' }
+  };
+  function unlock(id) {
+    if (state.achievements[id]) return;
+    state.achievements[id] = true;
+    var a = loadAch(); a[id] = true; saveAch(a);
+    toast(ACH_DEFS[id].icon + ' 成就解锁：' + ACH_DEFS[id].name, 'good');
+    sfxGood();
+  }
+
+  // ---------- Level setup ----------
+  var CAPACITIES = [12, 24, 36, 48, 60, 72];
+  function setupLevel(idx) {
+    state.levelIndex = idx;
+    state.capacity = CAPACITIES[Math.min(idx, CAPACITIES.length - 1)];
+    state.dims = { a: 3, b: 2, c: 2 };
+    state.cargo = null;
+    state.missCount = 0;
+    state.perfectFast = false;
+    state.levelStart = performance.now();
+    state.phase = 'playing';
+    updateHUD();
+    publishCurrentState();
+  }
+
+  // ---------- Adjust dimension ----------
+  window.adjustDim = function (dim, dir) {
+    if (state.phase !== 'playing') return;
+    ensureAudio();
+    var v = state.dims[dim] + dir;
+    if (v < 1) v = 1; if (v > 9) v = 9;
+    state.dims[dim] = v;
+    sfxClick();
+    updateHUD();
+    publishCurrentState();
+  };
+
+  // ---------- Drop cargo ----------
+  window.dropCargo = function () {
+    if (state.phase !== 'playing') return;
+    ensureAudio();
+    var L = layout();
+    var size = cargoSize(state.dims, L);
+    state.cargo = {
+      x: L.cx, y: L.dropY, vy: 0,
+      w: size.w, h: size.h, d: size.d,
+      targetY: L.boxY + L.boxH - size.h - 6,
+      landed: false
+    };
+    state.phase = 'resolving';
+    publishCurrentState();
+  };
+
+  // ---------- Resolve landing ----------
+  function resolveLanding() {
+    var L = layout();
+    var vol = volumeOf(state.dims);
+    var cap = state.capacity;
+    var elapsed = (performance.now() - state.levelStart) / 1000;
+    var gained = 0;
+
+    if (vol === cap) {
+      gained = 10;
+      var bonus = 0;
+      if (elapsed <= 8) bonus = 5; else if (elapsed <= 15) bonus = 3; else if (elapsed <= 25) bonus = 1;
+      gained += bonus;
+      state.score += gained;
+      if (bonus === 5) state.perfectFast = true;
+      burst(L.cx, L.boxY + L.boxH / 2, '#ffd45e', 26);
+      sfxGood();
+      toast('完美装货！+' + gained, 'good');
+      feedback('体积 ' + vol + ' = 容量 ' + cap + ' ✓ 正好装满！');
+      unlock('first_drop');
+      if (state.perfectFast) unlock('perfect_speed');
+      state.phase = 'levelDone';
+      showLevelScreen(gained, true);
+    } else if (vol > cap) {
+      state.lives--; state.totalMisses++; state.missCount++;
+      state.shake = 14;
+      burst(L.cx, L.boxY + L.boxH / 2, '#ff6b6b', 20);
+      sfxBad();
+      toast('太大了！装不下 💥', 'bad');
+      feedback('体积 ' + vol + ' > 容量 ' + cap + '，货物太大放不进去，试着调小一点。');
+      afterMiss();
+    } else {
+      state.lives--; state.totalMisses++; state.missCount++;
+      state.shake = 10;
+      burst(L.cx, L.boxY + L.boxH / 2, '#ff9f43', 16);
+      sfxBad();
+      toast('太小了！有空间浪费 😕', 'bad');
+      feedback('体积 ' + vol + ' < 容量 ' + cap + '，箱子没装满，试着调大一点。');
+      afterMiss();
+    }
+    updateHUD();
+    publishCurrentState();
+  }
+
+  function afterMiss() {
+    if (state.lives <= 0) {
+      endGame(false);
+    } else {
+      state.cargo = null;
+      state.phase = 'playing';
+      publishCurrentState();
+    }
+  }
+
+  // ---------- Level screen ----------
+  function showLevelScreen(gained, success) {
+    document.getElementById('level-title').textContent = success ? '过关啦！🎉' : '再来一次';
+    document.getElementById('level-score').textContent = '+' + gained;
+    document.getElementById('level-detail').textContent = '第 ' + (state.levelIndex + 1) + ' 关完成，进入更难的箱子！';
+    document.getElementById('level-screen').classList.remove('hidden');
+  }
+
+  window.nextLevel = function () {
+    document.getElementById('level-screen').classList.add('hidden');
+    if (state.levelIndex >= CAPACITIES.length - 1) {
+      endGame(true);
+    } else {
+      setupLevel(state.levelIndex + 1);
+    }
+  };
+
+  // ---------- End game ----------
+  function endGame(win) {
+    state.phase = 'over';
+    if (win && state.totalMisses === 0) unlock('no_miss');
+    if (win) unlock('champion');
+    var best = loadBest();
+    if (state.score > best) { best = state.score; saveBest(best); }
+    document.getElementById('over-title').textContent = win ? '全部通关！👑' : '生命耗尽';
+    document.getElementById('final-score').textContent = state.score;
+    document.getElementById('best-line').textContent = '历史最高分：' + best;
+    var row = document.getElementById('badge-row');
+    row.innerHTML = '';
+    Object.keys(ACH_DEFS).forEach(function (k) {
+      var on = state.achievements[k] || loadAch()[k];
+      var b = document.createElement('div');
+      b.className = 'badge' + (on ? ' on' : '');
+      b.textContent = ACH_DEFS[k].icon + ' ' + ACH_DEFS[k].name;
+      row.appendChild(b);
+    });
+    document.getElementById('over-screen').classList.remove('hidden');
+    publishCurrentState();
+  }
+
+  // ---------- Reset ----------
+  window.resetGame = function () {
+    document.getElementById('over-screen').classList.add('hidden');
+    document.getElementById('level-screen').classList.add('hidden');
+    init();
+    state.achievements = loadAch();
+    state.phase = 'playing';
+    setupLevel(0);
+    render();
+  };
+
+  // ---------- Pause / Mute ----------
+  window.togglePause = function () {
+    if (state.phase === 'playing' || state.phase === 'resolving') {
+      state._prevPhase = state.phase;
+      state.phase = 'paused';
+      document.getElementById('pause-screen').classList.remove('hidden');
+    } else if (state.phase === 'paused') {
+      state.phase = state._prevPhase || 'playing';
+      document.getElementById('pause-screen').classList.add('hidden');
+    }
+    publishCurrentState();
+  };
+  window.toggleMute = function () {
+    state.muted = !state.muted;
+    document.getElementById('mute-btn').textContent = state.muted ? '🔇' : '🔊';
+  };
+
+  // ---------- Start ----------
+  window.startGame = function () {
+    ensureAudio();
+    document.getElementById('start-screen').classList.add('hidden');
+    init();
+    state.achievements = loadAch();
+    resize();
+    setupLevel(0);
+    render();
+    requestAnimationFrame(loop);
+  };
+
+  // ---------- Drawing ----------
+  function drawBox(L) {
+    var x = L.cx - L.boxW / 2, y = L.boxY, w = L.boxW, h = L.boxH;
+    // back face
+    ctx.fillStyle = 'rgba(40,80,130,.35)';
+    ctx.fillRect(x, y, w, h);
+    // interior grid hint
+    ctx.strokeStyle = 'rgba(120,180,255,.15)'; ctx.lineWidth = 1;
+    for (var gx = x + 20; gx < x + w; gx += 20) { ctx.beginPath(); ctx.moveTo(gx, y); ctx.lineTo(gx, y + h); ctx.stroke(); }
+    // front edges (open top)
+    ctx.strokeStyle = '#7ee0ff'; ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(x, y); ctx.lineTo(x, y + h); ctx.lineTo(x + w, y + h); ctx.lineTo(x + w, y);
+    ctx.stroke();
+    // side walls shading
+    ctx.fillStyle = 'rgba(20,55,95,.5)';
+    ctx.fillRect(x, y + h - 6, w, 6);
+    // capacity label
+    ctx.fillStyle = '#cfe6ff'; ctx.font = 'bold 13px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('容量 ' + state.capacity + ' cm³', L.cx, y + h + 18);
+  }
+
+  function drawCargo(c, L) {
+    // simple isometric-ish cuboid
+    var off = c.d * 0.5;
+    // top face
+    ctx.fillStyle = '#ffd45e';
+    ctx.beginPath();
+    ctx.moveTo(c.x - c.w/2, c.y);
+    ctx.lineTo(c.x - c.w/2 + off, c.y - off);
+    ctx.lineTo(c.x + c.w/2 + off, c.y - off);
+    ctx.lineTo(c.x + c.w/2, c.y);
+    ctx.closePath(); ctx.fill();
+    // right face
+    ctx.fillStyle = '#e0a92e';
+    ctx.beginPath();
+    ctx.moveTo(c.x + c.w/2, c.y);
+    ctx.lineTo(c.x + c.w/2 + off, c.y - off);
+    ctx.lineTo(c.x + c.w/2 + off, c.y - off + c.h);
+    ctx.lineTo(c.x + c.w/2, c.y + c.h);
+    ctx.closePath(); ctx.fill();
+    // front face
+    ctx.fillStyle = '#ffb63d';
+    ctx.fillRect(c.x - c.w/2, c.y, c.w, c.h);
+    // outline
+    ctx.strokeStyle = 'rgba(6,32,51,.6)'; ctx.lineWidth = 2;
+    ctx.strokeRect(c.x - c.w/2, c.y, c.w, c.h);
+    // dimension labels
+    ctx.fillStyle = '#062033'; ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('a=' + state.dims.a, c.x, c.y + c.h/2 + 4);
+  }
+
+  function drawParticles() {
+    for (var i = 0; i < state.particles.length; i++) {
+      var p = state.particles[i];
+      ctx.globalAlpha = Math.max(0, p.life);
+      ctx.fillStyle = p.color;
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function drawBackground() {
+    // subtle conveyor lines
+    ctx.strokeStyle = 'rgba(120,180,255,.06)'; ctx.lineWidth = 2;
+    for (var yy = 0; yy < H; yy += 40) { ctx.beginPath(); ctx.moveTo(0, yy); ctx.lineTo(W, yy); ctx.stroke(); }
+  }
+
+  function render() {
+    ctx.clearRect(0, 0, W, H);
+    ctx.save();
+    if (state.shake > 0) {
+      ctx.translate((Math.random() - 0.5) * state.shake, (Math.random() - 0.5) * state.shake);
+    }
+    drawBackground();
+    var L = layout();
+    drawBox(L);
+    if (state.cargo) drawCargo(state.cargo, L);
+    drawParticles();
+    ctx.restore();
+  }
+
+  // ---------- Loop ----------
+  function loop(ts) {
+    var dt = Math.min(0.05, (ts - (state.lastTs || ts)) / 1000);
+    state.lastTs = ts;
+
+    if (state.phase === 'resolving' && state.cargo) {
+      state.cargo.vy += 900 * dt;
+      state.cargo.y += state.cargo.vy * dt;
+      if (state.cargo.y >= state.cargo.targetY) {
+        state.cargo.y = state.cargo.targetY;
+        resolveLanding();
+      }
+    }
+
+    // particles
+    for (var i = state.particles.length - 1; i >= 0; i--) {
+      var p = state.particles[i];
+      p.vy += 400 * dt; p.x += p.vx; p.y += p.vy; p.life -= dt * 1.4;
+      if (p.life <= 0) state.particles.splice(i, 1);
+    }
+    if (state.shake > 0) state.shake = Math.max(0, state.shake - dt * 40);
+
+    render();
+    requestAnimationFrame(loop);
+  }
+
+  // ---------- Publish observation ----------
+  function publishState(observation) {
+    var root = document.getElementById('experiment');
+    if (!root) throw new Error('Missing interaction scope');
+    try {
+      var raw = JSON.stringify(observation);
+      if (typeof raw !== 'string' || new TextEncoder().encode(raw).length > 32768) throw new Error('Invalid state publication');
+      var node = root.querySelector('script[data-educationagent-observation]');
+      if (!node) {
+        node = document.createElement('script');
+        node.type = 'application/json';
+        node.setAttribute('data-educationagent-observation', '');
+        root.appendChild(node);
+      }
+      node.textContent = raw;
+    } catch (error) {
+      root.querySelectorAll('script[data-educationagent-observation]').forEach(function (n) { n.remove(); });
+      throw error;
+    }
+  }
+
+  function publishCurrentState() {
+    var vol = volumeOf(state.dims);
+    var diff = vol - state.capacity;
+    var rel = diff === 0 ? '正好等于' : (diff > 0 ? '大于' : '小于');
+    var summary = '第 ' + (state.levelIndex + 1) + ' 关：货物长宽高为 ' + state.dims.a + '×' + state.dims.b + '×' + state.dims.c +
+      '，体积 ' + vol + ' cm³，' + rel + '箱子容量 ' + state.capacity + ' cm³；得分 ' + state.score + '，剩余生命 ' + state.lives + '。';
+    publishState({
+      summary: summary,
+      state: {
+        phase: state.phase,
+        level: state.levelIndex + 1,
+        boxCapacity: state.capacity,
+        cargo: { a: state.dims.a, b: state.dims.b, c: state.dims.c, volume: vol, relationToCapacity: rel },
+        score: state.score,
+        lives: state.lives,
+        achievements: Object.keys(state.achievements).filter(function (k) { return state.achievements[k]; })
+      }
+    });
+  }
+
+  // ---------- Host message bridge (required) ----------
+  window.addEventListener('message', function (event) {
+    var d = event.data || {};
+    var type = d.type, target = d.target, st = d.state, content = d.content;
+    switch (type) {
+      case 'SET_WIDGET_STATE':
+        if (st) {
+          Object.keys(st).forEach(function (key) {
+            var value = st[key];
+            var control = document.getElementById(key + '-slider') || document.getElementById(key) || document.querySelector('[data-var="' + key + '"]');
+            if (control) { control.value = value; control.dispatchEvent(new Event('input', { bubbles: true })); }
+            if (typeof window.setGameParam === 'function') window.setGameParam(key, value);
+          });
+        }
+        break;
+      case 'HIGHLIGHT_ELEMENT':
+        var he = target ? document.querySelector(target) : null;
+        if (he) {
+          he.style.outline = '3px solid rgba(139, 92, 246, 0.8)';
+          he.style.outlineOffset = '4px';
+          he.style.animation = 'pulse-highlight 2s infinite';
+          setTimeout(function () { he.style.outline = ''; he.style.animation = ''; }, 3000);
+        }
+        break;
+      case 'ANNOTATE_ELEMENT':
+        var ae = target ? document.querySelector(target) : null;
+        if (ae && content) {
+          var rect = ae.getBoundingClientRect();
+          var tip = document.createElement('div');
+          tip.className = 'teacher-annotation';
+          tip.style.cssText = 'position:fixed; top:' + (rect.top - 40) + 'px; left:' + rect.left + 'px; background:rgba(139,92,246,0.95); color:white; padding:8px 12px; border-radius:8px; font-size:14px; z-index:1000; animation:fadeIn 0.3s;';
+          tip.textContent = content;
+          document.body.appendChild(tip);
+          setTimeout(function () { tip.remove(); }, 4000);
+        }
+        break;
+      case 'REVEAL_ELEMENT':
+        var re = target ? document.querySelector(target) : null;
+        if (re) { re.style.display = ''; re.style.opacity = '1'; }
+        break;
+    }
+  });
+
+  // setGameParam so host can drive dimensions directly
+  window.setGameParam = function (key, value) {
+    if (key === 'a' || key === 'b' || key === 'c') {
+      var v = Math.max(1, Math.min(9, parseInt(value, 10)));
+      if (!isNaN(v)) { state.dims[key] = v; updateHUD(); publishCurrentState(); }
+    } else if (key === 'capacity') {
+      state.capacity = parseInt(value, 10) || state.capacity; updateHUD(); publishCurrentState();
+    } else if (key === 'drop') {
+      if (value) window.dropCargo();
+    } else if (key === 'score') {
+      state.score = parseInt(value, 10) || 0; updateHUD(); publishCurrentState();
+    } else if (key === 'lives') {
+      state.lives = parseInt(value, 10); updateHUD(); publishCurrentState();
+    } else if (key === 'level') {
+      setupLevel(parseInt(value, 10) || 0);
+    }
+  };
+
+  // ---------- Init ----------
+  init();
+  resize();
+  updateHUD();
+  render();
+  publishCurrentState();
+});
+</script>
+<!-- END - Nothing after this -->
+</html>
