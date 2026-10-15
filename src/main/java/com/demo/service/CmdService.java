@@ -3,6 +3,7 @@ package com.demo.service;
 import com.demo.agent.Assistant;
 import com.demo.agent.FileConvertTool;
 import com.demo.edu.classroom.ClassroomWechatBridge;
+import com.demo.config.AiChatProperties;
 import com.demo.mcp.lazy.McpLazyActivator;
 import com.demo.service.tools.FileSystemService;
 import jakarta.annotation.Resource;
@@ -27,6 +28,9 @@ public class CmdService {
 
     @Resource
     private ClassroomWechatBridge classroomWechatBridge;
+
+    @Resource
+    private AiChatProperties aiChat;
 
     /**
      * 处理用户消息
@@ -61,9 +65,9 @@ public class CmdService {
                         其他输入      AI 智能回复（聊天、天气查询等）
                         =================================""";
             case "version":
-                return "项目版本：V2.0-Agent（LangChain4j + DeepSeek）  开发日期：2026-07-20";
+                return "educationagent · 学习与成长助手（Java + LangChain4j）";
             case "status":
-                return "程序状态：运行正常✅\nAI 引擎：LangChain4j + DeepSeek 🧠\n天气接口：可用☀️\n网络连通：正常🌐";
+                return "程序状态：运行中\n文本模型：" + aiChat.getModel() + "\n各服务的可用性请查看健康检查。";
             default:
                 // 检查是否为 6 位文件操作验证码（绕过 LLM，直接执行）
                 String rawInput = input.trim();

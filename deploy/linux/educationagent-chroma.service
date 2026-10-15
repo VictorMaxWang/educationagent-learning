@@ -1,0 +1,48 @@
+[Unit]
+Description=educationagent local Chroma vector server
+After=network.target
+StartLimitIntervalSec=300
+StartLimitBurst=3
+
+[Service]
+Type=simple
+User=educationagent
+Group=educationagent
+WorkingDirectory=/opt/educationagent/shared/data/chroma
+# Python 产品遥测关闭；Rust 单机 CLI 默认未配置 OpenTelemetry collector。
+Environment=ANONYMIZED_TELEMETRY=False
+Environment=OTEL_SDK_DISABLED=true
+Environment=HOME=/opt/educationagent/shared/data/chroma
+Environment=PYTHONDONTWRITEBYTECODE=1
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/opt/educationagent/runtime/chroma/bin/chroma run --host 127.0.0.1 --port 8001 --path /opt/educationagent/shared/data/chroma
+ExecStartPost=/usr/bin/timeout 60 /bin/sh -c 'until /usr/bin/curl --fail --silent --max-time 2 http://127.0.0.1:8001/api/v2/heartbeat >/dev/null; do sleep 1; done'
+Restart=on-failure
+RestartSec=10
+TimeoutStartSec=75
+TimeoutStopSec=45
+# 此版本 Rust 服务监听 Ctrl-C 做优雅退出，避免直接强杀持久化进程。
+KillSignal=SIGINT
+KillMode=control-group
+StandardInput=null
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=educationagent-chroma
+UMask=0027
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/opt/educationagent/shared/data/chroma
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+# Chroma 仅接受本机 Java 提供的 embeddings，不需要访问模型仓库或遥测服务。
+# Ubuntu 24.04 的 systemd/cgroup BPF 必须实际支持并应用以下规则。
+IPAddressDeny=any
+IPAddressAllow=localhost
+MemoryHigh=550M
+MemoryMax=650M
+OOMPolicy=stop
+LimitNOFILE=32768
+
+[Install]
+WantedBy=multi-user.target

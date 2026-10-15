@@ -39,7 +39,7 @@ pwsh -NoLogo -NoProfile -NonInteractive -File scripts/Prepare-GitHubSnapshot.ps1
 
 输出固定为 `target/github-publish`。脚本在复制前、临时目录和最终目录分别检查文本，并仅报告问题的文件、行号和属性名，不打印秘密值。检查包括常见 API key / 私钥格式、可识别的配置明文，以及本地被排除配置中敏感值的跨文件泄漏比对。自动扫描无法证明不存在所有形式的敏感信息，提交前仍需检查最终文件清单与 `git diff --cached --stat`。
 
-脚本保留快照自身的 `.git`，不会读取或移动原工作区的 `.git`。重复执行只更新已有清单管理的文件；快照内出现未管理文件会拒绝覆盖。请在其他构建目录验证快照，避免将安装依赖或编译结果混入纯发布目录。任何缺少必需源码、秘密检查失败或复制错误都会返回失败，不得继续提交或推送。
+脚本保留快照自身的 `.git`，不会读取或移动原工作区的 `.git`。重复执行只更新已有清单管理的文件；明确的 `node_modules`、`dist`、`target`、`build`、`coverage`、`test-results`、`playwright-report` 构建目录不遍历、不复制、不删除，npm workspace 在依赖目录中的 junction 因而不会阻断更新。其他未管理文件及源码范围内的符号链接/junction 仍会拒绝覆盖，发布清单不得管理 `.git` 或这些构建目录。任何缺少必需源码、秘密检查失败或复制错误都会返回失败，不得继续提交或推送。
 
 发布清单 `.educationagent-publish-manifest.json` 记录本次文件列表和检查状态，不保存本地密钥、机器绝对路径或原仓库历史。
 

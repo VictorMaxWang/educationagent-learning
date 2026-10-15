@@ -3,6 +3,7 @@ package com.demo;
 import com.demo.bot.BotContext;
 import com.demo.bot.BotManager;
 import com.demo.service.CmdService;
+import com.demo.config.AiChatProperties;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -27,7 +28,7 @@ public class DemoApplication {
 
 
     @Bean//机器人总管，直接拿来用
-    public CommandLineRunner run(BotManager botManager, CmdService cmdService) {
+    public CommandLineRunner run(BotManager botManager, CmdService cmdService, AiChatProperties aiChat) {
         return args -> {
             // BotManager 已在 @PostConstruct 中按 bot.auto-start-count 自动启动 Bot
 
@@ -94,7 +95,7 @@ public class DemoApplication {
                     int online = botManager.getInstanceCount();
                     System.out.println("运行状态：正常 ✅");
                     System.out.println("在线 Bot 数：" + online);
-                    System.out.println("AI 引擎：LangChain4j + DeepSeek");
+                    System.out.println("文本模型：" + aiChat.getModel());
                 } else if ("help".equalsIgnoreCase(input)) {
                     System.out.println("""
                         ============ 使用帮助 ============

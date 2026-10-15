@@ -1,0 +1,38 @@
+[Unit]
+Description=educationagent classroom application
+Wants=network-online.target
+After=network-online.target mysql.service redis-server.service
+Requires=mysql.service redis-server.service
+StartLimitIntervalSec=300
+StartLimitBurst=3
+
+[Service]
+Type=simple
+User=educationagent
+Group=educationagent
+WorkingDirectory=/opt/educationagent/current
+EnvironmentFile=/etc/educationagent/runtime.env
+Environment=PATH=/opt/educationagent/runtime/node/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+Environment=NODE_OPTIONS=--max-old-space-size=384
+ExecStart=/usr/bin/java -Xms192m -Xmx900m -XX:MaxMetaspaceSize=256m -XX:+ExitOnOutOfMemoryError -Djava.awt.headless=true -Dfile.encoding=UTF-8 -jar /opt/educationagent/current/app.jar --spring.profiles.active=server
+Restart=on-failure
+RestartSec=10
+TimeoutStartSec=180
+TimeoutStopSec=45
+KillMode=control-group
+StandardInput=null
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=educationagent
+UMask=0027
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/opt/educationagent/shared
+LimitNOFILE=65536
+MemoryHigh=1400M
+MemoryMax=1800M
+
+[Install]
+WantedBy=multi-user.target

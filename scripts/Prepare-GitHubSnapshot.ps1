@@ -25,6 +25,7 @@ $includeRootFiles = @('pom.xml', 'package.json', 'package-lock.json', 'mvnw', 'm
     'compose.yaml', 'compose.yml', 'docker-compose.yml')
 $skipDirectoryNames = @('node_modules', 'target', 'dist', 'build', '.git', '.idea', '.vscode', '.codex', '.agents',
     '.claude', '.cache', '__pycache__', 'coverage', 'test-results', 'playwright-report', 'logs', 'output', '.runtime')
+$snapshotIgnoredDirectories = @('.git', 'node_modules', 'dist', 'target', 'build', 'coverage', 'test-results', 'playwright-report')
 $requiredFiles = @('pom.xml', 'package.json', 'package-lock.json', 'mvnw', 'mvnw.cmd', '.mvn/wrapper/maven-wrapper.properties',
     'src/main/java/com/demo/DemoApplication.java', 'src/main/resources/application.properties',
     'src/main/resources/application-dev.properties', 'src/main/resources/schema.sql',
@@ -47,6 +48,8 @@ function Assert-ContainedPath([string]$Path, [string]$Parent) {
 
 function Test-PublishExcluded([IO.FileInfo]$File) {
     $relative = Get-RelativePublishPath $File.FullName
+    # Tauri 按平台生成的权限 schema 会由原目录 gitignore 排除，不是可移植源码输入。
+    if ($relative.StartsWith('desktop-app/src-tauri/gen/', [StringComparison]::OrdinalIgnoreCase)) { return $true }
     foreach ($segment in $relative.Split('/')) {
         if ($segment -in $skipDirectoryNames) { return $true }
     }
@@ -65,6 +68,26 @@ function Get-PublishDirectoryFiles([string]$Directory) {
         if ($entry.LinkType -in @('SymbolicLink', 'Junction')) { throw "白名单内存在文件系统链接，请先核对来源：$(Get-RelativePublishPath $entry.FullName)" }
         if ($entry.PSIsContainer) { Get-PublishDirectoryFiles $entry.FullName }
         elseif (-not (Test-PublishExcluded $entry)) { $entry }
+    }
+}
+
+function Get-ManagedSnapshotFiles([string]$Directory) {
+    # 独立构建可能创建 npm workspace junction；构建产物不是发布输入，先按目录名跳过，
+    # 既不遍历/跟随其中的链接，也不复制、删除或改写其中任何文件。
+    foreach ($entry in Get-ChildItem -LiteralPath $Directory -Force) {
+        if ($entry.Name -eq '.git') { continue }
+        if ($entry.PSIsContainer -and $entry.Name -in $snapshotIgnoredDirectories) { continue }
+        if ($entry.LinkType -in @('SymbolicLink', 'Junction')) { throw '旧快照受管理源码范围内存在文件系统链接，拒绝覆盖。' }
+        if ($entry.PSIsContainer) { Get-ManagedSnapshotFiles $entry.FullName }
+        else { $entry }
+    }
+}
+
+function Assert-SnapshotManifestPath([string]$Relative) {
+    $normalized = $Relative.Replace('\', '/')
+    $null = Assert-ContainedPath (Join-Path $snapshotRoot $normalized) $snapshotRoot
+    foreach ($segment in $normalized.Split('/')) {
+        if ($segment -in $snapshotIgnoredDirectories) { throw '清单不得管理 .git 或被排除的构建产物目录。' }
     }
 }
 
@@ -178,16 +201,11 @@ if (Test-Path -LiteralPath $snapshotRoot) {
     $oldManifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
     if ($oldManifest.Producer -ne $producer) { throw '目标目录的发布清单来源不匹配，拒绝覆盖。' }
     foreach ($relative in $oldManifest.Files) {
-        $normalized = $relative.Replace('\', '/')
-        $null = Assert-ContainedPath (Join-Path $snapshotRoot $normalized) $snapshotRoot
-        if ($normalized -eq '.git' -or $normalized.StartsWith('.git/')) { throw '清单不得管理 .git 内容。' }
+        Assert-SnapshotManifestPath $relative
     }
-    foreach ($entry in Get-ChildItem -LiteralPath $snapshotRoot -Force -Recurse) {
-        if ($entry.LinkType -in @('SymbolicLink', 'Junction')) { throw '旧快照内存在文件系统链接，拒绝覆盖。' }
-    }
-    foreach ($file in Get-ChildItem -LiteralPath $snapshotRoot -Force -File -Recurse) {
+    foreach ($file in Get-ManagedSnapshotFiles $snapshotRoot) {
         $relative = [IO.Path]::GetRelativePath($snapshotRoot, $file.FullName).Replace('\', '/')
-        if ($relative.StartsWith('.git/') -or $relative -eq $manifestName) { continue }
+        if ($relative -eq $manifestName) { continue }
         if ($relative -notin $oldManifest.Files) { throw "旧快照中有未受管理文件，拒绝覆盖：$relative" }
     }
 }
@@ -208,11 +226,11 @@ try {
 **/target/
 **/dist/
 **/build/
-data/
-chroma/
-logs/
-output/
-runtime/
+/data/
+/chroma/
+/logs/
+/output/
+/runtime/
 **/test-results/
 **/playwright-report/
 # Local credentials and machine settings

@@ -3,6 +3,7 @@ package com.demo.edu.classroom;
 import com.demo.chroma.doc.DocKnowledgeAssistant;
 import com.demo.chroma.doc.DocKnowledgeRegistry;
 import com.demo.config.RestTemplateConfig;
+import com.demo.config.AiChatProperties;
 import com.demo.edu.mapper.ClassroomCourseMapper;
 import com.demo.edu.mapper.EduCrisisDailyMapper;
 import com.demo.edu.mapper.EduUserClassMapper;
@@ -149,7 +150,7 @@ public final class ClassroomAcceptanceServer {
                     "org.springframework.ai.mcp.client.autoconfigure.McpToolCallbackAutoConfiguration"})
     @Import({ClassroomController.class,ClassroomNodeEngine.class,ClassroomTutorModel.class,ClassroomQuizAdapter.class,
             ClassroomVoiceService.class,ClassroomVoiceController.class,ClassroomWechatBridge.class,ClassroomWechatController.class,
-            FileService.class,QuizService.class,TtsService.class,AudioService.class,RestTemplateConfig.class,
+            FileService.class,QuizService.class,TtsService.class,AudioService.class,RestTemplateConfig.class,AiChatProperties.class,
             CrisisGuard.class,CrisisGuardProperties.class,CrisisCountRecorder.class,
             EduContentSafetyJudge.class,EduContentSafetyProperties.class})
     public static class AcceptanceConfiguration {
@@ -158,12 +159,9 @@ public final class ClassroomAcceptanceServer {
             return factory -> acceptanceDatabase(environment.getRequiredProperty("spring.datasource.url"));
         }
 
-        @Bean OpenAiChatModel deepseekChatModel(@Value("${ai.deepseek.key}") String key,
-                @Value("${ai.deepseek.model:deepseek-chat}") String model,
-                @Value("${ai.deepseek.url:https://api.deepseek.com/v1/chat/completions}") String endpoint) {
-            if(key==null||key.isBlank()||key.startsWith("${")) throw new IllegalStateException("既有 ai.deepseek.key 尚未配置");
-            String base=endpoint.replaceAll("/chat/completions/?$","").replaceAll("/+$","");
-            return OpenAiChatModel.builder().baseUrl(base).apiKey(key).modelName(model).temperature(0.3)
+        @Bean OpenAiChatModel deepseekChatModel(AiChatProperties aiChat) {
+            if (!aiChat.hasApiKey()) throw new IllegalStateException("AI_CHAT_API_KEY 尚未配置");
+            return aiChat.chatModelBuilder().temperature(0.3)
                     .maxRetries(0).timeout(Duration.ofSeconds(180)).logRequests(false).logResponses(false).build();
         }
 

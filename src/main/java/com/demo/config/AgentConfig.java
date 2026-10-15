@@ -92,6 +92,9 @@ public class AgentConfig {
         return aiChat.chatModelBuilder()
                 .temperature(0.3)
                 .maxRetries(0)
+                // 交互 HTML 生成比短对话慢；必须在模型层声明，否则 SDK 的默认 60 秒会覆盖 HTTP 包装器。
+                // 150 秒低于 Node 等待模型的 180 秒，给错误传递和页面任务收尾留出余量。
+                .timeout(Duration.ofSeconds(150))
                 .httpClientBuilder(interruptibleHttpClientBuilder)
                 .build();
     }

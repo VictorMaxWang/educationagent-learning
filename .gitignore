@@ -3,11 +3,11 @@
 **/target/
 **/dist/
 **/build/
-data/
-chroma/
-logs/
-output/
-runtime/
+/data/
+/chroma/
+/logs/
+/output/
+/runtime/
 **/test-results/
 **/playwright-report/
 # Local credentials and machine settings

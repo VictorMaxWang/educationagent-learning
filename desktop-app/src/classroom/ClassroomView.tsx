@@ -65,7 +65,7 @@ function WechatConnection() {
     finally { setBusy(false); }
   };
   return <details className="cr-connection"><summary>手机与微信连接 <span>{bound ? '已绑定微信' : '可连接现有微信机器人'}</span></summary>
-    <p>手机与这台电脑连接同一 Wi-Fi，打开电脑的局域网课堂地址。需要录音时请使用 HTTPS 入口。</p>
+    <p>手机打开当前课堂网址即可学习。若使用电脑的局域网地址，请连接同一 Wi-Fi；录音需要 HTTPS。</p>
     <p>微信继续使用你现有的、已经登录的机器人。绑定后可发送「我的课堂」「继续学习」或「课堂提问 你的问题」。</p>
     <div className="cr-inline"><button className="cr-button secondary" disabled={busy} onClick={() => void pair()}>{busy ? '正在生成…' : bound ? '重新连接微信' : '连接微信'}</button><button className="cr-link" onClick={refresh}>检查绑定状态</button></div>
     {code && <div className="cr-pairing-code">在微信里向机器人发送：<code>绑定课堂 {code}</code><span>有效至 {new Date(expiry).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}。请使用手机也能打开的课堂地址生成绑定码。</span></div>}
