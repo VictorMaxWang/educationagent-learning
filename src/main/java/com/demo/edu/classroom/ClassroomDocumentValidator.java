@@ -9,7 +9,6 @@ import java.util.Set;
 /** 对生成器边界再次校验。TypeScript 类型声明不能验证实际模型输出。 */
 final class ClassroomDocumentValidator {
     private static final Set<String> TYPES = Set.of("slide", "quiz", "interactive");
-    private static final Set<String> ACTIONS = Set.of("speech", "spotlight", "laser", "discussion");
     private ClassroomDocumentValidator() {}
 
     static ArrayNode outlines(JsonNode input) {
@@ -22,7 +21,7 @@ final class ClassroomDocumentValidator {
             if (!n.isObject()) throw invalid("大纲步骤格式无效");
             text(n, "id", 80); text(n, "title", 160);
             if (!ids.add(n.path("id").asText())) throw invalid("大纲步骤 ID 重复");
-            if (!TYPES.contains(n.path("type").asText())) throw invalid("只支持图文、练习和二维互动步骤");
+            if (!TYPES.contains(n.path("type").asText())) throw invalid("只支持图文、练习和互动步骤");
             if (n.toString().length() > 12000) throw invalid("单个大纲步骤过长");
             ((ObjectNode) n).put("order", i);
         }
@@ -39,21 +38,24 @@ final class ClassroomDocumentValidator {
         scene.put("id", outline.path("id").asText());
         scene.put("stageId", courseId);
         scene.put("order", outline.path("order").asInt());
-        if (type.equals("slide") && (!content.path("canvas").isObject() || !content.path("canvas").path("elements").isArray()))
-            throw invalid("图文页面缺少画布内容");
+        if (type.equals("slide")) ((ObjectNode)content).set("canvas",ClassroomEditingSupport.canvas(content.path("canvas")));
         if (type.equals("interactive")) {
             // HTML 必须由客户端放进沙箱；此处只限制传输尺寸，不把正则匹配当安全隔离。
             String html = content.path("html").asText("");
             // 数学互动内嵌 KaTeX 与字体，避免依赖 CDN；仍留出 JSONL 2 MB 的协议余量。
             if (html.isBlank() || html.length() > 1_200_000) throw invalid("互动页面缺少 HTML 或内容过大");
+            if(content.has("widgetType")&&!Set.of("simulation","diagram","code","game","visualization3d","procedural-skill").contains(content.path("widgetType").asText()))
+                throw invalid("互动类型无效");
+            ((ObjectNode)content).put("html",ClassroomSlideSanitizer.cleanInteractiveHtml(html));
         }
         if (type.equals("quiz")) questions(content.path("questions"));
-        JsonNode actions = scene.path("actions");
-        if (!actions.isMissingNode() && (!actions.isArray() || actions.size() > 100)) throw invalid("课堂讲授动作无效");
-        for (JsonNode action : actions) {
-            if (!action.isObject() || !ACTIONS.contains(action.path("type").asText())) throw invalid("课堂包含不支持的讲授动作");
-            if (action.path("type").asText().equals("speech")) text(action, "text", 6000);
+        if(scene.has("whiteboards")) {
+            if(!scene.path("whiteboards").isArray()||scene.path("whiteboards").size()>20) throw invalid("课件白板数量无效");
+            ArrayNode checked=scene.arrayNode();
+            for(JsonNode board:scene.path("whiteboards")) checked.add(ClassroomEditingSupport.canvas(board));
+            scene.set("whiteboards",checked);
         }
+        scene.set("actions",ClassroomActionPolicy.validate(scene.path("actions"),scene,scene.objectNode(),true));
         return ClassroomSlideSanitizer.cleanScene(scene);
     }
 

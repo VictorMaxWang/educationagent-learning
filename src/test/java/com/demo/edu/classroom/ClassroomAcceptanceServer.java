@@ -4,6 +4,8 @@ import com.demo.chroma.doc.DocKnowledgeAssistant;
 import com.demo.chroma.doc.DocKnowledgeRegistry;
 import com.demo.config.RestTemplateConfig;
 import com.demo.config.AiChatProperties;
+import com.demo.edu.classroom.guide.GuideController;
+import com.demo.edu.classroom.guide.GuideService;
 import com.demo.edu.mapper.ClassroomCourseMapper;
 import com.demo.edu.mapper.EduCrisisDailyMapper;
 import com.demo.edu.mapper.EduUserClassMapper;
@@ -52,6 +54,7 @@ import java.util.regex.Pattern;
  * 手动验收入口，仅存在于 test classpath；没有组件扫描，也不是 @SpringBootApplication。
  * 必须显式指定独立验收数据库，真实模型与腾讯语音凭据仍读取现有 application*.properties。
  * 不自动运行、不启动微信机器人，不注册任何原项目定时任务或知识索引器。
+ * 成长问答和图片接口使用真实业务服务；知识检索明确为空，图片缓存仍限制在独立验收目录。
  */
 public final class ClassroomAcceptanceServer {
     private ClassroomAcceptanceServer() {}
@@ -85,6 +88,8 @@ public final class ClassroomAcceptanceServer {
             guard.put("spring.data.redis.repositories.enabled",false);
             guard.put("management.health.redis.enabled",false);
             guard.put("classroom.data-dir",Path.of("target","classroom-acceptance",database).toAbsolutePath().normalize().toString());
+            // 图片服务显式优先读取这个环境变量名，必须一起覆盖，不能让验收写入生产缓存目录。
+            guard.put("CLASSROOM_DATA_DIR",guard.get("classroom.data-dir"));
             guard.put("server.address","127.0.0.1");
             guard.put("logging.level.com.zaxxer.hikari","WARN");
             guard.put("logging.level.org.mybatis","WARN");
@@ -150,6 +155,7 @@ public final class ClassroomAcceptanceServer {
                     "org.springframework.ai.mcp.client.autoconfigure.McpToolCallbackAutoConfiguration"})
     @Import({ClassroomController.class,ClassroomNodeEngine.class,ClassroomTutorModel.class,ClassroomQuizAdapter.class,
             ClassroomVoiceService.class,ClassroomVoiceController.class,ClassroomWechatBridge.class,ClassroomWechatController.class,
+            ClassroomMediaService.class,ClassroomMediaController.class,GuideController.class,
             FileService.class,QuizService.class,TtsService.class,AudioService.class,RestTemplateConfig.class,AiChatProperties.class,
             CrisisGuard.class,CrisisGuardProperties.class,CrisisCountRecorder.class,
             EduContentSafetyJudge.class,EduContentSafetyProperties.class})
@@ -167,16 +173,24 @@ public final class ClassroomAcceptanceServer {
 
         @Bean ClassroomCourseService classroomCourseService(ClassroomCourseMapper mapper,ObjectMapper json,ClassroomEngine engine,
                 ClassroomTutorModel tutor,ClassroomQuizAdapter quizzes,FileService files,PlatformTransactionManager transactions) {
-            // 故意不注册这个对象为 Bean：否则父类的 @Resource/@PostConstruct 会重新引入 Chroma 索引链。
-            DocKnowledgeRegistry noIndexRegistry=new DocKnowledgeRegistry() {
+            return new ClassroomCourseService(mapper,json,engine,tutor,quizzes,files,noIndexRegistry(),
+                    new TransactionTemplate(transactions),Executors.newSingleThreadExecutor(
+                    Thread.ofPlatform().name("classroom-acceptance-generation").daemon().factory()));
+        }
+
+        @Bean GuideService guideService(ClassroomTutorModel tutor,ObjectMapper json,CrisisGuardProperties crisisProperties) {
+            // 手动装配真实服务，复用安全与模型 Bean，但不创建公共知识库注册中心的依赖链。
+            return new GuideService(tutor,noIndexRegistry(),json,crisisProperties);
+        }
+
+        private static DocKnowledgeRegistry noIndexRegistry() {
+            // 不是 Spring Bean：否则继承的 @Resource/@PostConstruct 会重新引入 Chroma 与索引任务。
+            return new DocKnowledgeRegistry() {
                 @Override public void init() { }
                 @Override public DocKnowledgeAssistant getAssistant(String domainId) { return null; }
                 @Override public Set<String> domainIds() { return Set.of(); }
                 @Override public boolean reindex(String domainId) { return false; }
             };
-            return new ClassroomCourseService(mapper,json,engine,tutor,quizzes,files,noIndexRegistry,
-                    new TransactionTemplate(transactions),Executors.newSingleThreadExecutor(
-                    Thread.ofPlatform().name("classroom-acceptance-generation").daemon().factory()));
         }
 
         @Bean InitializingBean acceptanceSchema(DataSource dataSource,@Value("${spring.datasource.url}") String url) {

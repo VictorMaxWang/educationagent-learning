@@ -3,6 +3,7 @@ import { NarrationQueue, type NarrationPorts } from '../src/classroom/audioQueue
 import { clampIndex, courseHash, courseIdFromHash } from '../src/classroom/navigation';
 import { resumeCourse, splitNarrationText } from '../src/classroom/api';
 import { answerForChoices } from '../src/classroom/QuizScene';
+import { prepareQuestionState } from '../src/classroom/ClassroomConversation';
 
 class FakeAudio extends EventTarget {
   src = '';
@@ -50,6 +51,27 @@ describe('课堂深链与答案', () => {
 });
 
 describe('旁白队列', () => {
+  it('老师操作需要真实完成后才能继续讲解，未确认时不播放下一条', async () => {
+    const synthesize = vi.fn(async () => ({ segments: [{ text: '看白板', url: '/after-action.mp3' }] }));
+    const { queue, audio, ports } = fixture(synthesize);
+    let acknowledge!: () => void;
+    ports.onAction.mockImplementationOnce(() => new Promise<void>(resolve => { acknowledge = resolve; }));
+    const done = queue.playActions([{ id: 'draw', type: 'wb_open' }, { type: 'speech', text: '看白板' }]);
+    await flush(); expect(synthesize).not.toHaveBeenCalled();
+    acknowledge(); await flush();
+    expect(audio.src).toBe('/after-action.mp3');
+    expect(ports.onAction.mock.calls[0][3]).toBe(false);
+    audio.end(); await done;
+  });
+  it('老师操作返回失败则停止后续讲解，并显示真实失败原因', async () => {
+    const synthesize = vi.fn(async () => ({ segments: [] }));
+    const { queue, ports } = fixture(synthesize);
+    ports.onAction.mockRejectedValueOnce(new Error('目标控件不存在'));
+    await queue.playActions([{ id: 'missing', type: 'widget_reveal', target: '#missing' }, { type: 'speech', text: '已经修改好了' }]);
+    expect(synthesize).not.toHaveBeenCalled();
+    expect(ports.onError).toHaveBeenLastCalledWith('目标控件不存在');
+    expect(ports.onStatus).toHaveBeenLastCalledWith('error');
+  });
   it('先录音或等待授权，再点击听课/朗读回答，都不能发起声音', async () => {
     const synthesize = vi.fn(async () => ({ segments: [{ text: '讲解', url: '/lesson.mp3' }] }));
     const { queue, audio, ports } = fixture(synthesize);
@@ -168,5 +190,32 @@ describe('从复习/成长返回学习', () => {
       await expect(resumeCourse('lesson', Promise.reject(new Error('网络不可用')))).rejects.toThrow('网络不可用');
       expect(fetchMock).not.toHaveBeenCalled();
     } finally { vi.unstubAllGlobals(); }
+  });
+});
+
+describe('互动状态即时提问', () => {
+  it('等待实际采样和保存后再调用状态getter，不发送点击时捕获的旧props', async () => {
+    const staleProps = { controls: { '#speed': { value: '10' } } };
+    let latest = staleProps;
+    let finishSave!: () => void;
+    const saving = new Promise<void>(resolve => { finishSave = resolve; });
+    const getLatest = vi.fn(() => latest);
+    const question = prepareQuestionState(async () => {
+      latest = { controls: { '#speed': { value: '42' } } };
+      await saving;
+    }, getLatest, staleProps);
+    await flush(); expect(getLatest).not.toHaveBeenCalled();
+    finishSave();
+    expect(await question).toEqual({ controls: { '#speed': { value: '42' } } });
+    expect(getLatest).toHaveBeenCalledOnce();
+  });
+  it('没有可观察控件时可不带状态提问，读取失败或取消时不回退成旧观察', async () => {
+    const staleProps = { controls: { '#speed': { value: '10' } } };
+    expect(await prepareQuestionState(async () => {}, () => undefined, staleProps)).toBeUndefined();
+    const getter = vi.fn(() => staleProps);
+    await expect(prepareQuestionState(async () => { throw new Error('互动页面尚未准备好'); }, getter, staleProps)).rejects.toThrow('尚未准备好');
+    const cancelled = new AbortController(); cancelled.abort();
+    await expect(prepareQuestionState(undefined, getter, staleProps, cancelled.signal)).rejects.toThrow('取消');
+    expect(getter).not.toHaveBeenCalled();
   });
 });

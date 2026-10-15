@@ -23,6 +23,14 @@ public class ClassroomController {
         return ResponseEntity.accepted().body(courses.create(request));
     }
     @GetMapping("/courses/{id}") public ObjectNode get(@PathVariable String id) { return courses.get(id); }
+    @GetMapping("/courses/{id}/portable") public ObjectNode portable(@PathVariable String id) { return courses.portable(id); }
+    @PostMapping("/courses/import") public ResponseEntity<ObjectNode> importPortable(@RequestBody JsonNode envelope) {
+        return ResponseEntity.status(201).body(courses.importPortable(envelope));
+    }
+    @PutMapping("/courses/{id}/scenes/{sceneId}") public ObjectNode editScene(@PathVariable String id,@PathVariable String sceneId,
+            @RequestBody ClassroomCourseService.SceneEditRequest request) { return courses.editScene(id,sceneId,request); }
+    @PutMapping("/courses/{id}/runtime") public ObjectNode runtime(@PathVariable String id,
+            @RequestBody ClassroomCourseService.RuntimeRequest request) { return courses.saveRuntime(id,request); }
     public record OutlineRequest(JsonNode outlines) {}
     @PutMapping("/courses/{id}/outline") public ObjectNode outline(@PathVariable String id, @RequestBody OutlineRequest request) {
         return courses.editOutline(id, request.outlines());

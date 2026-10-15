@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.nodes.DocumentType;
 import org.jsoup.safety.Safelist;
 import java.net.URI;
 import java.util.*;
@@ -50,12 +51,49 @@ final class ClassroomSlideSanitizer {
         return scene;
     }
 
-    private static void cleanTree(JsonNode node) {
-        if (node.isArray()) { for (JsonNode child : node) cleanTree(child); return; }
+    static ObjectNode cleanCanvas(ObjectNode canvas) { cleanTree(canvas); return canvas; }
+
+    /**
+     * 导入/手工编辑和生成内容共用同一 iframe 文档策略。保留自包含脚本；
+     * CSP 不允许 eval 或网络，blob Worker 仅供隔离的本地代码练习。
+     * 浏览器仍必须 sandbox="allow-scripts"，不能添加 allow-same-origin。
+     */
+    static String cleanInteractiveHtml(String html) {
+        if (html == null || html.isBlank() || html.length() > 1_200_000)
+            throw new ClassroomException(422, "互动 HTML 为空或超过大小限制");
+        Document document=Jsoup.parse(html);
+        document.outputSettings().prettyPrint(false);
+        document.select("iframe,object,embed,base,meta,link").remove();
+        document.select("form").unwrap();
+        document.select("script[src]").remove();
+        for (Element element : document.getAllElements()) {
+            List<String> names=new ArrayList<>(); element.attributes().forEach(a -> names.add(a.getKey()));
+            for (String name : names) {
+                String key=name.toLowerCase(Locale.ROOT);
+                if (Set.of("action","formaction","srcdoc","target","ping","download","nonce","integrity").contains(key)) {
+                    element.removeAttr(name);
+                } else if (Set.of("src","href","xlink:href","poster").contains(key)) {
+                    String value=element.attr(name);
+                    if (!value.startsWith("#") && !value.matches("(?i)^data:image/(png|jpeg|jpg|gif|webp);base64,[A-Za-z0-9+/=]+$"))
+                        element.removeAttr(name);
+                }
+            }
+        }
+        document.head().prependElement("meta").attr("http-equiv","Content-Security-Policy").attr("content",
+                "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; "
+                + "font-src data:; worker-src blob:; child-src blob:; connect-src 'none'; media-src 'none'; "
+                + "object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'");
+        if (document.documentType()==null) document.prependChild(new DocumentType("html","",""));
+        return document.outerHtml();
+    }
+
+    private static void cleanTree(JsonNode node) { cleanTree(node,false); }
+    private static void cleanTree(JsonNode node,boolean codeParent) {
+        if (node.isArray()) { for (JsonNode child : node) cleanTree(child,codeParent); return; }
         if (!node.isObject()) return;
         ObjectNode object=(ObjectNode)node;
         List<String> keys=new ArrayList<>(); object.fieldNames().forEachRemaining(keys::add);
-        boolean code="code".equals(object.path("type").asText());
+        boolean code=codeParent||"code".equals(object.path("type").asText());
         for(String key:keys) {
             JsonNode value=object.get(key); String lower=key.toLowerCase(Locale.ROOT);
             if(lower.startsWith("on") || Set.of("srcdoc","innerhtml","outerhtml","foreignobject","script").contains(lower)) { object.remove(key); continue; }
@@ -64,11 +102,11 @@ final class ClassroomSlideSanitizer {
                 String text=value.asText();
                 if(URL_FIELDS.contains(lower)) {
                     if(!safeUrl(text)) object.put(key,"");
-                } else if((lower.equals("content")&&!code) || lower.equals("text") || lower.equals("html") || lower.equals("svg")) {
+                } else if((Set.of("content","text").contains(lower)&&!code) || lower.equals("html") || lower.equals("svg")) {
                     object.put(key,cleanHtml(text));
                 } else if(lower.equals("style")) object.put(key,cleanStyle(text));
                 else if(CSS_VALUE_FIELDS.contains(lower)&&containsActiveCss(text)) object.put(key,"");
-            } else cleanTree(value);
+            } else cleanTree(value,code);
         }
     }
 

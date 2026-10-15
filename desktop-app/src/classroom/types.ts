@@ -1,5 +1,19 @@
 import type { Slide } from '@educationagent/dsl';
 
+/** 引用仅携带身份；对象正文由后端从当前课程解析，避免旧页面或客户端快照覆盖课程。 */
+export type ElementReference =
+  | { kind: 'slide_element'; sceneId: string; elementId: string }
+  | { kind: 'interactive_component'; sceneId: string; selector: string }
+  | { kind: 'whiteboard_element'; sceneId: string; whiteboardId: string; elementId: string };
+export interface WhiteboardState { id: string; canvas: Slide; isOpen: boolean }
+export interface SceneRuntime {
+  whiteboard?: WhiteboardState;
+  interactiveState?: Record<string, unknown>;
+  acknowledgedActionIds?: string[];
+  actionResults?: { actionId: string; success: boolean; error?: string; at?: string | number }[];
+}
+export type CourseRuntime = Record<string, SceneRuntime>;
+
 export type SceneType = 'slide' | 'quiz' | 'interactive';
 export type Domain = 'general' | 'psychology' | 'lifesafety' | 'sexedu';
 export type CourseStatus = 'outlining' | 'outline_ready' | 'generating' | 'ready' | 'error' | 'cancelled';
@@ -21,7 +35,12 @@ export interface Question {
   hasAnswer?: boolean;
 }
 export interface TeachingAction {
-  type: 'speech' | 'discussion' | 'spotlight' | 'laser';
+  id?: string;
+  type: 'speech' | 'discussion' | 'spotlight' | 'laser'
+    | 'widget_setState' | 'widget_highlight' | 'widget_annotation' | 'widget_reveal'
+    | 'wb_open' | 'wb_close' | 'wb_draw_text' | 'wb_draw_shape' | 'wb_draw_latex'
+    | 'wb_draw_table' | 'wb_draw_chart' | 'wb_draw_line' | 'wb_clear' | 'wb_delete'
+    | 'wb_draw_code' | 'wb_edit_code';
   text?: string;
   content?: string;
   prompt?: string;
@@ -34,7 +53,7 @@ export interface Scene {
   order: number;
   type: SceneType;
   quizId?: string;
-  content: { type: SceneType; canvas?: Slide; questions?: Question[]; html?: string };
+  content: { type: SceneType; canvas?: Slide; questions?: Question[]; html?: string; widgetType?: string; [key: string]: unknown };
   actions: TeachingAction[];
 }
 export interface ClassroomMessage {
@@ -42,6 +61,10 @@ export interface ClassroomMessage {
   speaker: Speaker | 'user';
   text: string;
   sceneId?: string;
+  elementReference?: ElementReference;
+  actions?: TeachingAction[];
+  updatedScene?: Scene;
+  revision?: number;
 }
 export interface Course {
   id: string;
@@ -55,6 +78,9 @@ export interface Course {
   scenes: Scene[];
   progress: { sceneIndex: number; actionIndex: number };
   messages: ClassroomMessage[];
+  revision?: number;
+  runtime?: CourseRuntime;
+  mediaEnabled?: boolean;
   error?: string;
   sourceName?: string;
   sources?: { file?: string; source?: string }[];

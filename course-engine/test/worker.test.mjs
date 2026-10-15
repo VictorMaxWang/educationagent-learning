@@ -106,8 +106,8 @@ test('slide generation assembles DSL and strips active prose and unknown actions
   }
   assert.match(scene.content.canvas.elements[0].content, /四分之一/);
   assert.doesNotMatch(scene.content.canvas.elements[0].content, /script|onclick/);
-  assert.deepEqual(scene.actions.map((item) => item.type), ['speech', 'discussion']);
-  assert.equal(scene.actions[1].agentId, 'peer');
+  assert.deepEqual(scene.actions.map((item) => item.type), ['speech', 'wb_open', 'discussion']);
+  assert.equal(scene.actions[2].agentId, 'peer');
 });
 
 test('quiz preserves server grading keys and binds question IDs to the scene', async () => {

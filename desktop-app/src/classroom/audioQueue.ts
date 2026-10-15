@@ -7,7 +7,7 @@ export interface NarrationPorts {
   createAudio?: () => HTMLAudioElement;
   onStatus(status: PlaybackStatus): void;
   onCaption(text: string, role: Speaker): void;
-  onAction(index: number, action: TeachingAction): void;
+  onAction(index: number, action: TeachingAction, signal: AbortSignal, trackProgress: boolean): void | Promise<void>;
   onDiscussion?(text: string, nextActionIndex: number): void;
   onError(message: string): void;
 }
@@ -100,7 +100,7 @@ export class NarrationQueue {
       audio.play().catch(error => { cleanup(); reject(error); });
     });
   }
-  async play(actions: TeachingAction[], startIndex = 0, voiceRole: Speaker = 'teacher', trackActions = true) {
+  async play(actions: TeachingAction[], startIndex = 0, voiceRole: Speaker = 'teacher', trackActions = true, trackProgress = true) {
     if (this.microphoneBusy) return;
     this.stop(false);
     const run = this.run;
@@ -117,13 +117,14 @@ export class NarrationQueue {
         await this.waitForResume(signal);
         if (run !== this.run || signal.aborted) return;
         const action = actions[index];
-        if (trackActions) this.ports.onAction(index, action);
+        if (trackActions) await this.ports.onAction(index, action, signal, trackProgress);
+        if (run !== this.run || signal.aborted) return;
         if (action.type !== 'speech' && action.type !== 'discussion') continue;
         const text = String(action.text || action.prompt || action.topic || action.content || '').trim();
         if (!text) continue;
         if (action.type === 'discussion') {
           this.ports.onCaption(text, 'teacher');
-          this.ports.onDiscussion?.(text, index + 1);
+          if (trackProgress) this.ports.onDiscussion?.(text, index + 1);
           this.controller = null;
           this.ports.onStatus('discussion');
           return;
@@ -152,5 +153,7 @@ export class NarrationQueue {
   }
   /** 真正的老师/学伴回答共用同一队列，朗读回答不覆盖课堂讲稿的进度。 */
   readResponse(text: string, role: Speaker) { return this.play([{ type: 'speech', text }], 0, role, false); }
+  /** 老师操作按序等待实际执行/持久化，再进入下一条；不移动原课程讲稿位置。 */
+  playActions(actions: TeachingAction[], role: Speaker = 'teacher') { return this.play(actions, 0, role, true, false); }
   destroy() { this.stop(false); this.audio = null; this.microphoneBusy = false; }
 }

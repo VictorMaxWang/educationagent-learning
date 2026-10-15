@@ -1,10 +1,12 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import MistakeView from '../study/MistakeView';
-import CourseKnowledgeView from '../study/CourseKnowledgeView';
+import GrowthCompanion from './GrowthCompanion';
 import { cancelCourse, createCourse, generateCourse, getCourse, listCourses, pairWechat, resumeCourse, saveOutline, saveProgress, uploadMaterial, wechatStatus } from './api';
 import { courseHash, courseIdFromHash } from './navigation';
 import { GRADE_LABELS, STATUS_LABELS, type Course, type Domain, type Outline } from './types';
 import OutlineEditor from './OutlineEditor';
+import CourseExportMenu from './CourseExportMenu';
+import CourseImportButton from './CourseImportButton';
 import './classroom.css';
 
 // 首页无需下载课件绘制、公式和图表代码；进入已有课堂时再加载播放器。
@@ -75,7 +77,6 @@ function WechatConnection() {
 
 export default function ClassroomView({ onOpenNavigation }: { onOpenNavigation?(): void }) {
   const [tab, setTab] = useState<'learn' | 'review' | 'growth'>('learn');
-  const [growthDomain, setGrowthDomain] = useState<Domain | null>(null);
   const [courses, setCourses] = useState<Course[]>([]);
   const [courseId, setCourseId] = useState<string | null>(() => courseIdFromHash(window.location.hash));
   const [course, setCourse] = useState<Course | null>(null);
@@ -86,6 +87,20 @@ export default function ClassroomView({ onOpenNavigation }: { onOpenNavigation?(
   const [pollRevision, setPollRevision] = useState(0);
   const pendingProgress = useRef<Promise<unknown>>(Promise.resolve());
   const navigationRun = useRef(0);
+  const editorDirty = useRef(false);
+  const activeCourseId = useRef(courseId);
+  activeCourseId.current = courseId;
+  const reportEditorDirty = useCallback((dirty: boolean) => { editorDirty.current = dirty; }, []);
+  const waitForProgress = useCallback(() => pendingProgress.current, []);
+  const acceptCourseChange = useCallback((next: Course) => {
+    // 编辑、白板和聊天请求可能晚到；只允许当前课堂且版本不倒退的结果更新画面。
+    setCourse(previous => previous?.id === next.id && (next.revision ?? 0) >= (previous.revision ?? 0) ? next : previous);
+  }, []);
+  const canLeaveEditor = useCallback(() => {
+    if (editorDirty.current && !window.confirm('课件还有未保存的修改，确定离开并放弃这些修改吗？')) return false;
+    editorDirty.current = false;
+    return true;
+  }, []);
   const persistProgress = useCallback((id: string, sceneIndex: number, actionIndex: number) => {
     setCourse(previous => previous?.id === id ? { ...previous, progress: { sceneIndex, actionIndex } } : previous);
     // 按操作顺序落库，慢的旧请求不能覆盖快的新位置；返回课堂会等待这一条保存链。
@@ -99,10 +114,22 @@ export default function ClassroomView({ onOpenNavigation }: { onOpenNavigation?(
   }, []);
   useEffect(() => { void refreshCourses(); }, [refreshCourses]);
   useEffect(() => {
-    const onHash = () => { navigationRun.current++; setCourseId(courseIdFromHash(window.location.hash)); setTab('learn'); };
+    const onHash = () => {
+      const nextId = courseIdFromHash(window.location.hash);
+      if (nextId !== activeCourseId.current && !canLeaveEditor()) {
+        window.history.replaceState(null, '', courseHash(activeCourseId.current));
+        return;
+      }
+      navigationRun.current++; activeCourseId.current = nextId; setCourseId(nextId); setTab('learn');
+    };
+    const beforeUnload = (event: BeforeUnloadEvent) => {
+      if (!editorDirty.current) return;
+      event.preventDefault(); event.returnValue = '';
+    };
     window.addEventListener('hashchange', onHash);
-    return () => window.removeEventListener('hashchange', onHash);
-  }, []);
+    window.addEventListener('beforeunload', beforeUnload);
+    return () => { window.removeEventListener('hashchange', onHash); window.removeEventListener('beforeunload', beforeUnload); };
+  }, [canLeaveEditor]);
   // 只为当前课程轮询；AbortController 阻止换课后的旧响应覆盖新画面。
   useEffect(() => {
     if (!courseId) { setCourse(null); setLoading(false); return; }
@@ -123,8 +150,10 @@ export default function ClassroomView({ onOpenNavigation }: { onOpenNavigation?(
     return () => { controller.abort(); if (timer) clearTimeout(timer); };
   }, [courseId, pollRevision]);
   const openCourse = (id: string | null) => {
+    if (id !== courseId && !canLeaveEditor()) return;
     navigationRun.current++;
-    setTab('learn'); setGrowthDomain(null); setCourseId(id); setError('');
+    activeCourseId.current = id;
+    setTab('learn'); setCourseId(id); setError('');
     window.location.hash = courseHash(id);
     if (!id) void refreshCourses();
   };
@@ -154,8 +183,9 @@ export default function ClassroomView({ onOpenNavigation }: { onOpenNavigation?(
     finally { setBusy(false); }
   };
   const selectTab = async (value: typeof tab) => {
+    if (value === tab || !canLeaveEditor()) return;
     const run = ++navigationRun.current;
-    setTab(value); setGrowthDomain(null);
+    setTab(value);
     if (value !== 'learn' || tab === 'learn' || !courseId) return;
     setLoading(true); setError('');
     try {
@@ -166,10 +196,11 @@ export default function ClassroomView({ onOpenNavigation }: { onOpenNavigation?(
     } finally { if (run === navigationRun.current) setLoading(false); }
   };
   return <div className="cr-root">
-    <header className="cr-header"><button className="cr-brand" onClick={() => openCourse(null)}><span className="cr-brand-icon" aria-hidden="true">禾</span><span><strong>educationagent</strong><small>让每一个好问题，都有人陪你想</small></span></button><nav className="cr-tabs" aria-label="学习导航">{([['learn', '学习'], ['review', '复习'], ['growth', '成长知识']] as const).map(([key, label]) => <button key={key} aria-current={tab === key ? 'page' : undefined} onClick={() => selectTab(key)}>{label}</button>)}</nav>{onOpenNavigation && <button className="cr-all-tools" onClick={onOpenNavigation}>所有工具 ☰</button>}</header>
+    <header className="cr-header"><button className="cr-brand" onClick={() => openCourse(null)}><span className="cr-brand-icon" aria-hidden="true">禾</span><span><strong>educationagent</strong><small>让每一个好问题，都有人陪你想</small></span></button><nav className="cr-tabs" aria-label="学习导航">{([['learn', '学习'], ['review', '复习'], ['growth', '成长课堂']] as const).map(([key, label]) => <button key={key} aria-current={tab === key ? 'page' : undefined} onClick={() => selectTab(key)}>{label}</button>)}</nav>{onOpenNavigation && <button className="cr-all-tools" onClick={onOpenNavigation}>所有工具 ☰</button>}</header>
     {tab === 'learn' && !courseId && <div className="cr-home"><section className="cr-welcome"><div><p className="cr-eyebrow">从小学到高中 · 学习，也关心成长</p><h1>把好奇带进课堂，<br />把学会带回生活。</h1><p>面向乡村学生的学习伙伴。讲一讲、试一试，<br className="cr-desktop-break" />无论大人是否在身边，都给每一步探索多一点支持。</p></div><div className="cr-welcome-art" aria-hidden="true"><span className="cr-orbit orbit-one" /><span className="cr-orbit orbit-two" /><span className="cr-art-book">学</span><span className="cr-art-leaf">✦</span><span className="cr-art-note">一个问题，一点进步</span></div></section>
       <CreateCourse onCreated={created => openCourse(created.id)} />
       <section className="cr-library"><div className="cr-section-heading"><div><p className="cr-eyebrow">接着上次的发现</p><h2>我的课堂</h2></div><button className="cr-link" onClick={() => void refreshCourses()}>刷新列表 ↻</button></div>
+        <CourseImportButton onImported={imported => { void refreshCourses(); openCourse(imported.id); }} />
         {listLoading ? <p className="cr-muted" role="status">正在找回你的课堂…</p> : !courses.length ? <div className="cr-empty">你的第一堂课，从上面的一个问题开始。</div> : <div className="cr-course-grid">{courses.map(item => <button className="cr-course-card" key={item.id} onClick={() => openCourse(item.id)}><div className="cr-card-top"><span className="cr-course-symbol">{item.domain === 'general' ? '书' : '知'}</span><span className={`cr-status ${item.status}`}>{STATUS_LABELS[item.status]}</span></div><h3>{item.title || item.topic}</h3><p>{GRADE_LABELS[item.grade - 1]} · {item.subject || '综合'} · {DOMAINS.find(domain => domain.id === item.domain)?.label || '学科学习'}</p><div className="cr-course-bottom"><span>{item.updatedAt ? new Date(item.updatedAt).toLocaleDateString('zh-CN') : '新课堂'}</span><strong>走进课堂 ↗</strong></div></button>)}</div>}
       </section><WechatConnection />
     </div>}
@@ -179,10 +210,10 @@ export default function ClassroomView({ onOpenNavigation }: { onOpenNavigation?(
       {course.status === 'outline_ready' && <OutlineEditor key={`${course.id}-outline`} initial={course.outlines} busy={busy} onConfirm={startGeneration} />}
       {(course.status === 'cancelled' || course.status === 'error') && <div className="cr-empty"><p>这堂课的生成已停止。已完成的内容仍可以学习。</p><button className="cr-button secondary" disabled={busy} onClick={() => void retryGeneration()}>{busy ? '正在继续…' : '继续准备未完成的内容'}</button></div>}
       {(course.sourceName || course.sources?.length || course.retrievalNote) && <details className="cr-sources"><summary>课程参考资料</summary>{course.sourceName && <p>你提供的资料：{course.sourceName}</p>}{course.sources?.map((source, index) => <p key={index}>{source.file || source.source || '专题资料'}</p>)}{course.retrievalNote && <p>{course.retrievalNote}</p>}</details>}
-      {course.scenes.length > 0 && <Suspense fallback={<div className="cr-empty">正在打开学习内容…</div>}><CoursePlayer key={course.id} course={course} onProgress={persistProgress} /></Suspense>}
+      {course.scenes.length > 0 && <><CourseExportMenu course={course} disabled={busy || course.status === 'generating'} /><Suspense fallback={<div className="cr-empty">正在打开学习内容…</div>}><CoursePlayer key={course.id} course={course} onProgress={persistProgress} onCourseChange={acceptCourseChange} onEditorDirtyChange={reportEditorDirty} waitForProgress={waitForProgress} /></Suspense></>}
     </>}</div>}
     {tab === 'review' && <div className="cr-embedded-page"><div className="cr-section-heading"><div><p className="cr-eyebrow">学过，再试一次</p><h1>把不会的，慢慢变成会的。</h1><p>这里收集新课堂中的错题。重新练习，会继续使用原有的判题与错题功能。</p></div></div><MistakeView userId="classroom" embedded /></div>}
-    {tab === 'growth' && <div className="cr-embedded-page">{growthDomain ? <><button className="cr-link cr-back" onClick={() => setGrowthDomain(null)}>← 返回成长知识</button><CourseKnowledgeView domainId={growthDomain} learnerId="classroom" /></> : <><div className="cr-section-heading"><div><p className="cr-eyebrow">学会知识，也学会照顾自己</p><h1>关于成长，放心问。</h1><p>沿用已有的知识库、资料来源与安全保护，提供适合成长阶段的知识解答。</p></div></div><div className="cr-growth-grid">{DOMAINS.filter(domain => domain.id !== 'general').map(domain => <button className="cr-growth-card" key={domain.id} onClick={() => setGrowthDomain(domain.id)}><span>{domain.id === 'psychology' ? '◌' : domain.id === 'lifesafety' ? '◇' : '✧'}</span><h2>{domain.label}</h2><p>{domain.detail}</p><strong>进入知识课堂 →</strong></button>)}</div><p className="cr-growth-note">遇到现实中的困难时，也可以向信任的大人或老师求助。AI 学伴会陪你梳理问题。</p></>}</div>}
+    {tab === 'growth' && <GrowthCompanion />}
     {error && <p className="cr-error cr-page-error" role="alert">{error}<button className="cr-link" onClick={() => setError('')}>收起</button></p>}
   </div>;
 }

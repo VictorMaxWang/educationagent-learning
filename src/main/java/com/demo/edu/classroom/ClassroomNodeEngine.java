@@ -52,7 +52,7 @@ public class ClassroomNodeEngine implements ClassroomEngine {
             String jobId=UUID.randomUUID().toString();
             ObjectNode job=json.createObjectNode().put("type","job").put("id",jobId).put("operation",operation);
             ObjectNode input=json.createObjectNode();
-            for(String field:List.of("id","topic","grade","subject","domain","sourceText","sourceName","generationContext","outlines"))
+            for(String field:List.of("id","topic","grade","subject","domain","sourceText","sourceName","generationContext","outlines","mediaEnabled"))
                 if(course.has(field)) input.set(field,course.get(field).deepCopy());
             // 后一页只需前页讲述，不反复传输画布、互动代码和内联字体。
             var previousScenes = input.putArray("scenes");

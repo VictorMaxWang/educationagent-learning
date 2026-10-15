@@ -31,7 +31,7 @@ $requiredFiles = @('pom.xml', 'package.json', 'package-lock.json', 'mvnw', 'mvnw
     'src/main/resources/application-dev.properties', 'src/main/resources/schema.sql',
     'desktop-app/package.json', 'desktop-app/package-lock.json', 'desktop-app/src/App.jsx', 'course-engine/package.json',
     'vendor/educationagent/dsl/package.json', 'vendor/educationagent/generation/package.json',
-    'vendor/educationagent/renderer/package.json')
+    'vendor/educationagent/renderer/package.json', 'vendor/educationagent/editor/package.json')
 
 function Get-RelativePublishPath([string]$Path) {
     return [IO.Path]::GetRelativePath($projectRoot, $Path).Replace('\', '/')
@@ -50,6 +50,7 @@ function Test-PublishExcluded([IO.FileInfo]$File) {
     $relative = Get-RelativePublishPath $File.FullName
     # Tauri 按平台生成的权限 schema 会由原目录 gitignore 排除，不是可移植源码输入。
     if ($relative.StartsWith('desktop-app/src-tauri/gen/', [StringComparison]::OrdinalIgnoreCase)) { return $true }
+    if ($relative.StartsWith('desktop-app/public/educationagent-export/', [StringComparison]::OrdinalIgnoreCase)) { return $true }
     foreach ($segment in $relative.Split('/')) {
         if ($segment -in $skipDirectoryNames) { return $true }
     }

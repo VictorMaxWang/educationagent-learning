@@ -7,7 +7,7 @@ release_id=${1:?Usage: install-release.sh RELEASE_ID}
 base=/opt/educationagent
 release="${base}/releases/${release_id}"
 [[ -d ${release} && ! -L ${release} && $(realpath -- "${release}") == "${release}" ]] || { echo 'Release must be a real directory inside releases.' >&2; exit 1; }
-for artifact in app.jar desktop-app/dist/index.html course-engine/dist/worker.js package.json package-lock.json vendor/educationagent/dsl/dist/index.js vendor/educationagent/generation/dist/index.js; do
+for artifact in app.jar desktop-app/dist/index.html desktop-app/dist/educationagent-export/player.js desktop-app/dist/educationagent-export/player.css course-engine/dist/worker.js course-engine/dist/runtime/three.js course-engine/dist/runtime/code-runner.js package.json package-lock.json vendor/educationagent/dsl/dist/index.js vendor/educationagent/generation/dist/index.js; do
   [[ -f ${release}/${artifact} ]] || { echo "Missing release artifact: ${artifact}" >&2; exit 1; }
 done
 [[ -f /etc/educationagent/runtime.env && -f /etc/systemd/system/educationagent.service ]] || { echo 'Provision host configuration first.' >&2; exit 1; }
@@ -51,4 +51,4 @@ if [[ ${ready} != true ]]; then
   exit 1
 fi
 systemctl reload-or-restart caddy.service
-echo "Release active: ${release_id}. Verify public HTTPS and authenticated classroom operations separately."
+echo "Release active: ${release_id}. Verify public HTTPS and classroom operations separately."
