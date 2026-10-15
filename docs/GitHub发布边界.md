@@ -8,7 +8,7 @@
 
 发布目标是独立的私有仓库 `VictorMaxWang/educationagent-learning`。已有 `EducationAgent` 是参考代码的 fork；`childcare-smart` 和 `smartchildcare-agent` 属于另一套托育系统，均不覆盖。
 
-新的业务命名、npm scope 和界面名称使用 `educationagent`。迁移代码的来源、原作者版权与 MIT 许可必须保留：见 `vendor/educationagent/THIRD_PARTY_NOTICES.md` 和三个包各自的 `LICENSE`。包改名不改变许可证义务，也不代表这些代码全部为本项目原创。
+业务命名、npm scope 和界面名称使用 `educationagent`。
 
 ## 复制范围
 
@@ -17,7 +17,7 @@
 | `src` | Java 源码、测试、数据库结构、路由种子及必要资源；包含已清敏、仅引用环境变量/私密配置的 `application*.properties` |
 | `desktop-app` | React/Vite 页面、测试、桌面壳源码和图标；排除依赖、构建结果、本地环境变量 |
 | `course-engine` | 教学生成器源码、协议及测试 |
-| `vendor/educationagent` | 本地适配包、源素材、测试和许可证；构建结果重新生成 |
+| `vendor/educationagent` | 教学共享包、模板和测试；构建结果重新生成 |
 | `scripts`、`docs`、`deploy` | 构建、运行、部署脚本及技术文档；排除私密环境文件、证书、日志和压缩包 |
 | 根构建文件、`.mvn` | Maven/npm 清单及锁文件、wrapper、入口脚本；可选的 README、根许可证和部署入口 |
 | 根 `data`、`chroma`、`output`、`logs`、`dev` | 全部不复制，包括数据库、语料、聊天/学生记录、导出文件和编译 class |
@@ -46,7 +46,7 @@ pwsh -NoLogo -NoProfile -NonInteractive -File scripts/Prepare-GitHubSnapshot.ps1
 ## 发布前验收
 
 1. 主控完成模型和环境变量配置后重新运行检查，再生成快照；`application-dev.properties` 只包含清敏配置，`config/local-secrets.properties` 和真实 `.env` 不得出现在快照。
-2. 核对三个适配包的源码、资源、许可证，以及 Maven/npm 锁文件均在清单中。前端必须先构建共享包，再安装/构建 `desktop-app`。
+2. 核对教学共享包源码、资源以及 Maven/npm 锁文件均在清单中。前端必须先构建共享包，再安装/构建 `desktop-app`。
 3. 在独立验证目录执行 `npm ci`、`npm run build:classroom-engine`、前端 `npm ci` 和 `npm run build`，以及 Maven 打包与针对性测试。运行依赖配置按部署指南设置。
 4. 仅在快照目录新建 Git 历史。核对 GitHub 身份及新私有仓库名后提交推送，保留原工作区 `origin` 不变；推送后核验远程提交与可见性。
 

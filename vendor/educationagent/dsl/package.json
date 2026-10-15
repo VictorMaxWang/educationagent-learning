@@ -15,8 +15,7 @@
   },
   "files": [
     "dist",
-    "README.md",
-    "LICENSE"
+    "README.md"
   ],
   "sideEffects": false,
   "scripts": {
@@ -35,7 +34,6 @@
     "schema",
     "contract"
   ],
-  "license": "MIT",
   "devDependencies": {
     "ajv": "^8.17.1",
     "ts-json-schema-generator": "~2.4.0",

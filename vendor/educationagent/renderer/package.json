@@ -1,7 +1,7 @@
 {
   "name": "@educationagent/renderer",
   "version": "0.1.14",
-  "description": "EducationAgent read-only slide renderer; upstream attribution is retained in THIRD_PARTY_NOTICES.",
+  "description": "EducationAgent slide renderer",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -32,8 +32,7 @@
   "files": [
     "dist",
     "styles.css",
-    "README.md",
-    "LICENSE"
+    "README.md"
   ],
   "scripts": {
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
@@ -49,7 +48,6 @@
     "canvas",
     "react"
   ],
-  "license": "MIT",
   "peerDependencies": {
     "echarts": ">=5",
     "motion": ">=11",

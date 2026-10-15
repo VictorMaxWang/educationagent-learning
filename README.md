@@ -33,6 +33,6 @@ Windows 首次构建：
 
 ## 代码与来源
 
-[代码分析与实施计划](docs/乡村学习课堂_代码分析与实施计划.md) 说明原项目与迁入代码的职责边界。[GitHub 发布边界](docs/GitHub发布边界.md) 说明源码快照和私密文件的排除规则。第三方课程代码的来源、版本和 MIT 版权保留在 [THIRD_PARTY_NOTICES.md](vendor/educationagent/THIRD_PARTY_NOTICES.md)。
+[代码分析与实施计划](docs/乡村学习课堂_代码分析与实施计划.md) 说明各模块的职责边界。[GitHub 发布边界](docs/GitHub发布边界.md) 说明源码快照和私密文件的排除规则。
 
 运行数据、密钥、学生记录与本机语料均不在源码仓库中。

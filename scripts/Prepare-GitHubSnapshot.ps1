@@ -30,8 +30,8 @@ $requiredFiles = @('pom.xml', 'package.json', 'package-lock.json', 'mvnw', 'mvnw
     'src/main/java/com/demo/DemoApplication.java', 'src/main/resources/application.properties',
     'src/main/resources/application-dev.properties', 'src/main/resources/schema.sql',
     'desktop-app/package.json', 'desktop-app/package-lock.json', 'desktop-app/src/App.jsx', 'course-engine/package.json',
-    'vendor/educationagent/THIRD_PARTY_NOTICES.md', 'vendor/educationagent/dsl/LICENSE',
-    'vendor/educationagent/generation/LICENSE', 'vendor/educationagent/renderer/LICENSE')
+    'vendor/educationagent/dsl/package.json', 'vendor/educationagent/generation/package.json',
+    'vendor/educationagent/renderer/package.json')
 
 function Get-RelativePublishPath([string]$Path) {
     return [IO.Path]::GetRelativePath($projectRoot, $Path).Replace('\', '/')

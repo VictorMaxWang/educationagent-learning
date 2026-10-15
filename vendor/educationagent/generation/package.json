@@ -21,8 +21,7 @@
     "templates",
     "snippets",
     "prompts-pbl",
-    "README.md",
-    "LICENSE"
+    "README.md"
   ],
   "sideEffects": false,
   "scripts": {
@@ -39,7 +38,6 @@
     "prompts",
     "pipeline"
   ],
-  "license": "MIT",
   "dependencies": {
     "@educationagent/dsl": "*",
     "jsonrepair": "^3.13.2",
