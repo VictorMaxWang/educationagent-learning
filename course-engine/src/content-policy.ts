@@ -2,6 +2,7 @@ import { parse, parseFragment, serialize, type DefaultTreeAdapterMap } from 'par
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
+import { parse as parseModuleImports } from 'es-module-lexer/js';
 
 type Node = DefaultTreeAdapterMap['node'];
 type Parent = DefaultTreeAdapterMap['parentNode'];
@@ -13,6 +14,38 @@ const DROP_TAGS = new Set(['script', 'style', 'iframe', 'object', 'embed', 'link
 
 function children(node: Node): Node[] { return 'childNodes' in node ? node.childNodes : []; }
 function element(node: Node): node is Element { return 'tagName' in node; }
+
+/**
+ * 词法解析只定位真正的依赖语句，注释、字符串、正则及模板正文不会被全局替换。
+ * 只兼容已内联的两个Three入口；未知模块与动态import必须显式失败，不能留下永久加载页。
+ */
+export function adaptThreeModuleImports(source: string, allowThree: boolean): string {
+  let imports: ReturnType<typeof parseModuleImports>[0];
+  try { [imports] = parseModuleImports(source); }
+  catch { throw new Error('互动脚本无法解析，请重新生成'); }
+  const replacements: Array<{ start: number; end: number; text: string }> = [];
+  for (const entry of imports) {
+    if (entry.d === -2) continue; // import.meta不加载依赖，保留模块自身语义。
+    if (!allowThree || entry.t !== 1 || entry.d !== -1 || entry.a !== -1 || !entry.n)
+      throw new Error('互动包含不支持的模块依赖或动态导入，请重新生成');
+    const specifier = entry.n;
+    const isThree = specifier === 'three' || /^https:\/\/unpkg\.com\/three@\d+\.\d+\.\d+\/build\/three\.module(?:\.min)?\.js$/.test(specifier);
+    const isControls = ['three/addons/controls/OrbitControls.js', 'three/examples/jsm/controls/OrbitControls.js'].includes(specifier)
+      || /^https:\/\/unpkg\.com\/three@\d+\.\d+\.\d+\/examples\/jsm\/controls\/OrbitControls\.js$/.test(specifier);
+    if (!isThree && !isControls) throw new Error('互动引用了未支持的模块依赖，请重新生成');
+    // 仅在已由词法器确认的import前缀内移除注释；此范围不含模块字符串或业务代码。
+    const prefix = source.slice(entry.ss, entry.s - 1).replace(/\/\*[\s\S]*?\*\/|\/\/[^\r\n]*/g, ' ').trim();
+    const namespace = isThree ? prefix.match(/^import\s*\*\s*as\s+([A-Za-z_$][\w$]*)\s+from$/) : null;
+    const named = isControls ? prefix.match(/^import\s*\{\s*OrbitControls(?:\s+as\s+([A-Za-z_$][\w$]*))?\s*,?\s*\}\s*from$/) : null;
+    const binding = namespace?.[1] || (named ? named[1] || 'OrbitControls' : undefined);
+    if (!binding || binding === 'window') throw new Error('互动使用了不支持的Three导入形式，请重新生成');
+    replacements.push({ start: entry.ss, end: entry.se,
+      text: `const ${binding} = window.THREE${isControls ? '.OrbitControls' : ''};` });
+  }
+  let result = source;
+  for (const patch of replacements.reverse()) result = result.slice(0, patch.start) + patch.text + result.slice(patch.end);
+  return result;
+}
 
 /** 画布正文会进入宿主 DOM，因此只保留教学文本所需标记，不能依赖 iframe 沙箱。 */
 export function sanitizeProse(html: string): string {
@@ -141,6 +174,16 @@ export function restrictInteractiveHtml(html: string, options: InteractivePolicy
       if (!element(node)) return true;
       if (forbidden.has(node.tagName)) return false;
       if (node.tagName === 'script' && node.attrs.some((attr) => attr.name === 'src')) return false;
+      if (node.tagName === 'script') {
+        const type = (node.attrs.find(attr => attr.name === 'type')?.value || '').trim().toLowerCase();
+        // 重处理已保存课件时去掉旧自有运行库，再注入当前版本，避免重复内联超出页面预算。
+        if (type === 'importmap' || node.attrs.some(attr => attr.name === 'data-educationagent-runtime' && ['three', 'code-runner'].includes(attr.value))) return false;
+        if (['', 'module', 'text/javascript', 'application/javascript'].includes(type)) {
+          for (const child of children(node)) if ('value' in child) {
+            child.value = adaptThreeModuleImports(child.value, options.widgetType === 'visualization3d' && type === 'module');
+          }
+        }
+      }
       // 上游后处理器注入的自动排版使用 trust:true；删除后用受限本地版本替换。
       if (node.tagName === 'script' && children(node).some((child) => 'value' in child && child.value.includes('const katexOptions') && child.value.includes('observer.observe(document.body') && child.value.includes('setInterval'))) return false;
       node.attrs = node.attrs.filter(({ name, value }) => {

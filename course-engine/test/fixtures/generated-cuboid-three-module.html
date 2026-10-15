@@ -1,0 +1,392 @@
+<!-- Offline regression: real generated cuboid HTML; only host-owned runtime and CSP removed. -->
+<!DOCTYPE html><html lang="zh-CN"><head>
+
+
+  <title>转一转长方体</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%; height: 100%; overflow: hidden;
+      background: #0a0a1a; font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    #experiment { position: relative; width: 100%; height: 100%; }
+    #canvas-container { width: 100%; height: 100%; position: relative; }
+    canvas { display: block; }
+
+    #loading {
+      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      background: #0a0a1a; display: flex; align-items: center; justify-content: center;
+      color: #aaa; font-size: 16px; z-index: 1000; text-align: center;
+    }
+    #loading .spinner {
+      width: 40px; height: 40px; border: 3px solid #333; border-top-color: #6366f1;
+      border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    #controls {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      background: rgba(20, 20, 30, 0.92); backdrop-filter: blur(12px);
+      padding: 14px 16px 22px; display: flex; flex-wrap: wrap; gap: 14px;
+      justify-content: center; align-items: center;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    .control-group { display: flex; flex-direction: column; gap: 6px; min-width: 120px; }
+    label { font-size: 11px; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px; }
+    input[type="range"] {
+      width: 100%; height: 6px; -webkit-appearance: none; appearance: none;
+      background: #333; border-radius: 3px; cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none; width: 22px; height: 22px;
+      background: #6366f1; border-radius: 50%; cursor: pointer;
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 22px; height: 22px; background: #6366f1; border-radius: 50%; cursor: pointer; border: none;
+    }
+    button {
+      padding: 12px 18px; border: none; border-radius: 8px; background: #333;
+      color: white; cursor: pointer; font-size: 14px; min-width: 44px; min-height: 44px;
+      transition: all 0.2s;
+    }
+    button:hover { background: #444; }
+    button:active { transform: scale(0.95); }
+    button.primary { background: #6366f1; }
+    button.primary:hover { background: #5558e8; }
+    .zoom-btns { display: flex; gap: 8px; }
+    .zoom-btns button {
+      width: 44px; height: 44px; font-size: 24px; font-weight: bold;
+      display: flex; align-items: center; justify-content: center; padding: 0;
+    }
+
+    #info {
+      position: absolute; top: 16px; left: 16px;
+      background: rgba(20, 20, 30, 0.85); backdrop-filter: blur(8px);
+      padding: 14px 16px; border-radius: 12px; max-width: 260px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    #info h2 { font-size: 15px; color: #fbbf24; margin-bottom: 8px; }
+    #info p { font-size: 13px; color: #ccc; line-height: 1.6; }
+    #info .dim { color: #7dd3fc; font-weight: 600; }
+    #info .vol { color: #86efac; font-weight: 700; font-size: 15px; }
+
+    @media (max-width: 600px) {
+      #info { max-width: 200px; padding: 10px 12px; }
+      #info p { font-size: 12px; }
+      #controls { padding: 10px 8px 20px; gap: 10px; }
+      .control-group { min-width: 90px; }
+    }
+  </style>
+
+
+
+
+
+</head>
+<body>
+  <div id="experiment">
+    <div id="loading">
+      <div style="text-align:center;">
+        <div class="spinner"></div>
+        正在加载 3D 场景...
+      </div>
+    </div>
+
+    <div id="canvas-container"></div>
+
+    <div id="info">
+      <h2>转一转长方体</h2>
+      <p>拖动画面可旋转视角。<br>
+      长：<span class="dim" id="len-val">4</span> cm<br>
+      宽：<span class="dim" id="wid-val">3</span> cm<br>
+      高：<span class="dim" id="hei-val">2</span> cm<br>
+      体积 = 长×宽×高 = <span class="vol" id="vol-val">24</span> cm³</p>
+    </div>
+
+    <div id="controls">
+      <div class="control-group">
+        <label for="height-slider">调整高度</label>
+        <input type="range" id="height-slider" min="1" max="6" step="0.5" value="2">
+      </div>
+      <div class="zoom-btns">
+        <button id="zoom-in-btn" title="放大">+</button>
+        <button id="zoom-out-btn" title="缩小">−</button>
+      </div>
+      <button id="reset-btn" class="primary">复位</button>
+    </div>
+  </div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    // ---- State publication helper (required contract) ----
+    function publishState(observation) {
+      const root = document.getElementById('experiment');
+      if (!root) throw new Error('Missing interaction scope');
+      try {
+        const raw = JSON.stringify(observation);
+        if (typeof raw !== 'string' || new TextEncoder().encode(raw).length > 32768)
+          throw new Error('Invalid state publication');
+        let node = root.querySelector('script[data-educationagent-observation]');
+        if (!node) {
+          node = document.createElement('script');
+          node.type = 'application/json';
+          node.setAttribute('data-educationagent-observation', '');
+          root.appendChild(node);
+        }
+        node.textContent = raw;
+      } catch (error) {
+        root.querySelectorAll('script[data-educationagent-observation]').forEach(n => n.remove());
+        throw error;
+      }
+    }
+
+    // Application state (logical units in centimeters)
+    const dims = { length: 4, width: 3, height: 2 };
+
+    function computeVolume() {
+      return +(dims.length * dims.width * dims.height).toFixed(2);
+    }
+
+    function updateReadout() {
+      document.getElementById('len-val').textContent = dims.length;
+      document.getElementById('wid-val').textContent = dims.width;
+      document.getElementById('hei-val').textContent = dims.height;
+      document.getElementById('vol-val').textContent = computeVolume();
+    }
+
+    function publishCurrentState() {
+      publishState({
+        summary: `长方体长 ${dims.length} cm、宽 ${dims.width} cm、高 ${dims.height} cm，体积为 ${computeVolume()} cm³。`,
+        state: {
+          cuboid: {
+            length: dims.length,
+            width: dims.width,
+            height: dims.height,
+            unit: 'cm',
+            volume: computeVolume(),
+            volumeUnit: 'cm³'
+          }
+        }
+      });
+    }
+
+    function checkWebGL() {
+      try {
+        const canvas = document.createElement('canvas');
+        return !!(window.WebGLRenderingContext &&
+          (canvas.getContext('webgl') || canvas.getContext('experimental-webgl')));
+      } catch (e) { return false; }
+    }
+
+    async function initScene() {
+      try {
+        if (!checkWebGL()) throw new Error('此浏览器不支持 WebGL');
+
+        const container = document.getElementById('canvas-container');
+        const width = container.clientWidth || window.innerWidth;
+        const height = container.clientHeight || window.innerHeight;
+        if (width === 0 || height === 0) throw new Error('容器尺寸为零');
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0a0a1a);
+
+        const camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1000);
+        camera.position.set(6, 5, 8);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(width, height);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        container.appendChild(renderer.domElement);
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.target.set(0, 1.5, 0);
+
+        // Lighting
+        scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+        const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6);
+        scene.add(hemi);
+        const dir = new THREE.DirectionalLight(0xffffff, 1.2);
+        dir.position.set(10, 20, 10);
+        scene.add(dir);
+
+        // Objects storage
+        const objects = {};
+
+        // Cuboid group centered so it sits on the ground plane
+        const cuboidGroup = new THREE.Group();
+        scene.add(cuboidGroup);
+
+        const material = new THREE.MeshPhongMaterial({
+          color: 0x6366f1, specular: 0x222244, shininess: 30, transparent: true, opacity: 0.85
+        });
+
+        let mesh, edges;
+        function buildCuboid() {
+          if (mesh) { cuboidGroup.remove(mesh); mesh.geometry.dispose(); }
+          if (edges) { cuboidGroup.remove(edges); edges.geometry.dispose(); }
+
+          const geo = new THREE.BoxGeometry(dims.length, dims.height, dims.width);
+          mesh = new THREE.Mesh(geo, material);
+          mesh.name = 'cuboid';
+          cuboidGroup.add(mesh);
+
+          const edgeGeo = new THREE.EdgesGeometry(geo);
+          edges = new THREE.LineSegments(edgeGeo,
+            new THREE.LineBasicMaterial({ color: 0xfbbf24 }));
+          cuboidGroup.add(edges);
+
+          objects.cuboid = [mesh];
+        }
+        buildCuboid();
+
+        // Ground grid
+        const grid = new THREE.GridHelper(20, 20, 0x334155, 0x1e293b);
+        grid.position.y = 0;
+        scene.add(grid);
+
+        // Animation
+        let autoRotate = true;
+        let animationSpeed = 1;
+
+        function animate() {
+          requestAnimationFrame(animate);
+          if (autoRotate) {
+            cuboidGroup.rotation.y += 0.005 * animationSpeed;
+          }
+          controls.update();
+          renderer.render(scene, camera);
+        }
+        animate();
+
+        // Height slider -> rebuild + publish
+        const heightSlider = document.getElementById('height-slider');
+        heightSlider.addEventListener('input', () => {
+          dims.height = parseFloat(heightSlider.value);
+          buildCuboid();
+          updateReadout();
+          publishCurrentState();
+        });
+
+        // Zoom buttons
+        document.getElementById('zoom-in-btn').addEventListener('click', () => {
+          const direction = new THREE.Vector3();
+          camera.getWorldDirection(direction);
+          camera.position.addScaledVector(direction, 2);
+        });
+        document.getElementById('zoom-out-btn').addEventListener('click', () => {
+          const direction = new THREE.Vector3();
+          camera.getWorldDirection(direction);
+          camera.position.addScaledVector(direction, -2);
+        });
+
+        // Reset
+        document.getElementById('reset-btn').addEventListener('click', () => {
+          camera.position.set(6, 5, 8);
+          controls.target.set(0, 1.5, 0);
+          cuboidGroup.rotation.y = 0;
+          dims.height = 2;
+          heightSlider.value = 2;
+          buildCuboid();
+          updateReadout();
+          publishCurrentState();
+        });
+
+        // Resize
+        window.addEventListener('resize', () => {
+          const w = container.clientWidth || window.innerWidth;
+          const h = container.clientHeight || window.innerHeight;
+          camera.aspect = w / h;
+          camera.updateProjectionMatrix();
+          renderer.setSize(w, h);
+        });
+
+        // Teacher actions via postMessage
+        window.addEventListener('message', (event) => {
+          const data = event.data || {};
+          const action = data.action;
+          const payload = data.payload || {};
+          switch (action) {
+            case 'SET_WIDGET_STATE': {
+              if (payload.cameraPosition) camera.position.set(...payload.cameraPosition);
+              if (payload.scale !== undefined) cuboidGroup.scale.setScalar(payload.scale);
+              break;
+            }
+            case 'HIGHLIGHT_ELEMENT': {
+              const targetId = payload.elementId;
+              const highlight = payload.highlight;
+              if (objects[targetId]) {
+                objects[targetId].forEach(m => {
+                  m.material.emissive.set(highlight ? 0xffff00 : 0x000000);
+                });
+              }
+              break;
+            }
+            case 'ANNOTATE_ELEMENT': {
+              // Simple visual cue: pulse emissive briefly
+              const targetId = payload.elementId;
+              if (objects[targetId]) {
+                objects[targetId].forEach(m => m.material.emissive.set(0x22ff88));
+                setTimeout(() => objects[targetId].forEach(m => m.material.emissive.set(0x000000)), 1500);
+              }
+              break;
+            }
+          }
+        });
+
+        // Initial readout + state
+        updateReadout();
+        publishCurrentState();
+
+        document.getElementById('loading').style.display = 'none';
+
+      } catch (error) {
+        console.error('Scene initialization failed:', error);
+        document.getElementById('loading').innerHTML =
+          `<div style="text-align:center;color:#ff6b6b;padding:20px;">
+            <div style="font-size:24px;margin-bottom:16px;">⚠️</div>
+            无法加载 3D 场景<br>
+            <small style="color:#888;">${error.message}</small><br>
+            <button onclick="location.reload()" style="margin-top:16px;padding:8px 16px;background:#6366f1;color:white;border:none;border-radius:6px;cursor:pointer;">重试</button>
+          </div>`;
+      }
+    }
+
+    initScene();
+  </script>
+
+  <script type="application/json" id="widget-config">
+  {
+    "type": "visualization3d",
+    "visualizationType": "custom",
+    "description": "用真实 Three.js 基础几何呈现长方体，可旋转、放大、复位，并调整高度，展示同单位下体积变化。",
+    "objects": [
+      { "id": "cuboid", "type": "box", "material": { "type": "phong", "color": "#6366f1" } }
+    ],
+    "interactions": [
+      { "type": "orbit", "target": "camera" },
+      { "type": "slider", "param": "height", "min": 1, "max": 6, "default": 2 },
+      { "type": "button", "action": "zoomIn", "label": "放大" },
+      { "type": "button", "action": "zoomOut", "label": "缩小" },
+      { "type": "button", "action": "reset", "label": "复位" }
+    ],
+    "presets": [
+      { "name": "复位视角", "state": { "cameraPosition": [6, 5, 8], "scale": 1 } }
+    ]
+  }
+  </script>
+
+
+</body></html>

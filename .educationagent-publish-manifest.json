@@ -1,6 +1,6 @@
 {
   "Producer": "educationagent/Prepare-GitHubSnapshot.ps1",
-  "CreatedAtUtc": "2026-10-15T16:06:04.0982502Z",
+  "CreatedAtUtc": "2026-10-15T16:28:29.0314766Z",
   "SecretCheck": "PASS",
   "Files": [
     ".gitattributes",
@@ -15,6 +15,7 @@
     "course-engine/src/engine.ts",
     "course-engine/src/worker.ts",
     "course-engine/test/advanced-interactive.test.mjs",
+    "course-engine/test/fixtures/generated-cuboid-three-module.html",
     "course-engine/test/fixtures/generated-volume-game.html",
     "course-engine/test/worker.test.mjs",
     "course-engine/tsconfig.json",

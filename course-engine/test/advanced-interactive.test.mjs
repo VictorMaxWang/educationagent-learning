@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { Worker as NodeWorker } from 'node:worker_threads';
 import vm from 'node:vm';
 import { generateOutline, generateScene, normalizeOutline, supportedSceneActions } from '../dist/engine.js';
-import { interactiveTargets, isApprovedSlideImage, restrictInteractiveHtml, sanitizeSlidePayload } from '../dist/content-policy.js';
+import { adaptThreeModuleImports, interactiveTargets, isApprovedSlideImage, restrictInteractiveHtml, sanitizeSlidePayload } from '../dist/content-policy.js';
 
 const course = { id: 'course-advanced', topic: '分数与程序', grade: 7, subject: '数学', outlines: [] };
 const outline = (widgetType) => ({ id: 'scene-1', order: 0, type: 'interactive', title: '动手观察', description: '比较相同整体的分数', keyPoints: ['相同单位'], widgetType, widgetOutline: { concept: '分数', language: 'python' } });
@@ -46,6 +46,36 @@ test('3D runtime is genuine bundled Three plus OrbitControls and precedes genera
   assert.ok(html.length <= 1_200_000); assert.ok(Buffer.byteLength(html) < 1_700_000);
   const combined = restrictInteractiveHtml(threeHtml.replace('<div id="space">', '<p>\\(x^2+1\\)</p><div id="space">'), { widgetType: 'visualization3d' });
   assert.match(combined, /data:font\/woff2/); assert.ok(combined.length < 1_200_000);
+});
+
+test('real generated Three module imports use the local runtime and retain module timing on repeated processing', async () => {
+  // 来自真实失败页面；夹具只剥离了已注入宿主库与CSP，模型自己的模块/样式/控件均保留。
+  const source = await readFile(new URL('./fixtures/generated-cuboid-three-module.html', import.meta.url), 'utf8');
+  assert.match(source, /type="importmap"/); assert.match(source, /import \* as THREE from 'three'/);
+  const html = restrictInteractiveHtml(source, { widgetType: 'visualization3d' });
+  assert.match(html, /<script type="module">/);
+  assert.match(html, /const THREE = window\.THREE;/);
+  assert.match(html, /const OrbitControls = window\.THREE\.OrbitControls;/);
+  assert.doesNotMatch(html, /type="importmap"|https:\/\/unpkg\.com/);
+  const again = restrictInteractiveHtml(html, { widgetType: 'visualization3d' });
+  assert.equal((again.match(/data-educationagent-runtime="three"/g) || []).length, 1);
+  assert.ok(again.length < 1_200_000); assert.match(again, /async function initScene\(\)/);
+});
+
+test('Three import compatibility does not rewrite quoted, commented, regexp or template content', () => {
+  const untouched = '// import bad from "unknown";\n/* import {bad} from "unknown"; */\nconst quoted="import bad from \\\"unknown\\\"";\nconst template=`import nope from "unknown"`;\nconst pattern=/import\\s+.*from/;\n';
+  const source = untouched + 'import /* allowed comment */ * as T from "three";\nimport {OrbitControls as Controls} from "three/examples/jsm/controls/OrbitControls.js";';
+  const fixed = adaptThreeModuleImports(source, true);
+  assert.ok(fixed.startsWith(untouched)); assert.match(fixed, /const T = window\.THREE/); assert.match(fixed, /const Controls = window\.THREE\.OrbitControls/);
+  assert.equal(adaptThreeModuleImports('const here=import.meta.url;', true), 'const here=import.meta.url;');
+});
+
+test('unknown imports, reexports and dynamic module loads fail explicitly without permitting network', () => {
+  for (const source of ['import x from "unknown";', 'import "https://outside.example/x.js";', 'export {x} from "unknown";', 'const loader=import("three");', 'const template=`${await import("unknown")}`;']) {
+    assert.throws(() => adaptThreeModuleImports(source, true), /不支持|未支持/);
+  }
+  assert.throws(() => adaptThreeModuleImports('import * as THREE from "three";', false), /不支持/);
+  assert.throws(() => restrictInteractiveHtml('<html><body><script type="module">import x from "unavailable";</script></body></html>', { widgetType: 'visualization3d' }), /未支持/);
 });
 
 test('game controls retain executable scoring and reset behavior through content policy', () => {
