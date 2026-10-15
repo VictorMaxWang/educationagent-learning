@@ -67,9 +67,6 @@ def provision(values: dict[str, str]) -> None:
     secret(values, 'AI_CHAT_API_KEY')
     secret(values, 'SPRING_DATASOURCE_PASSWORD')
     redis_password = secret(values, 'SPRING_DATA_REDIS_PASSWORD')
-    basic_hash = secret(values, 'EDUCATIONAGENT_BASIC_HASH')
-    if not re.fullmatch(r'\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}', basic_hash):
-        raise ValueError('EDUCATIONAGENT_BASIC_HASH must be a bcrypt hash')
     domain = values.get('EDUCATIONAGENT_DOMAIN', 'smartchildcareagent.cn')
     if domain != 'smartchildcareagent.cn':
         raise ValueError('This deployment is bound to smartchildcareagent.cn')
@@ -100,7 +97,7 @@ save ""
     if include not in current.splitlines():
         with redis_main.open('a', encoding='utf-8') as output:
             output.write('\n# Dedicated local educationagent cache settings.\n' + include + '\n')
-    write_config('/etc/caddy/educationagent.env', f'EDUCATIONAGENT_DOMAIN={domain}\nEDUCATIONAGENT_BASIC_HASH={basic_hash}\n', 0o640, 'caddy')
+    write_config('/etc/caddy/educationagent.env', f'EDUCATIONAGENT_DOMAIN={domain}\n', 0o640, 'caddy')
     write_config('/etc/systemd/system/caddy.service.d/educationagent.conf', '[Service]\nEnvironmentFile=/etc/caddy/educationagent.env\n')
 
 
@@ -145,7 +142,7 @@ def database(values: dict[str, str]) -> None:
 def validate_caddy(values: dict[str, str]) -> None:
     environment = dict(os.environ)
     environment['EDUCATIONAGENT_DOMAIN'] = values.get('EDUCATIONAGENT_DOMAIN', 'smartchildcareagent.cn')
-    environment['EDUCATIONAGENT_BASIC_HASH'] = secret(values, 'EDUCATIONAGENT_BASIC_HASH')
+    environment.pop('EDUCATIONAGENT_BASIC_HASH', None)
     subprocess.run(['caddy', 'validate', '--config', '/etc/caddy/Caddyfile', '--adapter', 'caddyfile'], env=environment, check=True)
 
 

@@ -1,21 +1,19 @@
 {$EDUCATIONAGENT_DOMAIN:smartchildcareagent.cn} {
 	# Public certificates are obtained and renewed through ACME by Caddy.
 	route {
-		# 网关口令由浏览器缓存；跨站页面不能借此读取旧接口的宽松 CORS 响应。
+		# 公开学习站仍拒绝其他来源的跨站请求，避免旧接口的宽松 CORS 设置扩大开放范围。
 		@foreignOrigin {
 			header Origin *
 			not header Origin https://smartchildcareagent.cn
 		}
 		respond @foreignOrigin 403
-		basicauth {
-			educationagent {$EDUCATIONAGENT_BASIC_HASH}
-		}
 		header {
 			X-Content-Type-Options nosniff
 			Referrer-Policy strict-origin-when-cross-origin
 			-Server
 		}
-		@backend path /api /api/* /chat /chat/* /actuator /actuator/*
+		# 公网仅开放课堂、学习练习与健康检查；其他工具与管理接口仍只在 Java 本机使用。
+		@backend path /api/classroom /api/classroom/* /api/desktop/quiz/* /api/desktop/psychology/* /api/desktop/lifesafety/* /api/desktop/sexedu/* /actuator/health
 		handle @backend {
 			# 课程 JSON 可能包含内联字体；压缩仅覆盖课程接口，保留其他流式接口的逐段传输。
 			@courseJson path /api/classroom/courses /api/classroom/courses/*
@@ -27,6 +25,10 @@
 				header_down -Access-Control-Allow-Origin
 				header_down -Access-Control-Allow-Credentials
 			}
+		}
+		@privateApi path /api /api/* /chat /chat/* /actuator /actuator/*
+		handle @privateApi {
+			respond 404
 		}
 		handle {
 			encode zstd gzip

@@ -28,6 +28,9 @@ import MemoryMapView from './ops/MemoryMapView';
 import ClassroomView from './classroom/ClassroomView';
 import './App.css';
 
+// 公网课堂构建仅展示学习入口；默认本机模式继续保留完整工具导航。
+const PUBLIC_CLASSROOM = import.meta.env.VITE_PUBLIC_CLASSROOM === 'true';
+
 // 侧栏板块图标（用户提供的 PNG），目前 7 张都是透明底单色 → 一律 mono: true
 // mono=true 的单色图标走 CSS mask，由 currentColor 上色，7 套主题 / hover / 选中态自动跟随；
 // 直接用 <img> 的话在深色侧栏（默认 #1A1D2E）上会看不见。
@@ -420,9 +423,9 @@ function App() {
 
   return (
     <div className={`app-container${activeView === 'classroom' ? ' app-classroom' : ''}${classroomNavOpen ? ' classroom-nav-open' : ''}`} data-theme={theme}>
-      {activeView === 'classroom' && classroomNavOpen && <button className="cr-nav-backdrop" aria-label="关闭工具导航" onClick={() => setClassroomNavOpen(false)} />}
+      {!PUBLIC_CLASSROOM && activeView === 'classroom' && classroomNavOpen && <button className="cr-nav-backdrop" aria-label="关闭工具导航" onClick={() => setClassroomNavOpen(false)} />}
       {/* ===== 左侧导航栏（三态：full / rail / hidden） ===== */}
-      {isHidden ? (
+      {!PUBLIC_CLASSROOM && (isHidden ? (
         // 隐藏态：贴边只剩一个小标签，点击恢复
         <div className="nav-edge-tab" onClick={showNav} title="展开导航">
           <span className="nav-edge-avatar">
@@ -549,11 +552,11 @@ function App() {
             <div className="resize-handle" onMouseDown={onNavResize} title="拖拽调整宽度" />
           )}
         </>
-      )}
+      ))}
 
       {/* ===== 主内容区 ===== */}
       <main className="main-content">
-        {activeView === 'classroom' && <ClassroomView onOpenNavigation={() => { showNav(); setClassroomNavOpen(previous => !previous); }} />}
+        {activeView === 'classroom' && <ClassroomView onOpenNavigation={PUBLIC_CLASSROOM ? undefined : () => { showNav(); setClassroomNavOpen(previous => !previous); }} />}
         {activeView === 'chat' && <ChatWindow userId={userId} />}
         {activeView === 'quiz' && <QuizMistakeView userId={userId} />}
         {activeView === 'knowledge' && <KnowledgeCenterView userId={userId} />}
