@@ -31,6 +31,11 @@ public class ClassroomController {
             @RequestBody ClassroomCourseService.SceneEditRequest request) { return courses.editScene(id,sceneId,request); }
     @PutMapping("/courses/{id}/runtime") public ObjectNode runtime(@PathVariable String id,
             @RequestBody ClassroomCourseService.RuntimeRequest request) { return courses.saveRuntime(id,request); }
+    public record MediaRetryRequest(Long expectedRevision) {}
+    @PostMapping("/courses/{id}/scenes/{sceneId}/retry-media") public ObjectNode retryMedia(@PathVariable String id,
+            @PathVariable String sceneId,@RequestBody MediaRetryRequest request) {
+        return courses.retryMedia(id,sceneId,request.expectedRevision());
+    }
     public record OutlineRequest(JsonNode outlines) {}
     @PutMapping("/courses/{id}/outline") public ObjectNode outline(@PathVariable String id, @RequestBody OutlineRequest request) {
         return courses.editOutline(id, request.outlines());

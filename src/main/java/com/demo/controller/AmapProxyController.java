@@ -15,6 +15,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 高德 Web 服务 API 代理（桌面端地图用）。
@@ -40,21 +41,25 @@ public class AmapProxyController {
     private RestTemplate restTemplate;
 
     private static final String AMAP_HOST = "https://restapi.amap.com";
+    private static final Set<String> READ_PATHS = Set.of("v3/ip", "v3/place/text", "v3/place/around", "v3/place/detail",
+            "v3/geocode/geo", "v3/geocode/regeo", "v3/direction/driving", "v3/direction/walking",
+            "v3/direction/transit/integrated", "v3/distance", "v3/config/district", "v3/weather/weatherInfo");
 
     @GetMapping("/proxy")
     public ResponseEntity<?> proxy(@RequestParam String path, @RequestParam Map<String, String> params) {
-        // 白名单：只放行 v3/ 下的接口，防 SSRF
-        if (path == null || !path.startsWith("v3/") || path.contains("..") || path.contains("://")) {
+        // 公网只代理现有地图/健康页面需要的只读接口，不接收任意上游路径或 URL。
+        if (path == null || !READ_PATHS.contains(path)) {
             return ResponseEntity.badRequest().body(Map.of("status", "0", "info", "非法 path"));
         }
         try {
             UriComponentsBuilder ub = UriComponentsBuilder.fromHttpUrl(AMAP_HOST + "/" + path)
                     .queryParam("key", amapKey);
             params.forEach((k, v) -> {
-                if (!"path".equals(k) && v != null) ub.queryParam(k, v);
+                if (!Set.of("path", "key", "sig", "jscode", "callback").contains(k.toLowerCase(java.util.Locale.ROOT)) && v != null)
+                    ub.queryParam(k, v);
             });
             URI uri = ub.build().encode().toUri();
-            log.info("🗺️ 高德代理: {} | {}", path, uri.getRawQuery());
+            log.info("🗺️ 高德只读代理: {}", path);
             String json = restTemplate.getForObject(uri, String.class);
             JSONObject obj = json == null ? null : JSON.parseObject(json);
             if (obj == null) {
@@ -62,8 +67,9 @@ public class AmapProxyController {
             }
             return ResponseEntity.ok(obj);
         } catch (Exception e) {
-            log.error("高德代理失败: {}", e.getMessage());
-            return ResponseEntity.status(500).body(Map.of("status", "0", "info", "代理异常：" + e.getMessage()));
+            // HTTP 异常常携带含 key 的完整请求 URL，不能写日志或返回浏览器。
+            log.warn("高德只读代理失败: path={}, type={}", path, e.getClass().getSimpleName());
+            return ResponseEntity.status(502).body(Map.of("status", "0", "info", "地图服务暂时不可用，请稍后重试"));
         }
     }
 }

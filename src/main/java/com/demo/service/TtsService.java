@@ -30,6 +30,10 @@ import java.util.List;
 @Service
 public class TtsService {
 
+    /** 新课堂与全局语音共同继承的默认音色；用户明确选择的其他 ID 仍然有效。 */
+    public static final String DEFAULT_VOICE_TYPE = "403005";
+    public static final String DEFAULT_VOICE_NAME = "云雅琴";
+
     // 腾讯云 TTS 接口常量
     private static final String ENDPOINT = "tts.tencentcloudapi.com";
     private static final String SERVICE = "tts";
@@ -46,11 +50,11 @@ public class TtsService {
     @Value("${tencent.asr.secret-key:}")
     private String secretKey;
 
-    @Value("${tencent.tts.voice-type:0}")
-    private String voiceType;
+    @Value("${tencent.tts.voice-type:403005}")
+    private String voiceType = DEFAULT_VOICE_TYPE;
 
-    @Value("${tencent.tts.sample-rate:24000}")
-    private int sampleRate;
+    @Value("${tencent.tts.sample-rate:16000}")
+    private int sampleRate = 16000;
 
     @Value("${tencent.tts.region:ap-guangzhou}")
     private String region;
@@ -66,6 +70,15 @@ public class TtsService {
 
     public int getSampleRate() {
         return sampleRate;
+    }
+
+    public String getDefaultVoiceType() {
+        return voiceType == null || voiceType.isBlank() ? DEFAULT_VOICE_TYPE : voiceType.trim();
+    }
+
+    /** 仅标注已选定的已知音色；不为其他可配置 ID 猜测名字。 */
+    public static String voiceName(String voiceId) {
+        return DEFAULT_VOICE_TYPE.equals(voiceId) ? DEFAULT_VOICE_NAME : "自定义音色 " + voiceId;
     }
 
     /** 仅表示凭证已配置，不表示已探测额度或云端连通性。 */
@@ -95,7 +108,7 @@ public class TtsService {
      * @return MP3二进制字节数组，失败返回 null
      */
     public byte[] synthesize(String text) {
-        return synthesize(text, this.voiceType);
+        return synthesize(text, getDefaultVoiceType());
     }
 
     /**
@@ -118,6 +131,8 @@ public class TtsService {
             log.warn("TTS 文本为空，跳过合成");
             return null;
         }
+        // 空值表示继承服务默认；显式选择（包括旧音色 0）不被统一默认强行覆盖。
+        voiceType = voiceType == null || voiceType.isBlank() ? getDefaultVoiceType() : voiceType.trim();
 
         // 旧调用方仍得到完整 MP3；课堂则逐段调用并顺序播放，避免长课文被截断。
         if (text.length() > MAX_TEXT_LENGTH) {
@@ -215,7 +230,7 @@ public class TtsService {
      * 用于听力材料等长文本的语音合成；失败返回 null。
      */
     public byte[] synthesizeLong(String text) {
-        return synthesizeLong(text, this.voiceType);
+        return synthesizeLong(text, getDefaultVoiceType());
     }
 
     /** 长文本分块合成，指定音色 */

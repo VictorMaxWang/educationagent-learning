@@ -92,6 +92,29 @@ class ClassroomMediaServiceTest {
     }
 
     @Test
+    void retryKeepsLayerOrderWhenOtherImageCannotBeRestored() throws Exception {
+        FakeTransport transport = new FakeTransport(); transport.failure = true;
+        ClassroomMediaService service = service(environment(), transport);
+        ObjectNode original = scene();
+        original.withObject("/content/canvas").set("elements", json.readTree("""
+                [{"id":"a","type":"text","content":"A"},
+                 {"id":"one","type":"image","src":"gen_img_one"},
+                 {"id":"two","type":"image","src":"gen_img_two"},
+                 {"id":"b","type":"text","content":"B"},
+                 {"id":"one-again","type":"image","src":"gen_img_one"},
+                 {"id":"c","type":"text","content":"C"}]
+                """));
+        ObjectNode failed = service.enrichSlide(original, outline(), new ClassroomCancellation());
+        transport.failure = false;
+        ObjectNode repaired = service.retrySlide(failed, new ClassroomCancellation());
+        java.util.List<String> ids = new java.util.ArrayList<>();
+        for (JsonNode element : repaired.at("/content/canvas/elements")) ids.add(element.path("id").asText());
+        assertEquals(java.util.List.of("a", "one", "b", "one-again", "c"), ids);
+        assertFalse(repaired.path("mediaWarnings").isEmpty(), "还有一张受预算限制未恢复的图片，不能删掉对应提示");
+        assertEquals(6, original.at("/content/canvas/elements").size(), "修复不得原地改写输入");
+    }
+
+    @Test
     void cancellationBeforeOrAfterProviderResponseDoesNotBecomeWarningOrPersistImage() throws Exception {
         FakeTransport transport = new FakeTransport();
         ClassroomMediaService service = service(environment(), transport);

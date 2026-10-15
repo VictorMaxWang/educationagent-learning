@@ -45,6 +45,15 @@ final class ClassroomRuntimeSupport {
                 String id=ClassroomEditingSupport.requiredText(item,"actionId",128);
                 if(!known.contains(id)||!item.path("success").isBoolean()) throw bad("动作执行结果不属于当前课堂");
                 ObjectNode accepted=JsonNodeFactory.instance.objectNode().put("actionId",id).put("success",item.path("success").asBoolean());
+                // M001/M002：保留“不确定”观测，网络超时不等同于实验明确拒绝。
+                String status=item.path("status").asText(item.path("success").asBoolean()?"confirmed":"rejected");
+                if(!Set.of("confirmed","rejected","unconfirmed").contains(status)
+                        || item.path("success").asBoolean()!=status.equals("confirmed")) throw bad("动作确认状态与执行结果不一致");
+                accepted.put("status",status);
+                if(item.has("reason")) {
+                    if(!item.path("reason").isTextual()||item.path("reason").asText().length()>300) throw bad("动作确认原因过长");
+                    accepted.put("reason",item.path("reason").asText());
+                }
                 if(item.has("error")) {
                     if(!item.path("error").isTextual()||item.path("error").asText().length()>300) throw bad("动作错误说明过长");
                     accepted.put("error",item.path("error").asText());

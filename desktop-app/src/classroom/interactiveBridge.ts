@@ -1,9 +1,9 @@
-import type { TeachingAction } from './types';
+import type { ActionOutcome, TeachingAction } from './types';
 
 export const INTERACTIVE_BRIDGE_CHANNEL = 'educationagent.interactive.v1';
 export const INTERACTIVE_CSP = "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; media-src data: blob:; worker-src blob:; connect-src 'none'; form-action 'none'; base-uri 'none'";
 export interface BridgeIdentity { sceneId: string; nonce: string }
-export interface BridgeResult { success: boolean; error?: string; state?: unknown; html?: string; properties?: EditableProperties }
+export interface BridgeResult { success: boolean; status?: ActionOutcome; reason?: string; error?: string; state?: unknown; html?: string; properties?: EditableProperties }
 export interface EditableProperties {
   tagName: string;
   textContent: string;
@@ -369,8 +369,8 @@ function installInteractiveBridge(identity: BridgeIdentity) {
         else if (data.command === 'edit') result = edit(data.selector, data.patch);
         else if (data.command === 'snapshot') { const state = snapshot(); result = state ? { success: true, state } : { success: false, error: '页面没有可读取的控件状态' }; }
         else result = { success: false, error: '未知互动请求' };
-        emit({ kind: 'ack', requestId, result });
-      } catch (error) { emit({ kind: 'ack', requestId, result: { success: false, error: error instanceof Error ? error.message : '互动操作失败' } }); }
+        emit({ kind: 'ack', requestId, result: { ...result, status: result.success ? 'confirmed' : 'rejected', ...(!result.success ? { reason: 'rejected' } : {}) } });
+      } catch (error) { emit({ kind: 'ack', requestId, result: { success: false, status: 'rejected', reason: 'rejected', error: error instanceof Error ? error.message : '互动操作失败' } }); }
     })();
   });
   const ready = () => {

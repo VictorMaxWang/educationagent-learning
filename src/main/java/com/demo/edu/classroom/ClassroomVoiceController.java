@@ -20,7 +20,7 @@ public class ClassroomVoiceController {
     public record TtsRequest(String text, String role) {}
 
     @GetMapping("/health")
-    public Map<String, Boolean> health() { return voice.health(); }
+    public Map<String, Object> health() { return voice.health(); }
 
     @PostMapping("/tts")
     public ClassroomVoiceService.Speech tts(@RequestBody TtsRequest request) {

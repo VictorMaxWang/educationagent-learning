@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import "./watermark.css";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import { API_BASE_URL as BASE_URL } from '../api/baseUrl';
 
 const POSITIONS = [
   { id: "bottom-right", label: "右下角" },

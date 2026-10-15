@@ -13,6 +13,7 @@ import QuizMistakeView from './study/QuizMistakeView';
 import KnowledgeCenterView from './study/KnowledgeCenterView';
 import FileConvertView from './tools/FileConvertView';
 import EnglishView from './study/EnglishView';
+import PublicEnglishPanel from './components/PublicEnglishPanel';
 import CourseKnowledgeView from './study/CourseKnowledgeView';
 import TeacherWorkbenchView from './edu/TeacherWorkbenchView';
 import StudentReportView from './edu/StudentReportView';
@@ -26,10 +27,16 @@ import RouterEvalView from './ops/RouterEvalView';
 import MetricsView from './ops/MetricsView';
 import MemoryMapView from './ops/MemoryMapView';
 import ClassroomView from './classroom/ClassroomView';
+import VoiceOrb from './components/VoiceOrb';
+import LocalMusicPanel from './components/LocalMusicPanel';
+import BrowserCodePlayground from './components/BrowserCodePlayground';
+import TeamResearchLabs from './research/TeamResearchLabs';
+import { audioCoordinator, installMediaFocusBridge } from './classroom/AudioCoordinator';
 import './App.css';
 
-// 公网课堂构建仅展示学习入口；默认本机模式继续保留完整工具导航。
+// 公网课堂按已核准功能列“更多工具”；本机完整侧栏保留，不以隐藏导航替代服务端权限。
 const PUBLIC_CLASSROOM = import.meta.env.VITE_PUBLIC_CLASSROOM === 'true';
+const PUBLIC_TOOL_KEYS = new Set(['quiz', 'english', 'tongshi', 'psychology', 'lifesafety', 'sexedu', 'watermark', 'browsercode', 'researchlabs']);
 
 // 侧栏板块图标（用户提供的 PNG），目前 7 张都是透明底单色 → 一律 mono: true
 // mono=true 的单色图标走 CSS mask，由 currentColor 上色，7 套主题 / hover / 选中态自动跟随；
@@ -201,6 +208,7 @@ const NAV_GROUPS = [
 // 视图 → 所属分组
 const VIEW_GROUP = {
   classroom: 'classroom',
+  browsercode: 'study', researchlabs: 'study',
   chat: 'chat',
   quiz: 'study', knowledge: 'study', english: 'study', code: 'study',
   tongshi: 'study', psychology: 'study',
@@ -214,7 +222,17 @@ const VIEW_GROUP = {
 };
 
 function App() {
-  const [activeView, setActiveView] = useState('classroom');
+  const [activeView, setActiveViewState] = useState('classroom');
+  const activeViewRef = useRef(activeView); activeViewRef.current = activeView;
+  const [toolsOpen, setToolsOpen] = useState(false);
+  const [musicOpen, setMusicOpen] = useState(false);
+  const [originalMusicRequested, setOriginalMusicRequested] = useState(false);
+  const setActiveView = useCallback((next) => {
+    if (PUBLIC_CLASSROOM && next !== 'classroom' && !PUBLIC_TOOL_KEYS.has(next)) return;
+    if (next === activeViewRef.current) return;
+    if (!window.dispatchEvent(new CustomEvent('educationagent:before-navigation', { cancelable: true }))) return;
+    audioCoordinator.stopAll(); activeViewRef.current = next; setActiveViewState(next);
+  }, []);
   const [classroomNavOpen, setClassroomNavOpen] = useState(false);
   const musicMount = useRef(null);
   const attachMusic = useCallback((node) => {
@@ -229,6 +247,7 @@ function App() {
   const [travelModule, setTravelModule] = useState('plan'); // 旅行规划当前子功能（旅游计划/按天穿搭）
   const [openGroups, setOpenGroups] = useState(['chat']); // 同时可展开多个分组
   const [settingsOpen, setSettingsOpen] = useState(false); // 设置面板
+  useEffect(() => installMediaFocusBridge(document), []);
 
   // 微信课程深链使用现有应用外壳，其他工具继续使用原导航和用户身份。
   useEffect(() => {
@@ -303,7 +322,31 @@ function App() {
     if (title != null && title.trim()) renameChat(userId, id, title.trim());
   };
   /** 侧栏顶部 🎵 → 切换音乐播放器显示/隐藏（KittyMusicPlayer 监听 music-toggle 事件） */
-  const toggleMusic = () => window.dispatchEvent(new CustomEvent('music-toggle'));
+  const toggleMusic = () => {
+    if (activeViewRef.current === 'classroom' && !originalMusicRequested) {
+      setOriginalMusicRequested(true);
+      requestAnimationFrame(() => { if (localStorage.getItem('music_player_hidden') === '1') window.dispatchEvent(new CustomEvent('music-toggle')); });
+      return;
+    }
+    window.dispatchEvent(new CustomEvent('music-toggle'));
+  };
+  const openMoreTools = () => { audioCoordinator.stopAll(); setToolsOpen(true); };
+  const chooseTool = (item) => {
+    setActiveView(item.key);
+    if (item.group === 'english') setEnglishModule(item.module);
+    if (item.group === 'pet') setPetModule(item.module);
+    if (item.group === 'health') setHealthModule(item.module);
+    if (item.group === 'travel') setTravelModule(item.module);
+    setToolsOpen(false);
+  };
+  const moreGroups = NAV_GROUPS.filter(group => group.key !== 'classroom').map(group => ({
+    ...group,
+    items: (group.direct ? [{ key: group.key, label: group.title }] : group.items || []).flatMap(item => item.key === 'english'
+      ? PUBLIC_CLASSROOM ? [{ key: 'english', label: '英语口语与语法' }]
+        : ENGLISH_ITEMS.map(([module, label]) => ({ key: 'english', group: 'english', module, label })) : [item]).filter(item => !PUBLIC_CLASSROOM || PUBLIC_TOOL_KEYS.has(item.key)),
+  })).filter(group => group.items.length);
+  moreGroups.unshift({ key: 'explore', title: '学习实验', items: [{ key: 'browsercode', label: 'JavaScript 浏览器练习' }, { key: 'researchlabs', label: '团队成果实验室' }] });
+  const activeToolLabel = moreGroups.flatMap(group => group.items).find(item => item.key === activeView && (!item.module || item.module === (item.group === 'english' ? englishModule : item.group === 'travel' ? travelModule : item.group === 'health' ? healthModule : petModule)))?.label || '学习工具';
 
   // 导航栏手动伸缩（仅 full 模式可拖拽）
   const onNavResize = useResize(
@@ -556,12 +599,15 @@ function App() {
 
       {/* ===== 主内容区 ===== */}
       <main className="main-content">
-        {activeView === 'classroom' && <ClassroomView onOpenNavigation={PUBLIC_CLASSROOM ? undefined : () => { showNav(); setClassroomNavOpen(previous => !previous); }} />}
+        {activeView !== 'classroom' && <header className="legacy-tools-bar"><button onClick={() => setActiveView('classroom')}>← 返回学习课堂</button><strong>{activeToolLabel}</strong><div><button onClick={openMoreTools}>更多工具</button><button onClick={() => { audioCoordinator.stopAll(); setSettingsOpen(true); }}>设置与主题</button></div></header>}
+        {activeView === 'classroom' && <ClassroomView onOpenNavigation={openMoreTools} />}
+        {activeView === 'browsercode' && <BrowserCodePlayground />}
+        {activeView === 'researchlabs' && <TeamResearchLabs />}
         {activeView === 'chat' && <ChatWindow userId={userId} />}
         {activeView === 'quiz' && <QuizMistakeView userId={userId} />}
         {activeView === 'knowledge' && <KnowledgeCenterView userId={userId} />}
         {activeView === 'code' && <CodeRunnerView />}
-        {activeView === 'english' && <EnglishView module={englishModule} />}
+        {activeView === 'english' && (PUBLIC_CLASSROOM ? <PublicEnglishPanel /> : <EnglishView module={englishModule} />)}
         {activeView === 'tongshi' && <CourseKnowledgeView domainId="tongshi" />}
         {activeView === 'psychology' && <CourseKnowledgeView domainId="psychology" />}
         {activeView === 'lifesafety' && <CourseKnowledgeView domainId="lifesafety" />}
@@ -586,8 +632,12 @@ function App() {
       {/* ===== 设置面板 ===== */}
       {settingsOpen && <SettingsView onClose={() => setSettingsOpen(false)} />}
 
+      {toolsOpen && <div className="more-tools-overlay" onClick={() => setToolsOpen(false)}><section className="more-tools-panel" role="dialog" aria-modal="true" aria-label="更多工具" onClick={event => event.stopPropagation()} onKeyDown={event => { if (event.key === 'Escape') setToolsOpen(false); }}><header><div><span>保留熟悉的工具，学习仍在中央</span><h2>更多工具</h2></div><button aria-label="关闭更多工具" onClick={() => setToolsOpen(false)}>×</button></header><div className="more-tools-content">{moreGroups.map(group => <section key={group.key}><h3>{group.title}</h3><div>{group.items.map(item => <button key={item.key + (item.module || '')} onClick={() => chooseTool(item)}><span>{item.label}</span><i aria-hidden="true">↗</i></button>)}</div></section>)}</div><footer><button onClick={() => { setToolsOpen(false); setSettingsOpen(true); }}>设置 · 昵称 · 主题</button><button onClick={() => { setToolsOpen(false); setMusicOpen(true); }}>音乐与休息 ♪</button>{PUBLIC_CLASSROOM && <small>其他原有工具保留在本机版本。</small>}</footer></section></div>}
+      {musicOpen && <LocalMusicPanel onClose={() => setMusicOpen(false)} onOpenOriginal={!PUBLIC_CLASSROOM ? () => { setMusicOpen(false); setOriginalMusicRequested(true); requestAnimationFrame(() => { if (localStorage.getItem('music_player_hidden') === '1') toggleMusic(); }); } : undefined} />}
+
       {/* 课堂使用自己的授课音频，其他工具页保留原音乐播放器。 */}
-      {activeView !== 'classroom' && <div ref={attachMusic}><KittyMusicPlayer /></div>}
+      {!PUBLIC_CLASSROOM && (activeView !== 'classroom' || originalMusicRequested) && <div ref={attachMusic}><KittyMusicPlayer /></div>}
+      <VoiceOrb suspended={toolsOpen || musicOpen || settingsOpen} />
     </div>
   );
 }

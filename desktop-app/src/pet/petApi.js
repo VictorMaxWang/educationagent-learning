@@ -1,15 +1,6 @@
 // 宠物板块 API 层 — 对接后端 /api/pets/**
-// 自动检测环境：Tauri/Browser 开发模式走 localhost:8888
-const BASE_URL = (() => {
-  if (import.meta.env.VITE_API_BASE_URL) return import.meta.env.VITE_API_BASE_URL;
-  // Tauri webview 环境 或 Vite dev server(:1420) → 后端在 :8888
-  if (typeof window !== 'undefined') {
-    const isTauri = !!(window.__TAURI__ || window.__TAURI_INTERNALS__);
-    const isDevServer = window.location && window.location.port === '1420';
-    if (isTauri || isDevServer) return 'http://localhost:8888';
-  }
-  return '';
-})();
+// 浏览器走同源代理，Tauri 保留本机后端配置。
+import { API_BASE_URL as BASE_URL } from '../api/baseUrl';
 
 async function req(url, options = {}) {
   const resp = await fetch(`${BASE_URL}${url}`, {

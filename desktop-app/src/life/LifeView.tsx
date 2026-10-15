@@ -12,7 +12,7 @@ type ImageEntry =
   | { kind: "base64"; name: string; dataUrl: string };
 
 const MAX_IMAGES = 9;
-const BASE_URL: string = import.meta.env.VITE_API_BASE_URL ?? "";
+import { API_BASE_URL as BASE_URL } from '../api/baseUrl';
 /**
  * 桌面端统一前缀：VITE_API_BASE_URL 是纯源（http://127.0.0.1:8888），
  * 桌面端接口统一挂在 /api/desktop 下（与 travel/request.ts、chatApi.js 一致）。

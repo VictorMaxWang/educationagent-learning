@@ -14,7 +14,7 @@ declare global {
 
 const AMAP_KEY = import.meta.env.VITE_AMAP_WEB_KEY as string;
 const AMAP_SECURITY = import.meta.env.VITE_AMAP_SECURITY_JS_CODE as string | undefined;
-const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
+import { API_BASE_URL as API_BASE } from '../api/baseUrl';
 
 /** 高德 JS 脚本只加载一次，全局复用 */
 let amapPromise: Promise<any> | null = null;
@@ -95,7 +95,7 @@ function fmtTime(sec?: number): string {
  * 后端用 Web服务 key（amap.key）调高德，本函数只把参数转发给 /api/desktop/amap/proxy。
  */
 async function amapRest(path: string, params: Record<string, string | number>) {
-  const url = new URL(`${API_BASE}/api/desktop/amap/proxy`);
+  const url = new URL(`${API_BASE}/api/desktop/amap/proxy`, window.location.origin);
   url.searchParams.set("path", path);
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, String(v)));
   const res = await fetch(url.toString());

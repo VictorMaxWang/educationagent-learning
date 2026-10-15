@@ -6,11 +6,14 @@ export type ElementReference =
   | { kind: 'interactive_component'; sceneId: string; selector: string }
   | { kind: 'whiteboard_element'; sceneId: string; whiteboardId: string; elementId: string };
 export interface WhiteboardState { id: string; canvas: Slide; isOpen: boolean }
+/** 未收到确认与收到明确拒绝是不同证据，不能把断线推断为操作已经失败。 */
+export type ActionOutcome = 'confirmed' | 'rejected' | 'unconfirmed';
+export interface ActionResult { actionId: string; success: boolean; status?: ActionOutcome; reason?: string; error?: string; at?: string | number }
 export interface SceneRuntime {
   whiteboard?: WhiteboardState;
   interactiveState?: Record<string, unknown>;
   acknowledgedActionIds?: string[];
-  actionResults?: { actionId: string; success: boolean; error?: string; at?: string | number }[];
+  actionResults?: ActionResult[];
 }
 export type CourseRuntime = Record<string, SceneRuntime>;
 
@@ -53,6 +56,8 @@ export interface Scene {
   order: number;
   type: SceneType;
   quizId?: string;
+  mediaRetryAvailable?: boolean;
+  mediaWarnings?: string[];
   content: { type: SceneType; canvas?: Slide; questions?: Question[]; html?: string; widgetType?: string; [key: string]: unknown };
   actions: TeachingAction[];
 }

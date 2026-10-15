@@ -39,13 +39,13 @@ public class ClassroomVoiceService {
 
     public ClassroomVoiceService(TtsService tts, AudioService asr,
             @Value("${classroom.data-dir:data/classroom}") String dataDirectory,
-            @Value("${classroom.voice.teacher-voice-type:0}") String teacherVoice,
-            @Value("${classroom.voice.peer-voice-type:1001}") String peerVoice) {
+            @Value("${classroom.voice.teacher-voice-type:${tencent.tts.voice-type:403005}}") String teacherVoice,
+            @Value("${classroom.voice.peer-voice-type:${tencent.tts.voice-type:403005}}") String peerVoice) {
         this.tts = tts;
         this.asr = asr;
         this.cacheDirectory = Path.of(dataDirectory).resolve("audio").toAbsolutePath().normalize();
-        this.teacherVoice = teacherVoice;
-        this.peerVoice = peerVoice;
+        this.teacherVoice = configuredVoice(teacherVoice, tts);
+        this.peerVoice = configuredVoice(peerVoice, tts);
         for (int i = 0; i < cacheLocks.length; i++) cacheLocks[i] = new Object();
     }
 
@@ -53,8 +53,18 @@ public class ClassroomVoiceService {
     public record Speech(List<Segment> segments) {}
 
     /** 配置状态检查，不探测付费接口，也不暴露密钥。 */
-    public Map<String, Boolean> health() {
-        return Map.of("ttsAvailable", tts.isAvailable(), "asrAvailable", asr.isAvailable());
+    public Map<String, Object> health() {
+        return Map.of("ttsAvailable", tts.isAvailable(), "asrAvailable", asr.isAvailable(),
+                "voiceId", teacherVoice, "voiceName", TtsService.voiceName(teacherVoice),
+                "teacherVoiceId", teacherVoice, "teacherVoiceName", TtsService.voiceName(teacherVoice),
+                "peerVoiceId", peerVoice, "peerVoiceName", TtsService.voiceName(peerVoice),
+                "sampleRate", SAMPLE_RATE);
+    }
+
+    private static String configuredVoice(String configured, TtsService tts) {
+        if (configured != null && !configured.isBlank()) return configured.trim();
+        String fallback = tts.getDefaultVoiceType();
+        return fallback == null || fallback.isBlank() ? TtsService.DEFAULT_VOICE_TYPE : fallback;
     }
 
     /** 输入限制在进入云端前检查；任一片失败时不给出残缺的成功播放列表。 */

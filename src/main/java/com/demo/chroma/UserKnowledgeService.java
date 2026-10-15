@@ -10,8 +10,10 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -35,6 +37,7 @@ public class UserKnowledgeService {
 
     private static final String BASE_DIR = "data/user-knowledge";
     private static final String COLLECTION_PREFIX = "user_knowledge_";
+    private Path storageDirectory = Paths.get(BASE_DIR).toAbsolutePath().normalize();
 
     @Resource
     private ChromaClient chromaClient;
@@ -69,19 +72,21 @@ public class UserKnowledgeService {
         }
 
         try {
-            // 1. 创建用户专属文件夹
-            Path userDir = Paths.get(BASE_DIR, sanitize(userId));
-            Files.createDirectories(userDir);
+            // 原文件名是不可信输入；先拒绝跨平台路径、ADS 和设备名，再创建用户目录。
+            fileName = checkedFileName(fileName);
+            Path userDir = userDirectory(userId, true);
 
             // 文件同名冲突处理：存在同名文件则重命名追加时间戳
-            Path filePath = userDir.resolve(fileName);
-            if (Files.exists(filePath)) {
+            Path filePath = checkedChild(userDir, fileName);
+            if (Files.exists(filePath, LinkOption.NOFOLLOW_LINKS)) {
+                if (Files.isSymbolicLink(filePath)) throw new IOException("不接受符号链接文件");
                 String base = fileName.contains(".") ? fileName.substring(0, fileName.lastIndexOf('.')) : fileName;
                 String ext = fileName.contains(".") ? fileName.substring(fileName.lastIndexOf('.')) : "";
-                filePath = userDir.resolve(base + "_" + System.currentTimeMillis() + ext);
+                filePath = checkedChild(userDir, base + "_" + System.currentTimeMillis()
+                        + "_" + UUID.randomUUID().toString().substring(0, 8) + ext);
             }
-            // 将文件二进制写入磁盘
-            Files.write(filePath, entry.bytes());
+            // CREATE_NEW 防止并发重试覆盖已有文件，也不会跟随同名符号链接写到目录之外。
+            Files.write(filePath, entry.bytes(), StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
 
             // 2. 获取预提取完成的文档文本
             String content = entry.textContent();
@@ -138,9 +143,9 @@ public class UserKnowledgeService {
             log.info("📚 [{}] 个人知识库已索引: {} ({} chunks)", userId, fileName, chunks.size());
             return "✅ 文件「" + fileName + "」已保存到你的知识库并完成索引。" + chunks.size() + " 个知识片段已入库，后续对话中我会参考这些资料。";
 
-        } catch (IOException e) {
-            log.error("[{}] 保存知识库文件失败: {}", userId, e.getMessage());
-            return "❌ 文件保存失败: " + e.getMessage();
+        } catch (IOException | IllegalArgumentException e) {
+            log.warn("[{}] 保存知识库文件失败，类型={}", userId, e.getClass().getSimpleName());
+            return "❌ 文件保存失败，请使用普通文件名，不要包含目录、冒号、控制字符或系统保留名称。";
         }
     }
 
@@ -178,13 +183,14 @@ public class UserKnowledgeService {
      */
     public List<String> listFiles(String userId) {
         try {
-            Path userDir = Paths.get(BASE_DIR, sanitize(userId));
-            if (!Files.exists(userDir)) return Collections.emptyList();
-            return Files.list(userDir)
-                    .filter(Files::isRegularFile)
+            Path userDir = userDirectory(userId, false);
+            if (userDir == null) return Collections.emptyList();
+            try (var files = Files.list(userDir)) {
+                return files.filter(path -> Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS))
                     .map(p -> p.getFileName().toString())
                     .collect(Collectors.toList());
-        } catch (IOException e) {
+            }
+        } catch (IOException | IllegalArgumentException e) {
             return Collections.emptyList();
         }
     }
@@ -193,11 +199,12 @@ public class UserKnowledgeService {
 
     /** 知识库文档详情（文件名 + 大小 + 修改时间），按文件名排序 */
     public List<Map<String, Object>> listDetail(String userId) {
-        Path userDir = Paths.get(BASE_DIR, sanitize(userId));
-        if (!Files.exists(userDir)) return new ArrayList<>();
         List<Map<String, Object>> out = new ArrayList<>();
-        try (var stream = Files.list(userDir)) {
-            for (Path p : stream.filter(Files::isRegularFile).sorted().toList()) {
+        try {
+            Path userDir = userDirectory(userId, false);
+            if (userDir == null) return out;
+            try (var stream = Files.list(userDir)) {
+            for (Path p : stream.filter(path -> Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS)).sorted().toList()) {
                 try {
                     Map<String, Object> m = new HashMap<>();
                     m.put("fileName", p.getFileName().toString());
@@ -206,8 +213,9 @@ public class UserKnowledgeService {
                     out.add(m);
                 } catch (IOException ignored) {}
             }
-        } catch (IOException e) {
-            log.warn("[{}] 列出知识库详情失败: {}", userId, e.getMessage());
+            }
+        } catch (IOException | IllegalArgumentException e) {
+            log.warn("[{}] 列出知识库详情失败，类型={}", userId, e.getClass().getSimpleName());
         }
         return out;
     }
@@ -249,11 +257,47 @@ public class UserKnowledgeService {
 
     /** 校验并解析知识库内文件路径（防路径穿越） */
     private Path resolveFile(String userId, String fileName) {
-        if (fileName == null || fileName.isBlank()) return null;
-        Path userDir = Paths.get(BASE_DIR, sanitize(userId)).toAbsolutePath().normalize();
+        try {
+            String name = checkedFileName(fileName);
+            Path userDir = userDirectory(userId, false);
+            if (userDir == null) return null;
+            Path candidate = checkedChild(userDir, name);
+            return Files.isRegularFile(candidate, LinkOption.NOFOLLOW_LINKS) ? candidate : null;
+        } catch (IOException | IllegalArgumentException invalid) { return null; }
+    }
+
+    /** 发布目录的 data 可以是合法共享目录链接，但用户子目录必须真实留在知识库根目录中。 */
+    private Path userDirectory(String userId, boolean create) throws IOException {
+        if (userId == null || userId.isBlank() || userId.length() > 160) throw new IllegalArgumentException("用户标识无效");
+        Path root = storageDirectory.toAbsolutePath().normalize();
+        if (create) Files.createDirectories(root);
+        if (!Files.isDirectory(root)) return null;
+        Path realRoot = root.toRealPath();
+        Path userDir = realRoot.resolve(sanitize(userId)).normalize();
+        if (!userDir.startsWith(realRoot) || userDir.equals(realRoot) || Files.isSymbolicLink(userDir))
+            throw new IOException("用户目录无效");
+        if (create) Files.createDirectories(userDir);
+        if (!Files.isDirectory(userDir, LinkOption.NOFOLLOW_LINKS)) return null;
+        Path realUser = userDir.toRealPath();
+        if (!realUser.startsWith(realRoot) || realUser.equals(realRoot)) throw new IOException("用户目录越界");
+        return realUser;
+    }
+
+    private static Path checkedChild(Path userDir, String fileName) throws IOException {
         Path candidate = userDir.resolve(fileName).normalize();
-        if (!candidate.startsWith(userDir)) return null;
+        if (!candidate.startsWith(userDir) || !userDir.equals(candidate.getParent())) throw new IOException("文件目录越界");
         return candidate;
+    }
+
+    /** 保留普通中文文件名，不把危险路径静默改成另一个文件名。 */
+    private static String checkedFileName(String name) {
+        if (name == null || name.isBlank() || name.length() > 240 || name.equals(".") || name.equals("..")
+                || !name.equals(name.strip()) || name.endsWith(".") || name.chars().anyMatch(Character::isISOControl)
+                || name.matches(".*[\\\\/:<>\"|?*].*")
+                || name.matches("(?i)^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\\..*)?$")) {
+            throw new IllegalArgumentException("文件名无效");
+        }
+        return name;
     }
 
     /**

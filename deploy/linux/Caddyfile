@@ -7,13 +7,18 @@
 			not header Origin https://smartchildcareagent.cn
 		}
 		respond @foreignOrigin 403
+		# 30 MiB 文件的 Base64 JSON约40 MiB；先限制请求体，再进入Java解码与有界缓存。
+		@desktopUpload path /api/desktop/file/upload
+		request_body @desktopUpload {
+			max_size 42MB
+		}
 		header {
 			X-Content-Type-Options nosniff
 			Referrer-Policy strict-origin-when-cross-origin
 			-Server
 		}
-		# 公网仅开放课堂、学习练习与健康检查；其他工具与管理接口仍只在 Java 本机使用。
-		@backend path /api/classroom /api/classroom/* /api/desktop/quiz/* /api/desktop/psychology/* /api/desktop/lifesafety/* /api/desktop/sexedu/* /actuator/health
+		# 旧模块按具体能力恢复；个人知识库、共享生词本和通用工具执行接口继续由本机提供。
+		@backend path /api/classroom /api/classroom/* /api/desktop/quiz/* /api/desktop/file/upload /api/desktop/psychology/* /api/desktop/lifesafety/* /api/desktop/sexedu/* /api/maimemo/config /api/maimemo/speech-preset /api/maimemo/grammar-quiz /api/maimemo/speech-evaluate /api/maimemo/speech-dialogue /api/desktop/watermark/add /api/desktop/watermark/remove /actuator/health
 		handle @backend {
 			# 课程 JSON 可能包含内联字体；压缩仅覆盖课程接口，保留其他流式接口的逐段传输。
 			@courseJson path /api/classroom/courses /api/classroom/courses/*

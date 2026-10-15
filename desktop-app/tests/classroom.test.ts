@@ -1,9 +1,12 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { audioCoordinator } from '../src/classroom/AudioCoordinator';
 import { NarrationQueue, type NarrationPorts } from '../src/classroom/audioQueue';
 import { clampIndex, courseHash, courseIdFromHash } from '../src/classroom/navigation';
 import { resumeCourse, splitNarrationText } from '../src/classroom/api';
 import { answerForChoices } from '../src/classroom/QuizScene';
 import { prepareQuestionState } from '../src/classroom/ClassroomConversation';
+
+afterEach(() => audioCoordinator.stopAll());
 
 class FakeAudio extends EventTarget {
   src = '';

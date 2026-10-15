@@ -126,9 +126,11 @@ export default function ClassroomView({ onOpenNavigation }: { onOpenNavigation?(
       if (!editorDirty.current) return;
       event.preventDefault(); event.returnValue = '';
     };
+    const beforeNavigation = (event: Event) => { if (!canLeaveEditor()) event.preventDefault(); };
     window.addEventListener('hashchange', onHash);
     window.addEventListener('beforeunload', beforeUnload);
-    return () => { window.removeEventListener('hashchange', onHash); window.removeEventListener('beforeunload', beforeUnload); };
+    window.addEventListener('educationagent:before-navigation', beforeNavigation);
+    return () => { window.removeEventListener('hashchange', onHash); window.removeEventListener('beforeunload', beforeUnload); window.removeEventListener('educationagent:before-navigation', beforeNavigation); };
   }, [canLeaveEditor]);
   // 只为当前课程轮询；AbortController 阻止换课后的旧响应覆盖新画面。
   useEffect(() => {
@@ -196,7 +198,7 @@ export default function ClassroomView({ onOpenNavigation }: { onOpenNavigation?(
     } finally { if (run === navigationRun.current) setLoading(false); }
   };
   return <div className="cr-root">
-    <header className="cr-header"><button className="cr-brand" onClick={() => openCourse(null)}><span className="cr-brand-icon" aria-hidden="true">禾</span><span><strong>educationagent</strong><small>让每一个好问题，都有人陪你想</small></span></button><nav className="cr-tabs" aria-label="学习导航">{([['learn', '学习'], ['review', '复习'], ['growth', '成长课堂']] as const).map(([key, label]) => <button key={key} aria-current={tab === key ? 'page' : undefined} onClick={() => selectTab(key)}>{label}</button>)}</nav>{onOpenNavigation && <button className="cr-all-tools" onClick={onOpenNavigation}>所有工具 ☰</button>}</header>
+    <header className="cr-header"><button className="cr-brand" onClick={() => openCourse(null)}><span className="cr-brand-icon" aria-hidden="true">禾</span><span><strong>educationagent</strong><small>让每一个好问题，都有人陪你想</small></span></button><nav className="cr-tabs" aria-label="学习导航">{([['learn', '学习'], ['review', '复习'], ['growth', '成长课堂']] as const).map(([key, label]) => <button key={key} aria-current={tab === key ? 'page' : undefined} onClick={() => selectTab(key)}>{label}</button>)}</nav>{onOpenNavigation && <button className="cr-all-tools" onClick={onOpenNavigation}>更多工具 ☰</button>}</header>
     {tab === 'learn' && !courseId && <div className="cr-home"><section className="cr-welcome"><div><p className="cr-eyebrow">从小学到高中 · 学习，也关心成长</p><h1>把好奇带进课堂，<br />把学会带回生活。</h1><p>面向乡村学生的学习伙伴。讲一讲、试一试，<br className="cr-desktop-break" />无论大人是否在身边，都给每一步探索多一点支持。</p></div><div className="cr-welcome-art" aria-hidden="true"><span className="cr-orbit orbit-one" /><span className="cr-orbit orbit-two" /><span className="cr-art-book">学</span><span className="cr-art-leaf">✦</span><span className="cr-art-note">一个问题，一点进步</span></div></section>
       <CreateCourse onCreated={created => openCourse(created.id)} />
       <section className="cr-library"><div className="cr-section-heading"><div><p className="cr-eyebrow">接着上次的发现</p><h2>我的课堂</h2></div><button className="cr-link" onClick={() => void refreshCourses()}>刷新列表 ↻</button></div>

@@ -105,6 +105,7 @@ public class ClassroomMediaService {
     public ObjectNode enrichSlide(ObjectNode scene, JsonNode outline, ClassroomCancellation token) {
         token.check();
         ObjectNode result = scene.deepCopy();
+        result.remove("_pendingMediaRepair");
         if (!"slide".equals(result.path("type").asText())) return result;
         JsonNode elements = result.path("content").path("canvas").path("elements");
         if (!elements.isArray()) return result;
@@ -113,6 +114,7 @@ public class ClassroomMediaService {
         ArrayNode kept = json.createArrayNode();
         String attempted = null;
         ImageAsset generated = null;
+        ArrayNode retryElements = json.createArrayNode();
         boolean warned = false;
         for (JsonNode element : elements) {
             token.check();
@@ -135,6 +137,18 @@ public class ClassroomMediaService {
             }
             warned = true;
             removed.add(element.path("id").asText());
+            // 只保留已经批准、实际尝试失败的这一张图；原正文和其他成功对象不参与重生成。
+            if (request != null && src.equals(attempted) && generated == null && element.isObject()) {
+                int insertionIndex = kept.size() + retryElements.size();
+                ObjectNode pending = retryElements.addObject().put("index", insertionIndex);
+                pending.set("element", element.deepCopy());
+            }
+        }
+        if (!retryElements.isEmpty()) {
+            ObjectNode repair = result.putObject("_pendingMediaRepair");
+            repair.set("request", approved.get(attempted).deepCopy());
+            repair.set("elements", retryElements);
+            repair.put("clearsWarning", retryElements.size() == removed.size());
         }
         ((ObjectNode) result.path("content").path("canvas")).set("elements", kept);
         if (result.path("actions").isArray() && !removed.isEmpty()) {
@@ -153,6 +167,34 @@ public class ClassroomMediaService {
         }
         token.check();
         return result;
+    }
+
+    /** 失败候选的局部修复：模型调用失败时抛出异常，调用方不提交副本，不重写讲稿与学习状态。 */
+    public ObjectNode retrySlide(ObjectNode original, ClassroomCancellation token) {
+        JsonNode pending = original.path("_pendingMediaRepair");
+        if (!"slide".equals(original.path("type").asText()) || !pending.path("request").isObject()
+                || !pending.path("elements").isArray() || pending.path("elements").isEmpty())
+            throw new ClassroomException(409, "当前页面没有待补充的插图");
+        JsonNode request = pending.path("request");
+        ImageAsset asset = generateImage(request.path("prompt").asText(), request.path("aspectRatio").asText("1:1"), token);
+        ObjectNode repaired = original.deepCopy();
+        ArrayNode elements = (ArrayNode) repaired.path("content").path("canvas").path("elements");
+        for (JsonNode item : pending.path("elements")) {
+            ObjectNode element = (ObjectNode) item.path("element").deepCopy();
+            String id = element.path("id").asText();
+            for (JsonNode current : elements) if (id.equals(current.path("id").asText()))
+                throw new ClassroomException(409, "插图位置已经更新，请刷新页面");
+            element.put("src", asset.url());
+            elements.insert(Math.min(Math.max(0, item.path("index").asInt()), elements.size()), element);
+        }
+        repaired.remove("_pendingMediaRepair");
+        if (pending.path("clearsWarning").asBoolean() && repaired.path("mediaWarnings").isArray()) {
+            ArrayNode remaining = json.createArrayNode();
+            for (JsonNode warning : repaired.path("mediaWarnings")) if (!IMAGE_FAILURE.equals(warning.asText())) remaining.add(warning);
+            if (remaining.isEmpty()) repaired.remove("mediaWarnings"); else repaired.set("mediaWarnings", remaining);
+        }
+        token.check();
+        return repaired;
     }
 
     /** 相同提示、比例、模型和端点只生成一次，已存在缓存可在供应商临时不可用时继续使用。 */

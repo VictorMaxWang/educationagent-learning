@@ -2,7 +2,7 @@
  * 发票识别与核验 —— 前端 API 封装。
  * 调用后端 DesktopOcrController（/api/desktop/ocr/*），密钥只存后端。
  */
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import { API_BASE_URL as BASE_URL } from '../api/baseUrl';
 
 /**
  * 票据 OCR（百度智能云，后端中转，密钥不落前端）。

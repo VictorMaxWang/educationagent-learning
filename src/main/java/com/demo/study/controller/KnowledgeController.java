@@ -57,6 +57,7 @@ public class KnowledgeController {
         userFileHolder.put(userId, entry.bytes(), entry.fileName());
         fileStore.remove(fileId);
         String result = userKnowledgeService.saveAndIndex(userId);
+        if (result.startsWith("❌")) return ResponseEntity.badRequest().body(Map.of("success", false, "error", result));
         return ResponseEntity.ok(Map.of("success", true, "message", result));
     }
 

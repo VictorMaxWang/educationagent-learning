@@ -6,7 +6,7 @@ import { ipLocation, searchAround } from "../utils/amap.js";
  * 🩺 健康咨询 — 专科 AI 聊天 + 周边医院
  */
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
+import { API_BASE_URL as API_BASE } from '../../api/baseUrl';
 
 const CATS = [
   { key: "sport", icon: "🏃", label: "运动减重", prompt: "你是一位专业运动教练+体重管理师。定制跑步、力量、燃脂计划，制定减脂增肌目标并追踪进度，矫正久坐体态和不良姿势。" },

@@ -2,7 +2,7 @@
  * 出行模块 API 层（原生 fetch，与项目其他模块一致，无第三方依赖）
  * 后端统一前缀 /api/desktop（WardrobeController / ScenicController / DaolvController）
  */
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import { API_BASE_URL as BASE_URL } from '../api/baseUrl';
 const DESKTOP_BASE = `${BASE_URL}/api/desktop`;
 
 /** 通用 JSON 请求（GET 不带 body，POST 传 body 对象） */

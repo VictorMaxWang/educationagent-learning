@@ -1,5 +1,5 @@
 import { API_BASE_URL } from '../api/baseUrl';
-import type { ClassroomMessage, Course, Domain, ElementReference, Outline, QuizResult, Scene, Speaker, TeachingAction, WhiteboardState } from './types';
+import type { ActionResult, ClassroomMessage, Course, Domain, ElementReference, Outline, QuizResult, Scene, Speaker, TeachingAction, WhiteboardState } from './types';
 
 /** 课堂只走当前电脑后端，同一 Wi-Fi 下的手机不携带模型密钥。 */
 export async function classroomRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
@@ -9,7 +9,9 @@ export async function classroomRequest<T>(path: string, options: RequestInit = {
   });
   const data = await response.json().catch(() => ({}));
   if (!response.ok || data.success === false) {
-    throw new Error(data.error || data.message || `请求失败（${response.status}）`);
+    const error = new Error(data.error || data.message || `请求失败（${response.status}）`) as Error & { status: number };
+    error.status = response.status;
+    throw error;
   }
   return data as T;
 }
@@ -25,13 +27,14 @@ export const createCourse = (data: { topic: string; grade: number; subject: stri
 export const saveOutline = (id: string, outlines: Outline[]) => classroomRequest<Course>(`/courses/${encodeURIComponent(id)}/outline`, { method: 'PUT', body: JSON.stringify({ outlines }) });
 export const generateCourse = (id: string) => post<Course>(`/courses/${encodeURIComponent(id)}/generate`);
 export const cancelCourse = (id: string) => post<Course>(`/courses/${encodeURIComponent(id)}/cancel`);
+export const retrySceneMedia = (id: string, sceneId: string, expectedRevision: number) => post<Course>(`/courses/${encodeURIComponent(id)}/scenes/${encodeURIComponent(sceneId)}/retry-media`, { expectedRevision });
 export const saveProgress = (id: string, sceneIndex: number, actionIndex: number) => classroomRequest<unknown>(`/courses/${encodeURIComponent(id)}/progress`, { method: 'PUT', body: JSON.stringify({ sceneIndex, actionIndex }) });
 export const submitAnswers = (id: string, sceneId: string, submissionId: string, answers: { no: number; answer: string }[]) => post<QuizResult>(`/courses/${encodeURIComponent(id)}/answer`, { sceneId, submissionId, answers });
 export interface ClassroomQuestionOptions { elementReference?: ElementReference; interactiveState?: Record<string, unknown>; intent?: 'question' | 'edit' }
 export const askClassroom = (id: string, sceneId: string, text: string, speaker: Speaker, signal?: AbortSignal, extra?: ClassroomQuestionOptions) => post<ClassroomMessage>(`/courses/${encodeURIComponent(id)}/chat`, { sceneId, text, speaker, ...extra }, signal);
 /** 只保存指定页面的编辑结果，不能回写整份课程覆盖练习成绩与对话。 */
 export const saveScene = (id: string, sceneId: string, expectedRevision: number, content: Scene['content'], actions?: TeachingAction[]) => classroomRequest<Course>(`/courses/${encodeURIComponent(id)}/scenes/${encodeURIComponent(sceneId)}`, { method: 'PUT', body: JSON.stringify({ expectedRevision, content, actions }) });
-export interface RuntimeUpdate { expectedRevision?: number; operationId: string; sceneId: string; whiteboard?: WhiteboardState; interactiveState?: Record<string, unknown>; acknowledgedActionIds?: string[]; actionResults?: { actionId: string; success: boolean; error?: string; at?: string | number }[] }
+export interface RuntimeUpdate { expectedRevision?: number; operationId: string; sceneId: string; whiteboard?: WhiteboardState; interactiveState?: Record<string, unknown>; acknowledgedActionIds?: string[]; actionResults?: ActionResult[] }
 export const saveRuntime = (id: string, data: RuntimeUpdate) => classroomRequest<Course>(`/courses/${encodeURIComponent(id)}/runtime`, { method: 'PUT', body: JSON.stringify(data) });
 export const portableCourse = (id: string) => classroomRequest<{ format: 'educationagent.classroom'; version: 1; course: Course }>(`/courses/${encodeURIComponent(id)}/portable`);
 export const importCourse = (data: unknown) => post<Course>('/courses/import', data);

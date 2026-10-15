@@ -3,7 +3,7 @@ import type { Scene, TeachingAction } from './types';
 import { acceptsBridgeMessage, commandForTeachingAction, createBridgeNonce, interactiveDocument, INTERACTIVE_BRIDGE_CHANNEL, isRecord, isStableSelector, validateEditablePatch, type BridgeIdentity, type BridgeResult, type EditablePatch, type EditableProperties } from './interactiveBridge';
 
 export interface InteractiveSceneHandle {
-  execute(action: TeachingAction, signal?: AbortSignal): Promise<{ success: boolean; error?: string; state?: unknown }>;
+  execute(action: TeachingAction, signal?: AbortSignal): Promise<BridgeResult>;
   discardEdits(): void;
   readState(signal?: AbortSignal): Promise<Record<string, unknown> | undefined>;
 }
@@ -55,8 +55,8 @@ const InteractiveScene = forwardRef<InteractiveSceneHandle, InteractiveSceneProp
   }, [identity]);
 
   const request = useCallback((payload: Record<string, unknown>, signal?: AbortSignal): Promise<BridgeResult> => {
-    if (signal?.aborted) return Promise.resolve({ success: false, error: '操作已取消' });
-    if (!iframe.current?.contentWindow || identity !== currentIdentity.current) return Promise.resolve({ success: false, error: '互动页面已切换' });
+    if (signal?.aborted) return Promise.resolve({ success: false, status: 'unconfirmed', reason: 'cancelled', error: '操作已取消，未取得执行确认' });
+    if (!iframe.current?.contentWindow || identity !== currentIdentity.current) return Promise.resolve({ success: false, status: 'unconfirmed', reason: 'scene_changed', error: '互动页面已切换，未取得执行确认' });
     const requestId = `${identity.nonce}-${++sequence.current}`;
     return new Promise(resolve => {
       let settled = false;
@@ -64,8 +64,8 @@ const InteractiveScene = forwardRef<InteractiveSceneHandle, InteractiveSceneProp
         if (settled) return;
         settled = true; clearTimeout(timer); signal?.removeEventListener('abort', aborted); pending.current.delete(requestId); resolve(result);
       };
-      const aborted = () => finish({ success: false, error: '操作已取消' });
-      const timer = setTimeout(() => finish({ success: false, error: '互动页面没有确认操作，请重试或重新打开这一页' }), 6000);
+      const aborted = () => finish({ success: false, status: 'unconfirmed', reason: 'cancelled', error: '操作已取消，未取得执行确认' });
+      const timer = setTimeout(() => finish({ success: false, status: 'unconfirmed', reason: 'timeout', error: '互动页面没有确认操作，请核对当前状态后再重试' }), 6000);
       pending.current.set(requestId, { settle: finish }); signal?.addEventListener('abort', aborted, { once: true });
       post({ ...payload, requestId });
     });
@@ -97,13 +97,13 @@ const InteractiveScene = forwardRef<InteractiveSceneHandle, InteractiveSceneProp
     },
     async execute(action, signal) {
       const executingIdentity = identity;
-      if (!await waitUntilReady(signal) || signal?.aborted || executingIdentity !== currentIdentity.current) return { success: false, error: signal?.aborted ? '操作已取消' : '互动页面尚未准备好或已切换' };
+      if (!await waitUntilReady(signal) || signal?.aborted || executingIdentity !== currentIdentity.current) return { success: false, status: 'unconfirmed', reason: signal?.aborted ? 'cancelled' : 'not_ready', error: signal?.aborted ? '操作已取消' : '互动页面尚未准备好或已切换' };
       try {
         const result = await request({ command: 'execute', action: commandForTeachingAction(action) }, signal);
         if (!result.success && !signal?.aborted) report(result.error || '互动操作未执行');
         return result;
       } catch (cause) {
-        const message = cause instanceof Error ? cause.message : '互动操作无法执行'; report(message); return { success: false, error: message };
+        const message = cause instanceof Error ? cause.message : '互动操作无法执行'; report(message); return { success: false, status: 'rejected', reason: 'invalid_command', error: message };
       }
     },
   }), [identity, request, report, waitUntilReady]);
@@ -150,7 +150,7 @@ const InteractiveScene = forwardRef<InteractiveSceneHandle, InteractiveSceneProp
     window.addEventListener('message', onMessage);
     return () => {
       ready.current = false; window.removeEventListener('message', onMessage);
-      for (const item of Array.from(pending.current.values())) item.settle({ success: false, error: '互动页面已切换' });
+      for (const item of Array.from(pending.current.values())) item.settle({ success: false, status: 'unconfirmed', reason: 'scene_changed', error: '互动页面已切换，未取得执行确认' });
       for (const resolve of Array.from(readiness.current)) resolve(false);
     };
   }, [identity, post, report, request]);

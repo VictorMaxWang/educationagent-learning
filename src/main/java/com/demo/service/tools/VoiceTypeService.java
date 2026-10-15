@@ -3,8 +3,10 @@ package com.demo.service.tools;
 import com.demo.entity.UserSettingsEntity;
 import com.demo.mapper.UserSettingsMapper;
 import com.demo.cache.ThreeTierCache;
+import com.demo.service.TtsService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
@@ -14,7 +16,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class VoiceTypeService {
 
-    public static final String DEFAULT_VOICE_TYPE = "101007";
+    public static final String DEFAULT_VOICE_TYPE = TtsService.DEFAULT_VOICE_TYPE;
+
+    @Value("${tencent.tts.voice-type:403005}")
+    private String defaultVoiceType = DEFAULT_VOICE_TYPE;
 
     @Resource
     private UserSettingsMapper userSettingsMapper;
@@ -25,9 +30,13 @@ public class VoiceTypeService {
     public String getVoiceType(String userId) {
         UserSettingsEntity settings = userSettingsCache.get(userId,
                 () -> userSettingsMapper.findByUserId(userId));
-        if (settings == null) return DEFAULT_VOICE_TYPE;
+        if (settings == null) return effectiveDefault();
         String voiceType = settings.getVoiceType();
-        return (voiceType != null && !voiceType.isBlank()) ? voiceType : DEFAULT_VOICE_TYPE;
+        return (voiceType != null && !voiceType.isBlank()) ? voiceType : effectiveDefault();
+    }
+
+    private String effectiveDefault() {
+        return defaultVoiceType == null || defaultVoiceType.isBlank() ? DEFAULT_VOICE_TYPE : defaultVoiceType.trim();
     }
 
     public void setVoiceType(String userId, String voiceType) {

@@ -4,6 +4,7 @@ import com.demo.chroma.doc.DocKnowledgeAssistant;
 import com.demo.chroma.doc.DocKnowledgeRegistry;
 import com.demo.edu.classroom.ClassroomException;
 import com.demo.edu.classroom.ClassroomTutorModel;
+import com.demo.edu.classroom.research.EvidenceSelector;
 import com.demo.edu.safety.CrisisGuard;
 import com.demo.edu.safety.CrisisGuardProperties;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -62,7 +63,7 @@ class GuideServiceTest {
     }
     @Test void retrievedSnippetsAreTheOnlySourcesReturnedAndLocalPathsAreRemoved() {
         var assistant = mock(DocKnowledgeAssistant.class); when(knowledge.getAssistant("sexedu")).thenReturn(assistant);
-        when(assistant.searchArticles(anyString(), isNull(), eq(3))).thenReturn(List.of(
+        when(assistant.searchArticles(anyString(), isNull(), eq(EvidenceSelector.CANDIDATE_LIMIT))).thenReturn(List.of(
             Map.of("file", "D:\\school\\边界知识.txt", "content", "尊重彼此的个人边界。", "distance", 0.2),
             Map.of("file", "空.txt", "content", "")));
         var result = service.chat(request("怎样表达个人边界", 10, "puberty"));

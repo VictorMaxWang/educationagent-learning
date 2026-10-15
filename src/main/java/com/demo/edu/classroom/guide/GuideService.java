@@ -4,6 +4,8 @@ import com.demo.chroma.doc.DocKnowledgeAssistant;
 import com.demo.chroma.doc.DocKnowledgeRegistry;
 import com.demo.edu.classroom.ClassroomException;
 import com.demo.edu.classroom.ClassroomTutorModel;
+import com.demo.edu.classroom.research.EvidenceSelector;
+import com.demo.edu.classroom.research.QuestionIntentSupport;
 import com.demo.edu.safety.CrisisGuard;
 import com.demo.edu.safety.CrisisGuardProperties;
 import com.demo.router.SafetyKeywordRules;
@@ -54,7 +56,7 @@ public class GuideService {
 
         List<Source> sources = retrieve(question, topic.domain());
         ArrayNode messages = json.createArrayNode();
-        messages.addObject().put("role", "system").put("content", persona(grade, topic, sources));
+        messages.addObject().put("role", "system").put("content", persona(grade, topic, sources)+QuestionIntentSupport.directive(question));
         for (HistoryMessage item : history) messages.addObject().put("role", item.role()).put("content", item.content());
         messages.addObject().put("role", "user").put("content", question);
         String answer;
@@ -78,7 +80,7 @@ public class GuideService {
         try {
             DocKnowledgeAssistant assistant = knowledge.getAssistant(domain);
             if (assistant == null) return List.of();
-            List<Map<String, Object>> hits = assistant.searchArticles(question, null, 3);
+            List<Map<String, Object>> hits = EvidenceSelector.select(assistant.searchArticles(question, null, EvidenceSelector.CANDIDATE_LIMIT),3);
             if (hits == null) return List.of();
             List<Source> sources = new ArrayList<>();
             for (Map<String, Object> hit : hits) {

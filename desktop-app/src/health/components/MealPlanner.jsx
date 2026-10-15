@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 
-const BACKEND = import.meta.env.VITE_API_BASE_URL
+import { API_BASE_URL as BACKEND } from '../../api/baseUrl'
 const HISTORY_PREFIX = 'newbot_recipe_history_'
 
 function loadHistory(memberId) { try { return JSON.parse(localStorage.getItem(HISTORY_PREFIX + memberId)) || [] } catch { return [] } }

@@ -3,6 +3,7 @@ import "../tools/lawrag.css";
 import "../edu/edu.css";
 
 import { API_BASE_URL as BASE_URL } from "../api/baseUrl";
+const PUBLIC_CLASSROOM = import.meta.env.VITE_PUBLIC_CLASSROOM === "true";
 
 /** 课程知识库配置：domainId 对应后端 DocKnowledgeConfig 的领域 */
 const COURSES = {
@@ -102,6 +103,8 @@ function formatTime(ts) {
  */
 export default function CourseKnowledgeView({ domainId, learnerId }) {
   const cfg = COURSES[domainId] || COURSES.tongshi;
+  // 公网走服务端生成临时上下文的一次问答包装，不把浏览器中的旧 uid 交给知识库。
+  const apiBase = `${BASE_URL}${PUBLIC_CLASSROOM ? "/api/classroom/resources" : "/api/desktop"}/${domainId}`;
   const [baseUid] = useState(() => learnerId || getDesktopUserId());
   const [libId, setLibId] = useState(cfg.libs[0]?.id || "");
   const [question, setQuestion] = useState("");
@@ -124,7 +127,7 @@ export default function CourseKnowledgeView({ domainId, learnerId }) {
 
   const checkHealth = async () => {
     try {
-      const res = await fetch(`${BASE_URL}/api/desktop/${domainId}/health`);
+      const res = await fetch(`${apiBase}/health`);
       const json = await res.json();
       if (json?.code === 200) {
         const d = json.data || {};
@@ -138,7 +141,7 @@ export default function CourseKnowledgeView({ domainId, learnerId }) {
           setHealth({
             online: true,
             indexing: false,
-            text: `服务在线（活跃会话 ${d.active_sessions ?? 0} 个）`,
+            text: PUBLIC_CLASSROOM ? "服务在线" : `服务在线（活跃会话 ${d.active_sessions ?? 0} 个）`,
           });
         }
       } else {
@@ -175,10 +178,10 @@ export default function CourseKnowledgeView({ domainId, learnerId }) {
     setMsg("检索中…");
     setResult(null);
     try {
-      const res = await fetch(`${BASE_URL}/api/desktop/${domainId}/search`, {
+      const res = await fetch(`${apiBase}/search`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ uid: sessionUid, question: q, lib_id: libId }),
+        body: JSON.stringify({ ...(PUBLIC_CLASSROOM ? {} : { uid: sessionUid }), question: q, lib_id: libId }),
       });
       const json = await res.json();
       if (json?.code === 200 && json.data) {
@@ -210,10 +213,10 @@ export default function CourseKnowledgeView({ domainId, learnerId }) {
   const clearContext = async () => {
     setMsg("清除中…");
     try {
-      const res = await fetch(`${BASE_URL}/api/desktop/${domainId}/clear-context`, {
+      const res = await fetch(`${apiBase}/clear-context`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ uid: sessionUid }),
+        body: JSON.stringify(PUBLIC_CLASSROOM ? {} : { uid: sessionUid }),
       });
       const json = await res.json();
       setMsg(json?.msg || "已清除");
@@ -286,7 +289,7 @@ export default function CourseKnowledgeView({ domainId, learnerId }) {
           {busy ? "检索中…" : "检索"}
         </button>
         <button className="btn tool-btn" disabled={busy} onClick={clearContext}>
-          清除上下文
+          {PUBLIC_CLASSROOM ? "清除本机记录" : "清除上下文"}
         </button>
       </div>
 

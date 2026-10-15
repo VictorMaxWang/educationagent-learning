@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import "./lawrag.css";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import { API_BASE_URL as BASE_URL } from '../api/baseUrl';
 
 const LIBS = [
   { id: "civil", label: "民法典", hint: "合同/侵权/婚姻/继承等" },

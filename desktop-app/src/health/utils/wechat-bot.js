@@ -1,10 +1,12 @@
+import { API_BASE_URL } from '../../api/baseUrl';
+
 /**
  * BDH-339 微信机器人推送工具（对接 SpringBoot 后端）
  *
  * 配置存储在 localStorage: newbot_wechat_config
  *   {
  *     enabled: true,
- *     baseUrl: 'http://127.0.0.1:8888',         // SpringBoot 服务地址
+ *     baseUrl: API_BASE_URL,         // SpringBoot 服务地址
  *     apiPath: '/api/bot/sendPrivateMsg',       // 私聊发送接口路径
  *     targetWxid: 'wxid_xxxxxxxxxxxxxxxx',      // 目标微信用户 wxid
  *   }
@@ -43,7 +45,7 @@ function extractError(data) {
 // ══════════════════════════════════════════
 
 const DEFAULT_CONFIG = {
-  baseUrl: 'http://127.0.0.1:8888',
+  baseUrl: API_BASE_URL,
   apiPath: '/api/desktop/sendPrivateMsg',
   targetWxid: '',
   enabled: false,

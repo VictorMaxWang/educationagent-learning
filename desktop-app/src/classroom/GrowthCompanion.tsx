@@ -3,6 +3,8 @@ import { audioUrl, classroomRequest, synthesizeSpeech, transcribeAudio, voiceHea
 import { NarrationQueue, type PlaybackStatus } from './audioQueue';
 import { canRecordClassroomAudio, startClassroomRecording, type ClassroomRecording } from './recording';
 import { newLocalId } from './navigation';
+import { registerVoiceContext, type VoiceReply } from './voiceContext';
+import { useAudioFocus } from './useAudioFocus';
 import {
   GROWTH_CATEGORY_ICONS, GROWTH_GRADE_LABELS, GROWTH_STORAGE_PREFIX, growthRequestHistory,
   growthSuggestionBatch, restoreGrowthMessages, type GrowthCategoryId, type GrowthMessage,
@@ -20,6 +22,7 @@ function readMessages(grade: number): GrowthMessage[] {
 
 /** 一处成长入口，聊天只保存在当前浏览器；问答、引用和语音仍通过已有 Java 边界。 */
 export default function GrowthCompanion() {
+  const audioFocus = useAudioFocus();
   const [grade, setGrade] = useState(readGrade);
   const [category, setCategory] = useState<GrowthCategoryId>('study-stress');
   const [topics, setTopics] = useState<GrowthTopicsResponse | null>(null);
@@ -49,6 +52,8 @@ export default function GrowthCompanion() {
   const messageEnd = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const recordingRun = useRef(0);
+  const microphoneRequest = useRef<AbortController | null>(null);
+  const voiceAsk = useRef<(question: string, signal: AbortSignal) => Promise<VoiceReply>>(async () => { throw new Error('成长问答尚未准备好'); });
 
   if (!queue.current) queue.current = new NarrationQueue({
     synthesize: synthesizeSpeech, resolveUrl: audioUrl, onCaption: () => {}, onAction: () => {},
@@ -60,6 +65,7 @@ export default function GrowthCompanion() {
     epoch.current++; recordingRun.current++;
     chatRequest.current?.abort(); asrRequest.current?.abort();
     recorder.current?.cancel(); recorder.current = null;
+    microphoneRequest.current?.abort();
     recordingBusy.current = false; sending.current = false;
     queue.current?.setMicrophoneBusy(false); queue.current?.stop();
     setBusy(false); setRecordingState('idle'); setReadingId('');
@@ -71,9 +77,11 @@ export default function GrowthCompanion() {
     return () => {
       mounted.current = false; epoch.current++; recordingRun.current++;
       chatRequest.current?.abort(); asrRequest.current?.abort(); recorder.current?.cancel();
+      microphoneRequest.current?.abort();
       queue.current?.destroy();
     };
   }, []);
+  useEffect(() => registerVoiceContext({ id: `growth:${grade}:${category}`, kind: 'growth', label: '小禾姐姐 · 成长课堂', grade, ask: (question, signal) => voiceAsk.current(question, signal) }), [grade, category]);
   useEffect(() => {
     const controller = new AbortController(); setTopicsLoading(true); setTopicsError('');
     void classroomRequest<GrowthTopicsResponse>(`/guide/topics?grade=${grade}`, { signal: controller.signal })
@@ -97,13 +105,15 @@ export default function GrowthCompanion() {
     cancelActivity(); setMessages([]); setInput(''); setError(''); setVoiceError(''); setSuggestionPage(0);
     try { localStorage.removeItem(GROWTH_STORAGE_PREFIX + grade); } catch { /* 清除内存状态仍然有效 */ }
   };
-  const send = async (questionOverride?: string) => {
+  const send = async (questionOverride?: string, externalSignal?: AbortSignal): Promise<GrowthReply | undefined> => {
     const question = (questionOverride ?? input).trim();
     if (!question || sending.current || recordingBusy.current) return;
     if (question.length > 2000) { setError('这段话超过 2000 字，可以先分成两段慢慢说。'); return; }
     sending.current = true; setBusy(true); setError(''); queue.current?.stop();
     const run = epoch.current;
     const controller = new AbortController(); chatRequest.current = controller;
+    const relayAbort = () => controller.abort(); externalSignal?.addEventListener('abort', relayAbort, { once: true });
+    if (externalSignal?.aborted) controller.abort();
     const entry: GrowthMessage = { id: newLocalId(), role: 'user', content: question, category };
     const payload = { question, grade, category, history: growthRequestHistory(messages) };
     setMessages(previous => [...previous, entry].slice(-40)); setInput('');
@@ -114,14 +124,22 @@ export default function GrowthCompanion() {
       setMessages(previous => [...previous, { id: reply.id || newLocalId(), role: 'assistant' as const,
         content: reply.text, category: reply.category, sources: reply.sources || [], suggestions: reply.suggestions || [], crisis: reply.crisis }].slice(-40));
       setSuggestionPage(0);
+      return reply;
     } catch (problem) {
       if (!controller.signal.aborted && mounted.current && run === epoch.current) {
         setError(problem instanceof Error ? problem.message : '这次没有连上，请稍后重试。');
         setInput(question); setMessages(previous => previous.filter(item => item.id !== entry.id));
       }
+      if (externalSignal) throw problem;
     } finally {
+      externalSignal?.removeEventListener('abort', relayAbort);
       if (mounted.current && run === epoch.current) { sending.current = false; setBusy(false); }
     }
+  };
+  voiceAsk.current = async (question, signal) => {
+    const reply = await send(question, signal);
+    if (!reply) throw new Error('成长课堂正在处理上一条问题，请稍后再说。');
+    return { text: reply.text, role: 'peer' };
   };
 
   const releaseMicrophone = () => {
@@ -149,9 +167,11 @@ export default function GrowthCompanion() {
     }
     if (recordingBusy.current || sending.current) return;
     const run = ++recordingRun.current;
+    const micController = new AbortController(); microphoneRequest.current = micController;
     recordingBusy.current = true; queue.current?.setMicrophoneBusy(true); setRecordingState('starting'); setDuration(0); setVoiceError('');
     try {
       const recording = await startClassroomRecording({
+        signal: micController.signal,
         onDuration: value => { if (mounted.current && run === recordingRun.current) setDuration(Math.floor(value)); },
         onAutoStop: blob => { if (run === recordingRun.current) { recorder.current = null; void recognize(blob, run); } },
         onError: problem => { if (mounted.current && run === recordingRun.current) { recorder.current = null; releaseMicrophone(); setVoiceError(problem.message); } },
@@ -163,7 +183,7 @@ export default function GrowthCompanion() {
     }
   };
   const cancelRecording = () => {
-    recordingRun.current++; recorder.current?.cancel(); recorder.current = null; asrRequest.current?.abort(); releaseMicrophone();
+    recordingRun.current++; microphoneRequest.current?.abort(); recorder.current?.cancel(); recorder.current = null; asrRequest.current?.abort(); releaseMicrophone();
   };
   const readAnswer = (message: GrowthMessage) => {
     if (recordingBusy.current || sending.current || !voice.ttsAvailable) return;
@@ -174,7 +194,8 @@ export default function GrowthCompanion() {
   const currentTopic = topics?.categories.find(item => item.id === category);
   const lastReply = [...messages].reverse().find(item => item.role === 'assistant' && item.category === category);
   const suggestions = growthSuggestionBatch(lastReply?.suggestions || [], currentTopic?.questions || [], suggestionPage);
-  const micBusy = recordingState !== 'idle';
+  const ownMicBusy = recordingState !== 'idle';
+  const micBusy = ownMicBusy || audioFocus.microphoneBlocked;
 
   return <section className="growth-companion" aria-label="成长课堂">
     <header className="gc-header"><div><span className="gc-eyebrow">成长课堂 · 说一说，也是一小步</span><h1>有些心事，可以慢慢说。</h1><p>学习之外，情绪、关系和成长中的疑问，也值得被认真听见。</p></div><label className="gc-grade">我在读<select value={grade} onChange={event => changeGrade(Number(event.target.value))}>{GROWTH_GRADE_LABELS.map((label, index) => <option key={label} value={index + 1}>{label}</option>)}</select></label></header>
@@ -200,7 +221,7 @@ export default function GrowthCompanion() {
           {error && <div className="gc-error" role="alert">{error}<button onClick={() => void send()} disabled={busy || !input.trim() || micBusy}>重试发送</button></div>}
           {voiceError && <div className="gc-error" role="alert">{voiceError}<button onClick={() => setVoiceError('')}>收起</button></div>}
           <label className="cr-visually-hidden" htmlFor="growth-question">想对小禾姐姐说的话</label><textarea ref={inputRef} id="growth-question" rows={3} maxLength={2000} value={input} disabled={busy || micBusy} onChange={event => setInput(event.target.value)} placeholder={recordingState === 'transcribing' ? '正在把录音转成文字，确认后再发送…' : '今天发生了什么？或者，有什么一直想问却没开口的事？'} />
-          <div className="gc-compose-actions"><div><button className={recordingState === 'recording' ? 'gc-recording' : ''} disabled={busy || recordingState === 'starting' || recordingState === 'transcribing' || !voice.asrAvailable || (!micBusy && !canRecordClassroomAudio())} onClick={() => void toggleRecording()}>{recordingState === 'recording' ? `■ 完成录音 ${duration}s` : recordingState === 'starting' ? '打开麦克风…' : recordingState === 'transcribing' ? '正在转写…' : '● 录音说一说'}</button>{micBusy && <button onClick={cancelRecording}>取消录音</button>}{voice.asrAvailable && !micBusy && <label className="gc-wav-upload">上传 WAV<input type="file" accept=".wav,audio/wav" disabled={busy} onChange={event => { const file = event.target.files?.[0]; event.target.value = ''; if (!file || sending.current || recordingBusy.current) return; const run = ++recordingRun.current; recordingBusy.current = true; queue.current?.setMicrophoneBusy(true); void recognize(file, run); }} /></label>}</div><button className="gc-send" disabled={busy || micBusy || !input.trim()} onClick={() => void send()}>{busy ? '正在发送…' : '发送 ↑'}</button></div>
+          <div className="gc-compose-actions"><div><button className={recordingState === 'recording' ? 'gc-recording' : ''} disabled={busy || recordingState === 'starting' || recordingState === 'transcribing' || (audioFocus.microphoneBlocked && !ownMicBusy) || !voice.asrAvailable || (!micBusy && !canRecordClassroomAudio())} onClick={() => void toggleRecording()}>{recordingState === 'recording' ? `■ 完成录音 ${duration}s` : recordingState === 'starting' ? '打开麦克风…' : recordingState === 'transcribing' ? '正在转写…' : '● 录音说一说'}</button>{ownMicBusy && <button onClick={cancelRecording}>取消录音</button>}{voice.asrAvailable && !micBusy && <label className="gc-wav-upload">上传 WAV<input type="file" accept=".wav,audio/wav" disabled={busy} onChange={event => { const file = event.target.files?.[0]; event.target.value = ''; if (!file || sending.current || recordingBusy.current) return; const run = ++recordingRun.current; recordingBusy.current = true; queue.current?.setMicrophoneBusy(true); void recognize(file, run); }} /></label>}</div><button className="gc-send" disabled={busy || micBusy || !input.trim()} onClick={() => void send()}>{busy ? '正在发送…' : '发送 ↑'}</button></div>
           <p className="gc-input-note">{micBusy ? '最长 60 秒。转成文字后，由你确认再发送。' : !voice.asrAvailable ? '现在可以输入文字聊天；语音识别尚不可用。' : !canRecordClassroomAudio() ? '当前浏览器需要 HTTPS 麦克风权限，也可以输入文字或上传 WAV。' : '录音会先转成文字，不会自动发送。'} <span>{input.length}/2000</span></p>
         </div>
       </div>

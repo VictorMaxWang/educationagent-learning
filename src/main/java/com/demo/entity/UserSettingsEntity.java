@@ -34,7 +34,8 @@ public class UserSettingsEntity {
     public UserSettingsEntity(String userId) {
         this.userId = userId;
         this.voiceMode = "off";
-        this.voiceType = "101007";
+        // 新建设置继承可配置的服务默认音色，不把创建时的默认值固化成用户的显式选择。
+        this.voiceType = "";
         this.chatMode = "normal";
     }
 

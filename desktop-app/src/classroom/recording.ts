@@ -2,11 +2,14 @@
  * 课堂按键录音：浏览器原生采样 → 单声道 16k/16bit WAV。
  * 不使用 MediaRecorder 默认 webm，因为当前一句话识别接口不接受 webm。
  */
+import { audioCoordinator, audioOwner, type AudioLease } from './AudioCoordinator.ts';
+
 export interface ClassroomRecordingOptions {
   maxDurationSeconds?: number;
   onDuration?: (seconds: number) => void;
   onAutoStop?: (blob: Blob) => void;
   onError?: (error: Error) => void;
+  signal?: AbortSignal;
 }
 
 export interface ClassroomRecording {
@@ -70,16 +73,33 @@ export async function startClassroomRecording(options: ClassroomRecordingOptions
   const requestedLimit = options.maxDurationSeconds ?? 60;
   if (!Number.isFinite(requestedLimit)) throw new Error("录音时长设置无效");
   const limit = Math.min(60, Math.max(1, requestedLimit));
-  const stream = await navigator.mediaDevices.getUserMedia({
-    audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true },
+  let stream: MediaStream | null = null;
+  let stoppedStream: MediaStream | null = null;
+  let cancelled = false;
+  let lease: AudioLease | null = null;
+  let captureCleanup: (() => void) | undefined;
+  const release = () => {
+    options.signal?.removeEventListener('abort', abort);
+    if (stream && stoppedStream !== stream) { stream.getTracks().forEach(track => track.stop()); stoppedStream = stream; }
+    lease?.release(); lease = null;
+  };
+  const abort = () => { cancelled = true; captureCleanup?.(); release(); };
+  lease = audioCoordinator.acquireMicrophone(audioOwner('microphone'), () => {
+    abort(); options.onError?.(new Error('录音已停止，可以重新录音或继续输入文字。'));
   });
+  if (!lease) throw new Error('另一处正在使用麦克风，请先完成或取消那段录音。');
+  if (options.signal?.aborted) { abort(); throw new Error('录音已取消'); }
+  options.signal?.addEventListener('abort', abort, { once: true });
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true } });
+    if (cancelled || !lease?.isCurrent()) { release(); throw new Error('录音已取消'); }
+  } catch (error) { release(); throw error; }
   let context: AudioContext | null = null;
   let source: MediaStreamAudioSourceNode | null = null;
   let processor: ScriptProcessorNode | null = null;
   let mute: GainNode | null = null;
   let timer: ReturnType<typeof setInterval> | undefined;
   let ended = false;
-  let cancelled = false;
   let result: Blob | undefined;
   let sampleCount = 0;
   let chunks: Float32Array[] = [];
@@ -89,9 +109,10 @@ export async function startClassroomRecording(options: ClassroomRecordingOptions
     try { processor?.disconnect(); } catch { /* 已断开 */ }
     try { source?.disconnect(); } catch { /* 已断开 */ }
     try { mute?.disconnect(); } catch { /* 已断开 */ }
-    stream.getTracks().forEach(track => track.stop());
+    release();
     if (context && context.state !== "closed") void context.close().catch(() => undefined);
   };
+  captureCleanup = cleanup;
   const finish = (): Blob => {
     if (cancelled) throw new Error("录音已取消");
     if (result) return result;
@@ -115,6 +136,8 @@ export async function startClassroomRecording(options: ClassroomRecordingOptions
     if (!AudioContextClass) throw new Error("浏览器不支持录音，请上传 WAV 或输入文字");
     context = new AudioContextClass();
     await context.resume();
+    // 移动浏览器可能延迟 resume；取消发生在该等待期间时，不再创建节点或计时器。
+    if (cancelled || !lease?.isCurrent()) throw new Error("录音已取消");
     source = context.createMediaStreamSource(stream);
     // 与项目已有英语录音兼容；短按键录音只需单声道 PCM，无需额外编码依赖。
     processor = context.createScriptProcessor(4096, 1, 1);

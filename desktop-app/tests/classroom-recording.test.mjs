@@ -31,7 +31,7 @@ test('hard duration bound prevents audio over 60 seconds and rejects empty recor
   assert.throws(() => encodeClassroomWav(new Float32Array(1), Number.NaN), /没有录到声音/);
 });
 
-function fakeBrowser({ secure = true, resumeFailure = false } = {}) {
+function fakeBrowser({ secure = true, resumeFailure = false, resumeGate } = {}) {
   const oldWindow = Object.getOwnPropertyDescriptor(globalThis, 'window');
   const oldNavigator = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
   const state = { stopped: 0, closed: 0, processor: undefined, requests: 0 };
@@ -39,7 +39,7 @@ function fakeBrowser({ secure = true, resumeFailure = false } = {}) {
   class FakeAudioContext {
     sampleRate = 16000;
     state = 'suspended';
-    async resume() { if (resumeFailure) throw new Error('permission failed'); this.state = 'running'; }
+    async resume() { if (resumeFailure) throw new Error('permission failed'); if (resumeGate) await resumeGate; if (this.state !== 'closed') this.state = 'running'; }
     createMediaStreamSource() { return node(); }
     createScriptProcessor() { state.processor = { ...node(), onaudioprocess: null }; return state.processor; }
     createGain() { return { ...node(), gain: { value: 1 } }; }
@@ -97,6 +97,27 @@ test('cancel releases microphone and will not submit recorded audio', async () =
   } finally { browser.restore(); }
 });
 
+test('aborting a permission request releases global microphone focus and stops its late stream', async () => {
+  const browser = fakeBrowser();
+  const realGetUserMedia = navigator.mediaDevices.getUserMedia;
+  let provideLateStream;
+  let lateStops = 0;
+  navigator.mediaDevices.getUserMedia = () => new Promise(resolve => { provideLateStream = resolve; });
+  const cancellation = new AbortController();
+  const pending = startClassroomRecording({ signal: cancellation.signal });
+  const rejected = assert.rejects(pending, /录音已取消/);
+  cancellation.abort();
+  navigator.mediaDevices.getUserMedia = realGetUserMedia;
+  try {
+    const current = await startClassroomRecording();
+    provideLateStream({ getTracks: () => [{ stop() { lateStops++; } }] });
+    await rejected;
+    assert.equal(lateStops, 1);
+    browser.emit(); current.cancel();
+    assert.equal(browser.state.stopped, 1);
+  } finally { browser.restore(); }
+});
+
 test('automatic duration stop also releases microphone when caller has no callback', async () => {
   const browser = fakeBrowser();
   try {
@@ -104,6 +125,22 @@ test('automatic duration stop also releases microphone when caller has no callba
     browser.emit(32000);
     assert.equal(browser.state.stopped, 1);
     assert.equal((await recording.stop()).size, 32044);
+  } finally { browser.restore(); }
+});
+
+test('aborting during audio context resume does not create a late processor or timer', async () => {
+  let allowResume;
+  const browser = fakeBrowser({ resumeGate: new Promise(resolve => { allowResume = resolve; }) });
+  const cancellation = new AbortController();
+  try {
+    const pending = startClassroomRecording({ signal: cancellation.signal });
+    const rejected = assert.rejects(pending, /录音已取消/);
+    await Promise.resolve();
+    cancellation.abort(); allowResume();
+    await rejected;
+    assert.equal(browser.state.stopped, 1);
+    assert.equal(browser.state.closed, 1);
+    assert.equal(browser.state.processor, undefined);
   } finally { browser.restore(); }
 });
 

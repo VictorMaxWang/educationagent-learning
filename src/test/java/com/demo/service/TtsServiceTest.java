@@ -27,11 +27,38 @@ class TtsServiceTest {
         http = mock(RestTemplate.class);
         ReflectionTestUtils.setField(service, "secretId", "unit-test-id");
         ReflectionTestUtils.setField(service, "secretKey", "unit-test-key");
-        ReflectionTestUtils.setField(service, "voiceType", "0");
         ReflectionTestUtils.setField(service, "sampleRate", 16000);
         ReflectionTestUtils.setField(service, "region", "ap-guangzhou");
         ReflectionTestUtils.setField(service, "restTemplate", http);
         service.init();
+    }
+
+    @Test
+    void defaultVoiceUsesYunyaqinOnTextToVoiceWith16kMp3() {
+        when(http.postForEntity(anyString(), any(HttpEntity.class), eq(String.class))).thenReturn(ResponseEntity.ok(SUCCESS));
+        assertEquals("403005", service.getDefaultVoiceType());
+        assertNotNull(service.synthesize("我们一起慢慢学。"));
+        ArgumentCaptor<HttpEntity<String>> request = ArgumentCaptor.forClass(HttpEntity.class);
+        verify(http).postForEntity(eq("https://tts.tencentcloudapi.com"), request.capture(), eq(String.class));
+        var body = JSON.parseObject(request.getValue().getBody());
+        assertEquals(403005, body.getIntValue("VoiceType"));
+        assertEquals(16000, body.getIntValue("SampleRate"));
+        assertEquals("mp3", body.getString("Codec"));
+        assertEquals("TextToVoice", request.getValue().getHeaders().getFirst("X-TC-Action"));
+        assertEquals("2019-08-23", request.getValue().getHeaders().getFirst("X-TC-Version"));
+    }
+
+    @Test
+    void configuredDefaultAndExplicitUserVoiceRemainEffective() {
+        when(http.postForEntity(anyString(), any(HttpEntity.class), eq(String.class))).thenReturn(ResponseEntity.ok(SUCCESS));
+        ReflectionTestUtils.setField(service, "voiceType", "101007");
+        assertNotNull(service.synthesize("使用配置的默认声音。"));
+        assertNotNull(service.synthesize("保留指定声音。", "0", 16000));
+        assertNotNull(service.synthesize("空选择继承默认声音。", "", 16000));
+        ArgumentCaptor<HttpEntity<String>> requests = ArgumentCaptor.forClass(HttpEntity.class);
+        verify(http, times(3)).postForEntity(anyString(), requests.capture(), eq(String.class));
+        assertEquals(List.of(101007, 0, 101007), requests.getAllValues().stream()
+                .map(request -> JSON.parseObject(request.getBody()).getIntValue("VoiceType")).toList());
     }
 
     @Test

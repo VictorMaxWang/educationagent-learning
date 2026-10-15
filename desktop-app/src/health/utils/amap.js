@@ -3,14 +3,16 @@
  * 文档: https://lbs.amap.com/api/webservice/summary
  */
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
+import { API_BASE_URL as API_BASE } from '../../api/baseUrl';
 
 /**
  * 通用请求封装（走后端代理，key 在服务端）
  */
 async function request(endpoint, params = {}) {
-  const url = new URL(`${API_BASE}/api/desktop/amap/proxy`);
-  url.searchParams.set('path', endpoint);
+  const url = new URL(`${API_BASE}/api/desktop/amap/proxy`, window.location.origin);
+  // 现有健康模块使用 /ip 等短路径，后端公开代理接收固定 v3/ 路径。
+  const normalized = endpoint.replace(/^\/+/, '');
+  url.searchParams.set('path', normalized.startsWith('v3/') ? normalized : `v3/${normalized}`);
   Object.entries(params).forEach(([k, v]) => {
     if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, v);
   });

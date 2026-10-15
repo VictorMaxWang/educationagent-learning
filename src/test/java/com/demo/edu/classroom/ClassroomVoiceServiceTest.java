@@ -18,6 +18,29 @@ class ClassroomVoiceServiceTest {
     @TempDir Path directory;
 
     @Test
+    void teacherPeerAndGrowthPlaybackInheritYunyaqinAndCacheActualVoice() {
+        TtsService tts = mock(TtsService.class);
+        when(tts.isAvailable()).thenReturn(true);
+        when(tts.getDefaultVoiceType()).thenReturn("403005");
+        when(tts.synthesize(anyString(), anyString(), eq(16000))).thenReturn(new byte[]{1, 2, 3});
+        ClassroomVoiceService voice = new ClassroomVoiceService(tts, mock(AudioService.class), directory.toString(), "", null);
+        var teacher = voice.synthesize("我们一起慢慢学。", "teacher");
+        var peer = voice.synthesize("我们一起慢慢学。", "peer");
+        assertEquals(teacher, peer, "使用同一个实际音色时应复用语音缓存");
+        verify(tts).synthesize("我们一起慢慢学。", "403005", 16000);
+        assertEquals("403005", voice.health().get("voiceId"));
+        assertEquals("云雅琴", voice.health().get("voiceName"));
+        assertEquals("403005", voice.health().get("peerVoiceId"));
+        assertEquals(16000, voice.health().get("sampleRate"));
+
+        var custom = new ClassroomVoiceService(tts, mock(AudioService.class), directory.toString(), "0", "1001")
+                .synthesize("我们一起慢慢学。", "teacher");
+        assertNotEquals(teacher.segments().getFirst().url(), custom.segments().getFirst().url(),
+                "切换实际音色后不能复用旧音色缓存");
+        verify(tts).synthesize("我们一起慢慢学。", "0", 16000);
+    }
+
+    @Test
     void speechIsCachedAcrossRequestsAndRolesUseIndependentVoices() {
         TtsService tts = mock(TtsService.class);
         when(tts.isAvailable()).thenReturn(true);

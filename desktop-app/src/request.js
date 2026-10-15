@@ -1,5 +1,5 @@
 // 英语学习（墨墨背单词）API 层
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import { API_BASE_URL as BASE_URL } from './api/baseUrl';
 
 async function maimemoRequest(url, options = {}) {
   const resp = await fetch(`${BASE_URL}${url}`, {

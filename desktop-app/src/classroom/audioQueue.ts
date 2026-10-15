@@ -1,4 +1,5 @@
 import type { Speaker, TeachingAction } from './types';
+import { audioCoordinator, audioOwner, type AudioLease } from './AudioCoordinator';
 
 export type PlaybackStatus = 'idle' | 'loading' | 'playing' | 'paused' | 'discussion' | 'done' | 'error';
 export interface NarrationPorts {
@@ -25,11 +26,14 @@ export class NarrationQueue {
   private rate = 1;
   private segmentActive = false;
   private microphoneBusy = false;
+  private readonly owner = audioOwner('narration');
+  private focus: AudioLease | null = null;
   constructor(private readonly ports: NarrationPorts) {}
 
   /** 授权等待也占用录音锁；即使按钮尚未重绘，任何播放入口都不能向麦克风回灌旁白。 */
   setMicrophoneBusy(busy: boolean) {
     this.microphoneBusy = busy;
+    audioCoordinator.setMicrophoneGuard(this.owner, busy);
     if (busy) this.stop();
   }
 
@@ -44,7 +48,7 @@ export class NarrationQueue {
     this.ports.onStatus('paused');
   }
   resume() {
-    if (this.microphoneBusy || !this.controller || !this.paused) return;
+    if (this.microphoneBusy || audioCoordinator.snapshot().microphoneBlocked || !this.controller || !this.paused || !this.focus?.isCurrent()) return;
     this.paused = false;
     this.resumeWaiters.splice(0).forEach(resolve => resolve());
     if (this.segmentActive && this.audio?.getAttribute('src')) {
@@ -60,6 +64,7 @@ export class NarrationQueue {
     this.paused = false;
     this.segmentActive = false;
     this.resumeWaiters.splice(0).forEach(resolve => resolve());
+    this.focus?.release(); this.focus = null;
     if (this.audio) {
       this.audio.pause();
       this.audio.removeAttribute('src');
@@ -101,13 +106,17 @@ export class NarrationQueue {
     });
   }
   async play(actions: TeachingAction[], startIndex = 0, voiceRole: Speaker = 'teacher', trackActions = true, trackProgress = true) {
-    if (this.microphoneBusy) return;
+    if (this.microphoneBusy || audioCoordinator.snapshot().microphoneBlocked) return;
     this.stop(false);
+    const focus = audioCoordinator.acquirePlayback(this.owner, () => this.stop());
+    if (!focus) return;
+    this.focus = focus;
     const run = this.run;
     const controller = new AbortController();
     this.controller = controller;
     const { signal } = controller;
     if (!this.audio) this.audio = this.ports.createAudio?.() ?? new Audio();
+    audioCoordinator.markManagedMedia(this.audio);
     // 点击时先触达同一个媒体元素；后续分段切换不再新建 audio。
     this.audio.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
     void this.audio.play().catch(() => {});
@@ -126,6 +135,7 @@ export class NarrationQueue {
           this.ports.onCaption(text, 'teacher');
           if (trackProgress) this.ports.onDiscussion?.(text, index + 1);
           this.controller = null;
+          this.focus?.release(); this.focus = null;
           this.ports.onStatus('discussion');
           return;
         }
@@ -145,6 +155,7 @@ export class NarrationQueue {
       }
       if (run === this.run && !signal.aborted) {
         this.controller = null;
+        this.focus?.release(); this.focus = null;
         this.ports.onStatus('done');
       }
     } catch (error) {
@@ -155,5 +166,5 @@ export class NarrationQueue {
   readResponse(text: string, role: Speaker) { return this.play([{ type: 'speech', text }], 0, role, false); }
   /** 老师操作按序等待实际执行/持久化，再进入下一条；不移动原课程讲稿位置。 */
   playActions(actions: TeachingAction[], role: Speaker = 'teacher') { return this.play(actions, 0, role, true, false); }
-  destroy() { this.stop(false); this.audio = null; this.microphoneBusy = false; }
+  destroy() { this.stop(false); this.audio = null; this.microphoneBusy = false; audioCoordinator.setMicrophoneGuard(this.owner, false); }
 }
