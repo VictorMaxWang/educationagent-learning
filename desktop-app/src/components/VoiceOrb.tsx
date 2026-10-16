@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
-import { audioUrl, classroomRequest, synthesizeSpeech, transcribeAudio, voiceHealth } from '../classroom/api';
+import { audioUrl, classroomRequest, synthesizeSpeech, transcribeAudio, voiceHealth, type VoiceCapabilities } from '../classroom/api';
 import { audioCoordinator } from '../classroom/AudioCoordinator';
 import { NarrationQueue, type PlaybackStatus } from '../classroom/audioQueue';
 import { canRecordClassroomAudio, startClassroomRecording, type ClassroomRecording } from '../classroom/recording';
@@ -8,7 +8,6 @@ import { GRADE_LABELS } from '../classroom/types';
 import './VoiceOrb.css';
 
 type Phase = 'idle' | 'starting' | 'recording' | 'transcribing' | 'thinking';
-interface Capabilities { ttsAvailable: boolean; asrAvailable: boolean; voiceName?: string }
 interface HistoryItem { role: 'user' | 'assistant'; content: string }
 function initialGrade() {
   try { const grade = Number(localStorage.getItem('educationagent.growth.grade')); return grade >= 1 && grade <= 12 && Number.isInteger(grade) ? grade : 5; } catch { return 5; }
@@ -37,7 +36,7 @@ export default function VoiceOrb({ suspended = false }: { suspended?: boolean })
   const [duration, setDuration] = useState(0);
   const [grade, setGrade] = useState(initialGrade);
   const [autoRead, setAutoRead] = useState(true);
-  const [capabilities, setCapabilities] = useState<Capabilities>({ ttsAvailable: false, asrAvailable: false });
+  const [capabilities, setCapabilities] = useState<VoiceCapabilities>({ ttsAvailable: false, asrAvailable: false });
   const [focus, setFocus] = useState(() => audioCoordinator.snapshot());
   const [keyboardOffset, setKeyboardOffset] = useState(0);
   const mounted = useRef(true), run = useRef(0), busy = useRef(false);
@@ -88,7 +87,7 @@ export default function VoiceOrb({ suspended = false }: { suspended?: boolean })
   };
   useEffect(() => {
     mounted.current = true;
-    void voiceHealth().then(value => { if (mounted.current) setCapabilities(value as Capabilities); }).catch(() => {});
+    void voiceHealth().then(value => { if (mounted.current) setCapabilities(value); }).catch(() => {});
     const offContext = subscribeVoiceContext(next => {
       if (next?.id !== activeContext.current?.id) { cancelActivity(); setAnswer(''); setQuestion(''); setCaption(''); reply.current = null; }
       activeContext.current = next; setContext(next);

@@ -1,6 +1,7 @@
 package com.demo.edu.classroom;
 
 import com.demo.service.TtsService;
+import com.demo.service.WebsiteTtsService;
 import com.demo.service.preprocessing.AudioService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -30,14 +31,14 @@ public class ClassroomVoiceService {
     public static final int MAX_WAV_BYTES = 1_920_044; // 60s × 16000Hz × 2 bytes + 标准头
     private static final int SAMPLE_RATE = 16000;
 
-    private final TtsService tts;
+    private final WebsiteTtsService tts;
     private final AudioService asr;
     private final Path cacheDirectory;
     private final String teacherVoice;
     private final String peerVoice;
     private final Object[] cacheLocks = new Object[32];
 
-    public ClassroomVoiceService(TtsService tts, AudioService asr,
+    public ClassroomVoiceService(WebsiteTtsService tts, AudioService asr,
             @Value("${classroom.data-dir:data/classroom}") String dataDirectory,
             @Value("${classroom.voice.teacher-voice-type:${tencent.tts.voice-type:403005}}") String teacherVoice,
             @Value("${classroom.voice.peer-voice-type:${tencent.tts.voice-type:403005}}") String peerVoice) {
@@ -54,17 +55,15 @@ public class ClassroomVoiceService {
 
     /** 配置状态检查，不探测付费接口，也不暴露密钥。 */
     public Map<String, Object> health() {
-        return Map.of("ttsAvailable", tts.isAvailable(), "asrAvailable", asr.isAvailable(),
-                "voiceId", teacherVoice, "voiceName", TtsService.voiceName(teacherVoice),
-                "teacherVoiceId", teacherVoice, "teacherVoiceName", TtsService.voiceName(teacherVoice),
-                "peerVoiceId", peerVoice, "peerVoiceName", TtsService.voiceName(peerVoice),
-                "sampleRate", SAMPLE_RATE);
+        return Map.ofEntries(Map.entry("ttsAvailable", tts.isAvailable()), Map.entry("asrAvailable", asr.isAvailable()),
+                Map.entry("voiceId", teacherVoice), Map.entry("voiceName", tts.voiceName(teacherVoice)),
+                Map.entry("teacherVoiceId", teacherVoice), Map.entry("teacherVoiceName", tts.voiceName(teacherVoice)),
+                Map.entry("peerVoiceId", peerVoice), Map.entry("peerVoiceName", tts.voiceName(peerVoice)),
+                Map.entry("sampleRate", SAMPLE_RATE), Map.entry("provider", tts.provider()), Map.entry("model", tts.model()));
     }
 
-    private static String configuredVoice(String configured, TtsService tts) {
-        if (configured != null && !configured.isBlank()) return configured.trim();
-        String fallback = tts.getDefaultVoiceType();
-        return fallback == null || fallback.isBlank() ? TtsService.DEFAULT_VOICE_TYPE : fallback;
+    private static String configuredVoice(String configured, WebsiteTtsService tts) {
+        return tts.resolveVoice(configured);
     }
 
     /** 输入限制在进入云端前检查；任一片失败时不给出残缺的成功播放列表。 */
@@ -79,6 +78,7 @@ public class ClassroomVoiceService {
         };
         List<Segment> segments = new ArrayList<>();
         for (String segment : TtsService.splitForTts(text)) {
+            if (Thread.currentThread().isInterrupted()) throw new ClassroomException(503, "语音合成已取消");
             if (segment.isBlank()) continue;
             String key = cacheKey(segment, voice);
             Path audio = cachePath(key);
@@ -169,9 +169,9 @@ public class ClassroomVoiceService {
         catch (IOException e) { return false; }
     }
 
-    private static String cacheKey(String text, String voice) {
+    private String cacheKey(String text, String voice) {
         try {
-            byte[] bytes = ("classroom-tts-v1\n" + voice + "\n" + SAMPLE_RATE + "\n" + text).getBytes(StandardCharsets.UTF_8);
+            byte[] bytes = (tts.cacheIdentity(voice) + "\n" + text).getBytes(StandardCharsets.UTF_8);
             return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes));
         } catch (NoSuchAlgorithmException e) { throw new IllegalStateException(e); }
     }

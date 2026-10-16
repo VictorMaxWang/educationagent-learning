@@ -30,7 +30,7 @@ import java.util.List;
 @Service
 public class TtsService {
 
-    /** 新课堂与全局语音共同继承的默认音色；用户明确选择的其他 ID 仍然有效。 */
+    /** 腾讯旧链路默认音色；网站朗读由 WebsiteTtsService 独立配置，显式腾讯 ID 保持有效。 */
     public static final String DEFAULT_VOICE_TYPE = "403005";
     public static final String DEFAULT_VOICE_NAME = "云雅琴";
 

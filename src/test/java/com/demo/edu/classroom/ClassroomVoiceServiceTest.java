@@ -1,6 +1,10 @@
 package com.demo.edu.classroom;
 
 import com.demo.service.TtsService;
+import com.demo.service.AliyunTtsService;
+import com.demo.service.MaasRealtimeTtsService;
+import com.demo.service.WebsiteAudioEncoder;
+import com.demo.service.WebsiteTtsService;
 import com.demo.service.preprocessing.AudioService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -18,22 +22,33 @@ class ClassroomVoiceServiceTest {
     @TempDir Path directory;
 
     @Test
-    void teacherPeerAndGrowthPlaybackInheritYunyaqinAndCacheActualVoice() {
+    void teacherPeerAndGlobalPlaybackUseCherryWithoutChangingLegacyTencent() {
         TtsService tts = mock(TtsService.class);
-        when(tts.isAvailable()).thenReturn(true);
-        when(tts.getDefaultVoiceType()).thenReturn("403005");
-        when(tts.synthesize(anyString(), anyString(), eq(16000))).thenReturn(new byte[]{1, 2, 3});
-        ClassroomVoiceService voice = new ClassroomVoiceService(tts, mock(AudioService.class), directory.toString(), "", null);
+        AliyunTtsService aliyun = mock(AliyunTtsService.class);
+        MaasRealtimeTtsService realtime = mock(MaasRealtimeTtsService.class);
+        WebsiteAudioEncoder encoder = mock(WebsiteAudioEncoder.class);
+        when(realtime.isAvailable()).thenReturn(true); when(encoder.isAvailable()).thenReturn(true);
+        when(realtime.model()).thenReturn("qwen3-tts-flash-realtime");
+        when(realtime.cacheIdentity()).thenReturn("maas-qwen-realtime\nqwen3-tts-flash-realtime");
+        when(realtime.synthesizeWav(anyString(), eq("Cherry"))).thenReturn(new byte[]{1});
+        when(encoder.toMp3(any(byte[].class))).thenReturn(new byte[]{'I', 'D', '3', 1});
+        WebsiteTtsService website = new WebsiteTtsService(tts, aliyun, realtime, encoder, "maas-qwen-realtime", "Cherry");
+        // 即使生产保留旧腾讯 role 配置，新供应商也必须使用明确的 Cherry 名称。
+        ClassroomVoiceService voice = new ClassroomVoiceService(website, mock(AudioService.class), directory.toString(), "403005", "403005");
         var teacher = voice.synthesize("我们一起慢慢学。", "teacher");
         var peer = voice.synthesize("我们一起慢慢学。", "peer");
         assertEquals(teacher, peer, "使用同一个实际音色时应复用语音缓存");
-        verify(tts).synthesize("我们一起慢慢学。", "403005", 16000);
-        assertEquals("403005", voice.health().get("voiceId"));
-        assertEquals("云雅琴", voice.health().get("voiceName"));
-        assertEquals("403005", voice.health().get("peerVoiceId"));
+        verify(realtime).synthesizeWav("我们一起慢慢学。", "Cherry");
+        verifyNoInteractions(tts, aliyun);
+        assertEquals("Cherry", voice.health().get("voiceId"));
+        assertEquals("芊悦", voice.health().get("voiceName"));
+        assertEquals("Cherry", voice.health().get("peerVoiceId"));
+        assertEquals("maas-qwen-realtime", voice.health().get("provider"));
         assertEquals(16000, voice.health().get("sampleRate"));
 
-        var custom = new ClassroomVoiceService(tts, mock(AudioService.class), directory.toString(), "0", "1001")
+        when(tts.isAvailable()).thenReturn(true);
+        when(tts.synthesize(anyString(), anyString(), eq(16000))).thenReturn(new byte[]{1, 2, 3});
+        var custom = service(tts, mock(AudioService.class))
                 .synthesize("我们一起慢慢学。", "teacher");
         assertNotEquals(teacher.segments().getFirst().url(), custom.segments().getFirst().url(),
                 "切换实际音色后不能复用旧音色缓存");
@@ -107,7 +122,8 @@ class ClassroomVoiceServiceTest {
     }
 
     private ClassroomVoiceService service(TtsService tts, AudioService asr) {
-        return new ClassroomVoiceService(tts, asr, directory.toString(), "0", "1001");
+        WebsiteTtsService website = new WebsiteTtsService(tts, mock(AliyunTtsService.class), mock(MaasRealtimeTtsService.class), mock(WebsiteAudioEncoder.class), "tencent", "Cherry");
+        return new ClassroomVoiceService(website, asr, directory.toString(), "0", "1001");
     }
 
     static byte[] wav(int samples) {

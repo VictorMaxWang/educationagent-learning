@@ -1,6 +1,10 @@
 package com.demo.edu.classroom;
 
 import com.demo.service.TtsService;
+import com.demo.service.AliyunTtsService;
+import com.demo.service.MaasRealtimeTtsService;
+import com.demo.service.WebsiteAudioEncoder;
+import com.demo.service.WebsiteTtsService;
 import com.demo.service.preprocessing.AudioService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,8 +31,9 @@ class ClassroomVoiceControllerTest {
     void setup() {
         tts = mock(TtsService.class);
         asr = mock(AudioService.class);
+        WebsiteTtsService website = new WebsiteTtsService(tts, mock(AliyunTtsService.class), mock(MaasRealtimeTtsService.class), mock(WebsiteAudioEncoder.class), "tencent", "Cherry");
         mvc = MockMvcBuilders.standaloneSetup(new ClassroomVoiceController(
-                new ClassroomVoiceService(tts, asr, directory.toString(), "0", "1001"))).build();
+                new ClassroomVoiceService(website, asr, directory.toString(), "0", "1001"))).build();
     }
 
     @Test

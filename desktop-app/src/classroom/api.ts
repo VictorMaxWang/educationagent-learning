@@ -43,7 +43,14 @@ export async function uploadMaterial(file: File) {
   form.append('file', file);
   return classroomRequest<{ text: string; fileName: string; truncated?: boolean }>('/materials', { method: 'POST', body: form });
 }
-export const voiceHealth = () => classroomRequest<{ ttsAvailable: boolean; asrAvailable: boolean }>('/voice/health');
+/** 显示后端真实选定的供应商与音色，不用前端常量把旧缓存标成新声音。 */
+export interface VoiceCapabilities {
+  ttsAvailable: boolean; asrAvailable: boolean;
+  provider?: 'aliyun' | 'maas-qwen' | 'maas-qwen-realtime' | 'tencent'; model?: string; voiceId?: string; voiceName?: string;
+  teacherVoiceId?: string; teacherVoiceName?: string; peerVoiceId?: string; peerVoiceName?: string;
+  sampleRate?: number;
+}
+export const voiceHealth = () => classroomRequest<VoiceCapabilities>('/voice/health');
 /** 按句切分长讲稿，保留全部字符与顺序，遵守语音端点每次 2000 字上限。 */
 export function splitNarrationText(text: string, limit = 2000): string[] {
   const parts: string[] = [];

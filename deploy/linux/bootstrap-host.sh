@@ -13,7 +13,7 @@ export DEBIAN_FRONTEND=noninteractive
 # 已具备的系统依赖不重复安装；本脚本也可用于仅补项目 Node 的阶段。
 missing_packages=()
 # Headless JRE也需要字体塑形库才能用Graphics2D绘制中文水印；缺库会使SunFontManager初始化失败。
-for package in ca-certificates curl xz-utils openssl python3 openjdk-21-jre-headless libharfbuzz0b fontconfig fonts-noto-cjk mysql-server redis-server caddy; do
+for package in ca-certificates curl xz-utils openssl python3 openjdk-21-jre-headless libharfbuzz0b fontconfig fonts-noto-cjk ffmpeg mysql-server redis-server caddy; do
   if [[ $(dpkg-query -W -f='${Status}' "${package}" 2>/dev/null || true) != 'install ok installed' ]]; then
     missing_packages+=("${package}")
   fi
