@@ -8,5 +8,9 @@ import java.util.Map;
 public interface ClassroomEngine {
     JsonNode outline(ObjectNode input, ClassroomCancellation cancellation);
     ObjectNode scene(ObjectNode input, JsonNode outline, ClassroomCancellation cancellation);
+    /** 只读补审：input 需含 questions，返回每题的两级审核结论；不生成、不修改任何内容。 */
+    JsonNode review(ObjectNode input, ClassroomCancellation cancellation);
+    /** 针对被标记的题生成修复方案（fix-key / regenerate / none）；只出方案，不写任何东西。 */
+    JsonNode repair(ObjectNode input, ClassroomCancellation cancellation);
     Map<String, Object> health();
 }

@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { submitAnswers } from './api';
 import { newLocalId } from './navigation';
-import type { Question, QuizResult, Scene } from './types';
+import type { Question, QuizResult, Scene, ThinkingItem } from './types';
 
 const QUESTION_LABELS = { single: '单选', multiple: '多选', judge: '判断', fill: '填空', short_answer: '简答' };
 
@@ -13,6 +13,8 @@ export function answerForChoices(previous: string, choice: string, multiple: boo
 
 export default function QuizScene({ courseId, scene }: { courseId: string; scene: Scene }) {
   const questions: Question[] = scene.content.questions || [];
+  // 独立复核判定标答有误、重生成仍修不好的题会降级到这里：只有题干，不计分、不判分。
+  const thinking: ThinkingItem[] = scene.content.thinking || [];
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [result, setResult] = useState<QuizResult | null>(null);
   const [busy, setBusy] = useState(false);
@@ -41,7 +43,16 @@ export default function QuizScene({ courseId, scene }: { courseId: string; scene
         {feedback && <div className={`cr-feedback ${feedback.correct === true ? 'correct' : 'retry'}`}><strong>{feedback.correct === true ? '答对了，继续保持。' : feedback.correct === false ? '一起把这道题弄明白。' : '本题暂未得到确定评阅，请稍后重试。'}</strong><p>参考答案：{feedback.correctAnswer || '请参照下方要点'}</p><p>{feedback.explanation}</p></div>}
       </fieldset>;
     })}
+    {thinking.length > 0 && <section className="cr-thinking" aria-label="思考题">
+      <p className="cr-eyebrow">这些题不计分</p>
+      {thinking.map((item, index) => <div key={item.id} className="cr-thinking-item">
+        <p><strong>{index + 1}.</strong> {item.question}</p>
+        <p className="cr-muted">先自己说说思路，不用提交，也不计入成绩。</p>
+      </div>)}
+    </section>}
     {error && <p className="cr-error" role="alert">{error}</p>}
-    {result ? <div className="cr-feedback correct" role="status">完成 {result.total} 道题，答对 {result.score} 道。需要再练的题会出现在「复习」里。</div> : <button className="cr-button" disabled={busy || !questions.length || questions.some(question => !answers[question.no]?.trim())} onClick={() => void submit()}>{busy ? '正在检查答案…' : '提交这组练习'}</button>}
+    {questions.length === 0 ? <p className="cr-muted">本页暂无可提交的计分练习。</p>
+      : result ? <div className="cr-feedback correct" role="status">完成 {result.total} 道题，答对 {result.score} 道。需要再练的题会出现在「复习」里。</div>
+      : <button className="cr-button" disabled={busy || questions.some(question => !answers[question.no]?.trim())} onClick={() => void submit()}>{busy ? '正在检查答案…' : '提交这组练习'}</button>}
   </section>;
 }

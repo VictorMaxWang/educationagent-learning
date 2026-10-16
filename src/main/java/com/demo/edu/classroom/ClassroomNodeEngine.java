@@ -3,6 +3,8 @@ package com.demo.edu.classroom;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import java.io.*;
@@ -15,7 +17,10 @@ import java.util.concurrent.*;
 /** educationagent Node 生成器的 JSONL 桥，每个任务拥有独立进程和总超时。 */
 @Component
 public class ClassroomNodeEngine implements ClassroomEngine {
+    private static final Logger log = LoggerFactory.getLogger(ClassroomNodeEngine.class);
     private static final int MAX_LINE = 2_000_000;
+    /** 生成器可以声明的模型请求用途；不声明则走生成模型。用途是 Java 侧路由到复核模型的唯一凭据。 */
+    private static final Set<String> PURPOSES = Set.of("quiz-review", "quiz-regenerate");
     private final ObjectMapper json;
     private final ClassroomTutorModel tutor;
     private final String node;
@@ -25,7 +30,9 @@ public class ClassroomNodeEngine implements ClassroomEngine {
     public ClassroomNodeEngine(ObjectMapper json, ClassroomTutorModel tutor,
             @Value("${classroom.engine.node:node}") String node,
             @Value("${classroom.engine.path:course-engine/dist/worker.js}") String worker,
-            @Value("${classroom.engine.timeout-ms:300000}") long timeoutMs) {
+            // 默认值必须与生产一致：一个练习页最多要跑「盲解复核 + 2 次单题重生成 + 重生成后再复核」，
+            // 5 次模型调用的最坏耗时下 300 秒会不够，超时会把「答案错」变成「整课生成失败」。
+            @Value("${classroom.engine.timeout-ms:420000}") long timeoutMs) {
         this.json=json; this.tutor=tutor; this.node=node; this.worker=Path.of(worker).toAbsolutePath().normalize();
         this.timeoutMs=Math.max(100, timeoutMs);
     }
@@ -38,6 +45,33 @@ public class ClassroomNodeEngine implements ClassroomEngine {
     }
 
     JsonNode run(String operation, ObjectNode course, JsonNode outline, ClassroomCancellation token) {
+        ObjectNode input=json.createObjectNode();
+        for(String field:List.of("id","topic","grade","subject","domain","sourceText","sourceName","generationContext","outlines","mediaEnabled","quizReview"))
+            if(course.has(field)) input.set(field,course.get(field).deepCopy());
+        // 后一页只需前页讲述，不反复传输画布、互动代码和内联字体。
+        var previousScenes = input.putArray("scenes");
+        for (JsonNode scene : course.path("scenes")) {
+            var previous = previousScenes.addObject().put("id", scene.path("id").asText())
+                    .put("order", scene.path("order").asInt());
+            var speech = previous.putArray("actions");
+            for (JsonNode action : scene.path("actions")) {
+                if ("speech".equals(action.path("type").asText())) speech.add(action.deepCopy());
+            }
+        }
+        input.put("courseId",course.path("id").asText());
+        return runJob(operation,input,outline,token);
+    }
+
+    /**
+     * 只读补审已有课程：input 由调用方给出（只含 courseId 与 questions）。
+     * 不携带参考材料、不生成内容，也不写回任何数据。
+     */
+    @Override public JsonNode review(ObjectNode input, ClassroomCancellation token) { return runJob("review",input,null,token); }
+
+    /** 只出修复方案，不落库：落库由 Java 在事务里同时改课件文档与题库行。 */
+    @Override public JsonNode repair(ObjectNode input, ClassroomCancellation token) { return runJob("repair",input,null,token); }
+
+    private JsonNode runJob(String operation, ObjectNode input, JsonNode outline, ClassroomCancellation token) {
         token.check();
         if (!Files.isRegularFile(worker)) throw new ClassroomException(503,"课堂生成器尚未构建，请先运行 course-engine 的构建命令");
         Process process;
@@ -51,20 +85,7 @@ public class ClassroomNodeEngine implements ClassroomEngine {
             io.submit(() -> { try(InputStream errors=process.getErrorStream()) { errors.transferTo(OutputStream.nullOutputStream()); } catch(IOException ignored) {} });
             String jobId=UUID.randomUUID().toString();
             ObjectNode job=json.createObjectNode().put("type","job").put("id",jobId).put("operation",operation);
-            ObjectNode input=json.createObjectNode();
-            for(String field:List.of("id","topic","grade","subject","domain","sourceText","sourceName","generationContext","outlines","mediaEnabled"))
-                if(course.has(field)) input.set(field,course.get(field).deepCopy());
-            // 后一页只需前页讲述，不反复传输画布、互动代码和内联字体。
-            var previousScenes = input.putArray("scenes");
-            for (JsonNode scene : course.path("scenes")) {
-                var previous = previousScenes.addObject().put("id", scene.path("id").asText())
-                        .put("order", scene.path("order").asInt());
-                var speech = previous.putArray("actions");
-                for (JsonNode action : scene.path("actions")) {
-                    if ("speech".equals(action.path("type").asText())) speech.add(action.deepCopy());
-                }
-            }
-            input.put("courseId",course.path("id").asText()); job.set("input",input);
+            job.set("input",input);
             if(outline!=null) job.set("outline",outline.deepCopy());
             exchange=io.submit(() -> communicate(process,job,jobId,token));
             long deadline=System.nanoTime()+TimeUnit.MILLISECONDS.toNanos(timeoutMs);
@@ -105,12 +126,24 @@ public class ClassroomNodeEngine implements ClassroomEngine {
                 switch(event.path("type").asText()) {
                     case "llm.request" -> {
                         if(id.isBlank() || id.length()>100 || !calls.add(id) || calls.size()>20) throw new ClassroomException(502,"生成器模型请求标识无效或重复");
+                        // 用途由生成器声明、Java 校验后路由；未知用途失败关闭，不放行到默认模型。
+                        String purpose=event.path("purpose").asText("");
+                        if(!purpose.isBlank() && !PURPOSES.contains(purpose)) throw new ClassroomException(502,"生成器模型请求用途无效");
                         ObjectNode reply=json.createObjectNode().put("type","llm.result").put("id",id);
                         try {
                             if(event.path("images").isArray() && !event.path("images").isEmpty()) throw new ClassroomException(502,"课堂首版不支持图片模型请求");
-                            String text=tutor.complete(event.path("messages")); token.check(); reply.put("text",text);
+                            // 不带用途时仍调用单参方法，既有调用点与测试替身行为不变。
+                            String text=purpose.isBlank() ? tutor.complete(event.path("messages"))
+                                    : tutor.complete(event.path("messages"),purpose);
+                            token.check(); reply.put("text",text);
                         } catch(CancellationException cancel) { throw cancel; }
-                        catch(Exception unavailable) { reply.put("error","模型请求未完成，请重试"); }
+                        catch(Exception unavailable) {
+                            // 细节不回落给前端，但必须留在服务端日志：这段静默曾让一次模型失败完全无法定位。
+                            log.warn("课堂模型请求未完成 purpose={} 类型={} 原因={}",
+                                    purpose.isBlank() ? "(生成)" : purpose,
+                                    unavailable.getClass().getSimpleName(), unavailable.getMessage());
+                            reply.put("error","模型请求未完成，请重试");
+                        }
                         write(writer,reply);
                     }
                     case "result" -> {

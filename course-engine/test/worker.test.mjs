@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { createInterface } from 'node:readline';
 import { fileURLToPath } from 'node:url';
 import { sanitizeProse, restrictInteractiveHtml } from '../dist/content-policy.js';
@@ -113,6 +114,7 @@ test('slide generation assembles DSL and strips active prose and unknown actions
 test('quiz preserves server grading keys and binds question IDs to the scene', async () => {
   const result = await runJob({ operation: 'scene', outline: outline('quiz') }, [
     [{ type: 'single', question: '四份中的一份是？', options: [{ value: 'A', label: '1/4' }, { value: 'B', label: '1/2' }], answer: ['A'], analysis: '平均分成四份，取一份。', points: 5 }],
+    [{ id: 'course-1-scene-1-q1', answer: 'A', confidence: 'high', reason: '四份取其一' }],
     [{ type: 'text', content: '试一试。' }],
   ]);
   assert.equal(result.code, 0, result.received.at(-1)?.message);
@@ -120,15 +122,20 @@ test('quiz preserves server grading keys and binds question IDs to the scene', a
   assert.equal(question.id, `${outline().id}-q1`);
   assert.deepEqual(question.answer, ['A']);
   assert.equal(question.points, 1);
+  assert.equal(question.review.verdict, 'PASS');
 });
 
 test('host quiz supports all five types and retains semantic grading guidance', async () => {
   const result = await runJob({ operation: 'scene', outline: outline('quiz') }, [
-    [{ type: 'single', question: '哪个是1/2？', options: [{ value: 'A', label: '2/4' }, { value: 'B', label: '1/4' }], answer: ['A'] },
-      { type: 'multiple', question: '选偶数', options: [{ value: 'A', label: '2' }, { value: 'B', label: '4' }], answer: ['A', 'B'] },
-      { type: 'judge', question: '同样大的整体才方便比较面积？', answer: true },
-      { type: 'fill', question: '8乘3是多少？', answer: 24 },
+    [{ type: 'single', question: '哪个是1/2？', options: [{ value: 'A', label: '2/4' }, { value: 'B', label: '1/4' }], answer: ['A'], analysis: '整体分成四份取两份就是二分之一。' },
+      { type: 'multiple', question: '选偶数', options: [{ value: 'A', label: '2' }, { value: 'B', label: '4' }], answer: ['A', 'B'], analysis: '2 和 4 都能被 2 整除。' },
+      { type: 'judge', question: '同样大的整体才方便比较面积？', answer: true, analysis: '基准不同时无法直接比较份额。' },
+      { type: 'fill', question: '8乘3是多少？', answer: 24, analysis: '8 个 3 相加等于 24。' },
       { type: 'short_answer', question: '为何要统一整体？', answer: '比较基准一致', gradingPoints: ['同样大小的整体', '相同基准'], analysis: '比较需要共同基准' }],
+    [{ id: 'course-1-scene-1-q1', answer: 'A', confidence: 'high', reason: '四份取两份' },
+      { id: 'course-1-scene-1-q2', answer: ['A', 'B'], confidence: 'high', reason: '两者皆为偶数' },
+      { id: 'course-1-scene-1-q3', answer: '对', confidence: 'high', reason: '基准必须一致' },
+      { id: 'course-1-scene-1-q4', answer: '24', confidence: 'high', reason: '8×3=24' }],
     [{ type: 'text', content: '先独立完成，再检查思路。' }],
   ]);
   assert.equal(result.code, 0, result.received.at(-1)?.message);
@@ -136,6 +143,8 @@ test('host quiz supports all five types and retains semantic grading guidance', 
   assert.deepEqual(questions.map(q => q.type), ['single', 'multiple', 'judge', 'fill', 'short_answer']);
   assert.equal(questions[2].answer, '对'); assert.equal(questions[3].answer, 24);
   assert.deepEqual(questions[4].gradingPoints, ['同样大小的整体', '相同基准']);
+  // 简答题无法用比对答案复核，必须如实记 UNVERIFIED，不能冒充 PASS。
+  assert.deepEqual(questions.map(q => q.review.verdict), ['PASS', 'PASS', 'PASS', 'PASS', 'UNVERIFIED']);
 });
 
 test('direction profile ignores academic subject for wellbeing and exploration', async () => {
@@ -184,4 +193,208 @@ test('rich text policy and interactive CSP handle malformed markup independently
   assert.ok(Buffer.byteLength(html) < 1_000_000);
   const customMath = restrictInteractiveHtml('<html><head></head><body><input id="x"><script>document.getElementById("x").oninput=function(){renderMathInElement(document.body);}</script><p>\\(x\\)</p></body></html>');
   assert.match(customMath, /oninput=function/);
+});
+
+// ---------------------------------------------------------------------------
+// 习题两级审核：以下用例都跑真实子进程，验证 Java 实际会看到的 JSONL 流量。
+// ---------------------------------------------------------------------------
+
+const reviewFixtures = JSON.parse(readFileSync(fileURLToPath(new URL('./fixtures/quiz-review-cases.json', import.meta.url)), 'utf8'));
+/** 解析干净的错题：L1 放行，只有盲解能抓。 */
+const wrongKeyQuiz = reviewFixtures.reported.volumeCleanButWrongKey;
+/** 重生成后的替换题：题干与选项都换过，标答与 480 不再冲突。 */
+const repairedQuiz = { type: 'single', question: '长方体的长是10厘米、宽是4厘米、高是2厘米，体积是多少立方厘米？', options: [{ label: '80', value: 'A' }, { label: '16', value: 'B' }, { label: '28', value: 'C' }], answer: ['A'], analysis: '10 × 4 × 2 = 80。' };
+const disagree = [{ id: 'course-1-scene-1-q1', answer: 'NONE', confidence: 'high', reason: '20×8×3=480，选项中没有 480' }];
+const agreeRepaired = [{ id: 'course-1-scene-1-q1', answer: 'A', confidence: 'high', reason: '10×4×2=80' }];
+const trailingActions = [{ type: 'text', content: '先独立完成，再检查思路。' }];
+
+test('a disputed answer key is regenerated and the corrected question is what gets stored', async () => {
+  const result = await runJob({ operation: 'scene', outline: outline('quiz') }, [[wrongKeyQuiz], disagree, repairedQuiz, agreeRepaired, trailingActions]);
+  assert.equal(result.code, 0, result.received.at(-1)?.message);
+  const scene = result.received.at(-1).value;
+  assert.deepEqual(scene.content.questions[0].answer, ['A']);
+  assert.equal(scene.content.questions[0].review.verdict, 'REGENERATED');
+  // 修好的题留在计分数组里，不该被降级。thinking 只在有降级题时出现，空时不写该字段。
+  assert.equal((scene.content.thinking ?? []).length, 0);
+});
+
+test('the review request declares its purpose and carries neither the key nor the explanation', async () => {
+  const result = await runJob({ operation: 'scene', outline: outline('quiz') }, [[wrongKeyQuiz], disagree, repairedQuiz, agreeRepaired, trailingActions]);
+  const requests = result.received.filter((item) => item.type === 'llm.request');
+  const review = requests.find((item) => item.purpose === 'quiz-review');
+  assert.ok(review, '缺少带 purpose 的复核请求：Java 无法据此路由到 0 温度模型');
+  // 复核请求只允许带题干与选项；带标答或解析会把复核变成批量盖章。
+  const marker = '只给题干和选项。\n';
+  const content = review.messages[1].content;
+  const payload = JSON.parse(content.slice(content.indexOf(marker) + marker.length).split('\n\n')[0]);
+  assert.equal(payload.length, 1);
+  for (const item of payload) {
+    for (const key of Object.keys(item)) assert.ok(['id', 'type', 'question', 'options'].includes(key), `复核请求里出现了违规字段 ${key}`);
+  }
+  // 解析正文绝不出现在复核请求里（它可能直接写出错误结论）。
+  assert.equal(content.includes('长方体体积由长'), false);
+  // 重生成走生成模型，不占用复核用途。
+  assert.ok(requests.some((item) => item.purpose === 'quiz-regenerate'));
+  assert.ok(requests.filter((item) => item.purpose === 'quiz-review').length <= 2);
+});
+
+test('a failed review call degrades to UNVERIFIED instead of failing the course', async () => {
+  const result = await runJob({ operation: 'scene', outline: outline('quiz') }, [[wrongKeyQuiz], new Error('model unavailable'), trailingActions]);
+  assert.equal(result.code, 0, result.received.at(-1)?.message);
+  const scene = result.received.at(-1).value;
+  // 「没查出来」不等于「查出错」：复核失败时题目保留计分，不因一次模型抖动清空练习。
+  assert.equal(scene.content.questions.length, 1);
+  assert.equal(scene.content.questions[0].review.verdict, 'UNVERIFIED');
+  assert.equal(scene.content.questions[0].review.method, 'none');
+});
+
+test('garbage review output is UNVERIFIED, never PASS', async () => {
+  const result = await runJob({ operation: 'scene', outline: outline('quiz') }, [[wrongKeyQuiz], '抱歉，我无法完成这道题。', trailingActions]);
+  assert.equal(result.code, 0, result.received.at(-1)?.message);
+  assert.equal(result.received.at(-1).value.content.questions[0].review.verdict, 'UNVERIFIED');
+});
+
+test('an unrepairable question becomes a non-scored thinking item without leaking the answer', async () => {
+  const result = await runJob({ operation: 'scene', outline: outline('quiz') }, [[wrongKeyQuiz], disagree, '不是JSON', '还是不是JSON', trailingActions]);
+  assert.equal(result.code, 0, result.received.at(-1)?.message);
+  const content = result.received.at(-1).value.content;
+  // 降级必须移出计分数组：留在里面会强制学生作答，还会用错的标答判分。
+  assert.equal(content.questions.length, 0);
+  assert.equal(content.thinking.length, 1);
+  assert.equal(content.thinking[0].review.verdict, 'RISKY_THINK');
+  assert.match(content.thinking[0].question, /长方体/);
+  // 思考题只有题干：带选项或标答就退化回计分题了。
+  assert.equal('options' in content.thinking[0], false);
+  assert.equal('answer' in content.thinking[0], false);
+  // 复核理由里含模型算出的 480，写进思考题等于泄题。
+  assert.equal(JSON.stringify(content.thinking[0]).includes('480'), false);
+});
+
+test('the read-only review operation reports a disputed key without changing any content', async () => {
+  const job = { operation: 'review', input: { courseId: 'course-1', questions: [wrongKeyQuiz] } };
+  // 补审以 courseId 作为题目前缀，因此这里的题目 id 是 course-1-q1（不是场景测试里的 course-1-scene-1-q1）。
+  const result = await runJob(job, [[{ id: 'course-1-q1', answer: 'NONE', confidence: 'high', reason: '20×8×3=480，选项中没有 480' }]]);
+  assert.equal(result.code, 0, result.received.at(-1)?.message);
+  const value = result.received.at(-1).value;
+  assert.equal(value.reviewed, 1);
+  assert.equal(value.ruleDropped, 0);
+  assert.equal(value.callFailed, false);
+  assert.equal(value.findings.length, 1);
+  const finding = value.findings[0];
+  assert.equal(finding.stage, 'model');
+  assert.equal(finding.outcome, 'disagree');
+  // 报告必须给出复核自己算出的答案，但原标答保持原样 —— 只读工具不写任何东西。
+  assert.equal(finding.suggestedAnswer, 'NONE');
+  assert.deepEqual(finding.currentAnswer, ['B']);
+  assert.equal(JSON.stringify(value).includes('"thinking"'), false);
+  assert.equal(JSON.stringify(value).includes('"questions"'), false);
+  // 补审走的仍然是 0 温度复核模型，不是生成模型。
+  const request = result.received.find((item) => item.type === 'llm.request');
+  assert.equal(request.purpose, 'quiz-review');
+});
+
+test('the review operation separates rule hits from an agreeing re-solve', async () => {
+  const leaky = reviewFixtures.reported.volumeWithCotLeak;
+  const clean = reviewFixtures.cleanNegatives[3];
+  const job = { operation: 'review', input: { courseId: 'course-1', questions: [leaky, clean] } };
+  const result = await runJob(job, [[{ id: 'course-1-q2', answer: '24', confidence: 'high', reason: '8×3' }]]);
+  assert.equal(result.code, 0, result.received.at(-1)?.message);
+  const value = result.received.at(-1).value;
+  assert.equal(value.ruleDropped, 1);
+  assert.equal(value.reviewed, 1);
+  const [rule, model] = value.findings;
+  assert.equal(rule.stage, 'rule');
+  assert.match(rule.outcome, /analysis-meta/);
+  assert.equal(model.stage, 'model');
+  assert.equal(model.outcome, 'agree', `复核未判定：${model.detail} / suggested=${model.suggestedAnswer}`);
+});
+
+test('the review operation stays honest when the re-solve call fails', async () => {
+  const job = { operation: 'review', input: { courseId: 'course-1', questions: [wrongKeyQuiz] } };
+  const result = await runJob(job, [new Error('model unavailable')]);
+  assert.equal(result.code, 0, result.received.at(-1)?.message);
+  const value = result.received.at(-1).value;
+  // 复核失败必须如实报 callFailed，不能把"没查出来"当成通过。
+  assert.equal(value.callFailed, true);
+  assert.equal(value.findings[0].outcome, 'unjudged');
+  assert.match(value.findings[0].detail, /复核调用失败/);
+});
+
+test('the repair operation proposes an in-place replacement when the right answer is not among the options', async () => {
+  const job = { operation: 'repair', input: { courseId: 'course-1', questions: [wrongKeyQuiz] } };
+  const result = await runJob(job, [
+    [{ id: 'course-1-q1', answer: 'NONE', confidence: 'high', reason: '20×8×3=480，选项中没有 480' }],
+    repairedQuiz,
+    [{ id: 'course-1-q1', answer: 'A', confidence: 'high', reason: '10×4×2=80' }],
+  ]);
+  assert.equal(result.code, 0, result.received.at(-1)?.message);
+  const change = result.received.at(-1).value.changes[0];
+  // 480 不在选项里 → 改标答救不了，只能就地重出。
+  assert.equal(change.action, 'regenerate');
+  assert.equal(change.before.question, wrongKeyQuiz.question);
+  assert.deepEqual(change.before.answer, ['B']);
+  assert.match(change.after.question, /10厘米/);
+  assert.deepEqual(change.after.answer, ['A']);
+  assert.doesNotMatch(change.after.analysis, /等等|重新计算|修正选项/);
+});
+
+test('the repair operation also fixes a question whose explanation leaked the model reasoning', async () => {
+  const job = { operation: 'repair', input: { courseId: 'course-1', questions: [reviewFixtures.reported.volumeWithCotLeak] } };
+  const result = await runJob(job, [
+    [{ id: 'course-1-q1', answer: 'NONE', confidence: 'high', reason: '20×8×3=480，选项中没有 480' }],
+    repairedQuiz,
+    [{ id: 'course-1-q1', answer: 'A', confidence: 'high', reason: '10×4×2=80' }],
+  ]);
+  assert.equal(result.code, 0, result.received.at(-1)?.message);
+  const change = result.received.at(-1).value.changes[0];
+  assert.equal(change.action, 'regenerate');
+  // 原始解析确实泄漏了推敲过程（这正是 L1 命中它的原因），改完必须干净。
+  assert.match(change.before.analysis, /等等/);
+  assert.doesNotMatch(change.after.analysis, /等等|重新计算|修正选项/);
+});
+
+test('the repair operation only corrects the key when the re-solve lands on an existing option', async () => {
+  const wrongKeyChoice = { type: 'single', question: '3 的平方是多少？',
+    options: [{ label: '6', value: 'A' }, { label: '9', value: 'B' }, { label: '12', value: 'C' }],
+    answer: ['A'], analysis: '平方就是自己乘自己。' };
+  const job = { operation: 'repair', input: { courseId: 'course-1', questions: [wrongKeyChoice] } };
+  const result = await runJob(job, [[{ id: 'course-1-q1', answer: 'B', confidence: 'high', reason: '3×3=9' }]]);
+  assert.equal(result.code, 0, result.received.at(-1)?.message);
+  const change = result.received.at(-1).value.changes[0];
+  assert.equal(change.action, 'fix-key');
+  assert.deepEqual(change.after.answer, ['B']);
+  // 最小改动：题面与选项一个字都不动。
+  assert.equal(change.after.question, wrongKeyChoice.question);
+  assert.deepEqual(change.after.options, wrongKeyChoice.options);
+  // 只需要一次盲解，不必重出。
+  assert.equal(result.received.filter((item) => item.type === 'llm.request').length, 1);
+});
+
+test('the repair operation leaves unflagged questions completely alone', async () => {
+  const job = { operation: 'repair', input: { courseId: 'course-1', questions: [reviewFixtures.cleanNegatives[3]] } };
+  const result = await runJob(job, [[{ id: 'course-1-q1', answer: '24', confidence: 'high', reason: '8×3' }]]);
+  assert.equal(result.code, 0, result.received.at(-1)?.message);
+  assert.deepEqual(result.received.at(-1).value.changes, []);
+});
+
+test('a repair that cannot be verified is handed to manual work instead of being written', async () => {
+  const job = { operation: 'repair', input: { courseId: 'course-1', questions: [wrongKeyQuiz] } };
+  const result = await runJob(job, [
+    [{ id: 'course-1-q1', answer: 'NONE', confidence: 'high', reason: '480 不在选项中' }],
+    repairedQuiz,
+    [{ id: 'course-1-q1', answer: 'B', confidence: 'high', reason: '复核仍不同意' }],
+  ]);
+  assert.equal(result.code, 0, result.received.at(-1)?.message);
+  const change = result.received.at(-1).value.changes[0];
+  // 重出后复核不过 → 绝不当作修好，交给人工。
+  assert.equal(change.action, 'none');
+  assert.equal(change.after, undefined);
+  assert.match(change.reason, /重出后复核未通过/);
+});
+
+test('a quiz scene keeps its model request count bounded', async () => {
+  const result = await runJob({ operation: 'scene', outline: outline('quiz') }, [[wrongKeyQuiz], disagree, repairedQuiz, agreeRepaired, trailingActions]);
+  const requests = result.received.filter((item) => item.type === 'llm.request');
+  // 出题 1 + 复核 1 + 重生成 1 + 重生成后复核 1 + 讲授动作 1 = 5。
+  assert.ok(requests.length <= 6, `实际发出 ${requests.length} 次模型请求`);
 });
