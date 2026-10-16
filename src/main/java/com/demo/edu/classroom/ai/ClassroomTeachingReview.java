@@ -38,6 +38,8 @@ public class ClassroomTeachingReview {
             有证据不足用unknown，不能为凑通过而判pass。任何check为unknown时verdict必须unknown；
             否则任一needs_revision时verdict为needs_revision，其余为pass。pass或unknown时patches为空。
             若问题可在editableTexts中局部修正，最多给6条补丁；不得修改HTML/JS、题目/答案、ID、数据结构或控制动作。
+            patch.path和before必须逐字复制同一条editableTexts的path和before，before包括原有HTML标签、空白和实体；不得自行去标签、改写或省略。
+            如果没有精确匹配的可编辑项，patches留空，并在reason中保留具体教学问题，不能猜测路径或原文。
             补丁value只用纯文本，不含标签。资料之外的知识不要编造成引用。
             """;
     private final ClassroomAiGateway gateway;
@@ -81,10 +83,11 @@ public class ClassroomTeachingReview {
             ObjectNode candidate;
             try { candidate = patch(original, assessment.path("patches")); }
             catch (IllegalArgumentException rejected) {
-                return withReview(original, "needs_revision", "建议修订超出允许的文本范围，原内容已保留", calls, assessment, false);
+                // 补丁被拒绝不等于原教学问题消失；后续重生成仍需具体原因，但不反射补丁或异常正文。
+                return withReview(original, "needs_revision", reason(assessment) + "；建议修订超出允许的文本范围，原内容已保留", calls, assessment, false);
             }
             if (candidate.equals(original))
-                return withReview(original, "needs_revision", "建议修订未改变待核对内容，原内容已保留", calls, assessment, false);
+                return withReview(original, "needs_revision", reason(assessment) + "；建议修订未改变待核对内容，原内容已保留", calls, assessment, false);
             ObjectNode secondInput = input(course, candidate);
             secondInput.put("revisionApplied", true).put("instruction", "已执行唯一一次文本修订，只复核当前版本。patches必须为空。");
             ClassroomAiGateway.Result second = gateway.structuredOnce("teaching-review-recheck", SYSTEM,
@@ -121,7 +124,11 @@ public class ClassroomTeachingReview {
                 .put("runtimeVerified", false).put("reason", clip(reason, 240)).put("revisionApplied", revised)
                 .put("maxRevisions", 1).put("version", "teaching-review-v1");
         meta.set("modelCalls", calls.deepCopy());
-        if (assessment != null) meta.set("checks", assessment.path("checks").deepCopy());
+        if (assessment != null) {
+            meta.set("checks", assessment.path("checks").deepCopy());
+            // 保留经过结构校验、去标签和限长的模型原因，审计无需携带完整响应或不合法补丁。
+            meta.put("assessmentReason", clip(reason(assessment), 600));
+        }
         return copy;
     }
 

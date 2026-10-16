@@ -345,8 +345,25 @@
     "scope": "Windows fixed-input optimizer only; does not establish server P95"
   },
   "optimizerServerTiming": {
-    "status": "NOT_RUN_IN_THIS_REPORT",
-    "requiredInput": "24 frozen verified feature inputs exported by export_timing_inputs.py; no new model call"
+    "status": "PASS",
+    "hostOs": "Linux",
+    "javaVersion": "21.0.12.1",
+    "realInputCount": 24,
+    "realFixedInputTiming": {
+      "samples": 500,
+      "p50Ms": 0.104117,
+      "p95Ms": 0.832518,
+      "maxMs": 6.189991,
+      "p95Below100Ms": true
+    },
+    "syntheticCapacity20Timing": {
+      "samples": 500,
+      "p50Ms": 2.811906,
+      "p95Ms": 8.018594,
+      "maxMs": 40.915628,
+      "p95Below100Ms": true
+    },
+    "scope": "optimizer only; excludes model/network/independent verifier; capacity fixture not real resources"
   },
   "queryOutcomes": [
     {
@@ -2012,7 +2029,14 @@
       "status": "PASS",
       "build": "PASS"
     },
-    "postPatchTargeted": "PENDING_ROOT_FINAL_COUNTS",
+    "postPatchTargeted": {
+      "completedBatchTests": 284,
+      "status": "PASS",
+      "additionalConceptGateTests": 7,
+      "additionalConceptGateStatus": "PASS",
+      "batchCountsMayOverlap": true,
+      "finalV13AdditionalTests": "PENDING_ROOT_FINAL_COUNTS"
+    },
     "deploymentAcceptance": "NOT_CLAIMED_BY_THIS_REPORT"
   },
   "releasePolicy": "Only this allowlisted summary is publishable; original run files remain local. No request IDs, prompts, raw answers, credentials or endpoint fingerprints copied."

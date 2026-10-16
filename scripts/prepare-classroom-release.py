@@ -33,6 +33,7 @@ USER_DOCUMENT_SUFFIXES = {".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".p
 REQUIRED_FILES = (
     "package.json", "package-lock.json",
     "desktop-app/dist/index.html",
+    "desktop-app/dist/build-profile.json",
     "desktop-app/dist/educationagent-export/player.js",
     "desktop-app/dist/educationagent-export/player.css",
     "course-engine/package.json",
@@ -96,6 +97,7 @@ def private_file(relative: PurePosixPath) -> bool:
         or lower.startswith(".env")
         or lower in {"runtime.env", "server.env", "local-secrets.properties", "credentials", "credentials.json"}
         or lower.startswith(("id_rsa", "id_ed25519", "credentials.", "credentials-"))
+        or lower.endswith(".baiduyun.uploading.cfg")
         or relative.suffix.lower() in PRIVATE_SUFFIXES | USER_DOCUMENT_SUFFIXES
     )
 
@@ -216,6 +218,9 @@ def application_jar() -> Path:
 def collect_files(overlay: bool) -> dict[str, Path]:
     for relative in REQUIRED_FILES:
         require_file(relative)
+    profile = load_manifest("desktop-app/dist/build-profile.json")
+    if profile.get("profile") != "public-classroom-v1" or profile.get("publicClassroom") is not True:
+        raise ReleaseError("公网发布须先运行 npm run build:public --prefix desktop-app")
     root_manifest = load_manifest("package.json")
     lock = load_manifest("package-lock.json")
     if not root_manifest.get("workspaces") or not isinstance(lock.get("packages"), dict):
@@ -260,7 +265,10 @@ def write_archive(output: Path, files: dict[str, Path]) -> None:
                             entry = tarfile.TarInfo(name)
                             entry.size = before.st_size
                             entry.mode = 0o755 if name.startswith("deploy/linux/") and source.suffix in {".sh", ".py"} else 0o644
-                            entry.uid = entry.gid = entry.mtime = 0
+                            entry.uid = entry.gid = 0
+                            # HTML入口文件名固定，长度也常相同；保留构建时间，避免Caddy以
+                            # 相同mtime/size返回304，让浏览器继续引用上一版带哈希的JS。
+                            entry.mtime = int(before.st_mtime) if name == "desktop-app/dist/index.html" else 0
                             entry.uname = entry.gname = ""
                             archive.addfile(entry, content)
                             after = os.fstat(content.fileno())

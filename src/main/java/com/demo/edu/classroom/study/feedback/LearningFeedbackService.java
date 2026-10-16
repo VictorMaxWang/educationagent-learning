@@ -319,14 +319,16 @@ public class LearningFeedbackService {
     }
 
     private ClassroomStudyContext.Anchor chooseAnchor(ClassroomStudyContext.Snapshot context, ObjectNode attempt) {
-        // 先帮助当前表述中尚需核对的知识点，不用第一条“已经覆盖”的资料挤掉真正需要提示的句段。
-        for (boolean needsHelp : List.of(true, false)) for (JsonNode analysis : attempt.path("analysis")) {
-            boolean relevant = List.of("missing", "conflict").contains(analysis.path("status").asText());
-            if (relevant != needsHelp || !analysis.has("anchorId")) continue;
-            try {
-                var anchor = LearningFeedbackPolicy.verifiedAnchor(analysis, context);
-                return new ClassroomStudyContext.Anchor(anchor.id(), anchor.label(), analysis.path("quote").asText(), anchor.kind());
-            } catch (IllegalArgumentException ignored) { /* 旧或不完整的引用不能成为提示依据。 */ }
+        // 已确认需核对的点优先，其次是有真实资料支撑的疑问，最后才回看已覆盖内容。
+        // uncertain只决定提示关注点，不改变核对状态、不形成错误成绩；无真实引用时不能制造锚点。
+        for (List<String> priority : List.of(List.of("conflict", "missing"), List.of("uncertain"), List.of("covered"))) {
+            for (JsonNode analysis : attempt.path("analysis")) {
+                if (!priority.contains(analysis.path("status").asText()) || !analysis.has("anchorId")) continue;
+                try {
+                    var anchor = LearningFeedbackPolicy.verifiedAnchor(analysis, context);
+                    return new ClassroomStudyContext.Anchor(anchor.id(), anchor.label(), analysis.path("quote").asText(), anchor.kind());
+                } catch (IllegalArgumentException ignored) { /* 旧或不完整的引用不能成为提示依据。 */ }
+            }
         }
         return context.anchors().stream().filter(a -> List.of("reference", "lesson").contains(a.kind())).findFirst().orElse(null);
     }

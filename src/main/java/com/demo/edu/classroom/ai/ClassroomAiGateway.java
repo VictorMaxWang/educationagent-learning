@@ -47,6 +47,25 @@ public class ClassroomAiGateway implements AutoCloseable {
 
     public record Result(ObjectNode value, ObjectNode evidence) {}
 
+    /** 允许进入修订提示和调用证据的固定诊断；不接收动态字段值、资料原文或异常文本。 */
+    public enum ContractCode {
+        PUBLIC_TOPIC_FORMAT("publicTopic必须是2到56字的公开核心主题，不带年级、私密内容、网址或个人身份。"),
+        PUBLIC_TOPIC_NOT_IN_THEME("publicTopic只能来自title或topic归一化后的连续子串；可忽略排版标点、空白和大小写，不能使用资料中新增的词。"),
+        PUBLIC_TOPIC_NOT_CORE("请把publicTopic缩为最短明确主题，优先course topic核心；去掉冒号后的教学口号、讲解动作和重复教学用途。"),
+        COURSE_ANCHOR_INVALID("anchorId必须是输入中存在的锚点，quote必须逐字摘取该锚点中的连续原文，不能改写或拼接。"),
+        CLASSIFICATION_FIELDS("请按约定返回分类状态、教学用途、简短理由及1到5个有真实锚点的学习目标和basis。"),
+        STRUCTURE_INVALID("请修正JSON对象结构和约定字段类型，不返回Markdown、重复键或尾随正文。");
+        private final String repairHint;
+        ContractCode(String repairHint){this.repairHint=repairHint;}
+        public String repairHint(){return repairHint;}
+    }
+
+    public static final class ContractViolation extends IllegalArgumentException {
+        private final ContractCode code;
+        public ContractViolation(ContractCode code){super(Objects.requireNonNull(code).name());this.code=code;}
+        public ContractCode code(){return code;}
+    }
+
     /** 稳定业务错误及不含上游正文的调用证据；禁止将 provider 原始异常拼入提示。 */
     public static final class Failure extends ClassroomException {
         private final String failureKind;
@@ -145,7 +164,7 @@ public class ClassroomAiGateway implements AutoCloseable {
     private Result perform(String system, String input, Consumer<JsonNode> validator, Trace trace,
                            long deadline, AtomicReference<CompletableFuture<?>> transport, int maxAttempts,
                            ClassroomCancellation cancellation) throws Exception {
-        String previous = null;
+        String previous = null;ContractCode repairCode=ContractCode.STRUCTURE_INVALID;
         for (int attempt = 1; attempt <= maxAttempts; attempt++) {
             if (cancellation != null) cancellation.check();
             remaining(deadline, trace);
@@ -158,7 +177,8 @@ public class ClassroomAiGateway implements AutoCloseable {
             messages.addObject().put("role", "user").put("content", input);
             if (previous != null) {
                 messages.addObject().put("role", "assistant").put("content", previous.substring(0, Math.min(previous.length(), 32_000)));
-                messages.addObject().put("role", "user").put("content", "上一条完整响应未满足输出格式或字段约定。仅修正结构及约定字段，返回完整JSON对象；不要重复输入资料。");
+                messages.addObject().put("role", "user").put("content", "上一条完整响应未满足输出格式或字段约定。安全诊断："+repairCode.name()+"。"
+                        +repairCode.repairHint()+"返回完整JSON对象；不要重复输入资料。");
             }
             HttpRequest call = HttpRequest.newBuilder(URI.create(properties.getCompletionsUrl()))
                     .timeout(Duration.ofNanos(remaining(deadline, trace)))
@@ -212,10 +232,12 @@ public class ClassroomAiGateway implements AutoCloseable {
                 return new Result(((ObjectNode) value).deepCopy(), trace.snapshot(null));
             } catch (Failure | CancellationException noRetry) { throw noRetry; }
             catch (Exception contractFailure) {
-                // 未将 validator 异常文本或输入加入日志/修订指令；它们可能含用户资料或密钥。
+                // 只有代码内固定枚举可进入修订和诊断；任意异常原文、cause和suppressed都不读取。
                 remaining(deadline, trace);
                 if (cancellation != null) cancellation.check();
                 trace.validated(index, "contract-invalid");
+                repairCode=contractFailure instanceof ContractViolation safe?safe.code():ContractCode.STRUCTURE_INVALID;
+                trace.contract(index,repairCode);
                 if (attempt == maxAttempts) throw failure(trace, "contract-invalid", 502, "课堂模型输出未满足任务约定，请稍后手动重试");
                 previous = text;
             }
@@ -267,7 +289,7 @@ public class ClassroomAiGateway implements AutoCloseable {
         synchronized int begin() {
             int ordinal=attempts.size()+1;
             attempts.addObject().put("attempt", ordinal).put("validation", "unknown")
-                    .putNull("model").putNull("requestId").putNull("tokenUsage");
+                    .putNull("model").putNull("requestId").putNull("tokenUsage").putNull("contractCode").putNull("repairHint");
             return attempts.size() - 1;
         }
         synchronized void http(int index, int status) { ((ObjectNode) attempts.get(index)).put("httpStatus", status); }
@@ -277,6 +299,7 @@ public class ClassroomAiGateway implements AutoCloseable {
             attempt.set("tokenUsage", usage(tokenUsage));
         }
         synchronized void validated(int index, String status) { ((ObjectNode) attempts.get(index)).put("validation", status); }
+        synchronized void contract(int index,ContractCode code){((ObjectNode)attempts.get(index)).put("contractCode",code.name()).put("repairHint",code.repairHint());}
         synchronized ObjectNode snapshot(String failureKind) {
             ObjectNode result = json.createObjectNode().put("task", task).put("transport", "openai-compatible-http")
                     .put("elapsedMs", TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start))

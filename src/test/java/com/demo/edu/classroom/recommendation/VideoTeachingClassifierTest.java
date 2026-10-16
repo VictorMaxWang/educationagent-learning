@@ -50,4 +50,30 @@ class VideoTeachingClassifierTest {
         ((ObjectNode)value.path("basis").get(0)).put("quote","通过流程图理解Python循环的条件检查与重复执行");
         assertDoesNotThrow(()->VideoTeachingClassifier.validate(c,value));
         ((ObjectNode)value.path("basis").get(0)).put("quote","修复用户程序的具体报错");assertThrows(IllegalArgumentException.class,()->VideoTeachingClassifier.validate(c,value));}
+    ClassroomStudyContext.Snapshot genericContext(String title,String topic){return new ClassroomStudyContext.Snapshot("course","scene","fp",title,topic,8,"通识","academic",1,
+            List.of(new ClassroomStudyContext.Anchor("goal-1","目标","通过示范理解核心原理与步骤。","objective")),"",List.of());}
+    ObjectNode genericOutput(String topic){var value=eligible().put("purpose","concept").put("publicTopic",topic).put("reason","用示范补充核心原理");
+        ((ObjectNode)value.path("goals").get(0)).put("text","核心原理与步骤").put("quote","理解核心原理与步骤");
+        ((ObjectNode)value.path("basis").get(0)).put("quote","通过示范理解核心原理与步骤");return value;}
+    @Test void publicThemeAllowsOnlyPresentationDifferencesAndKeepsMeaningfulSymbols(){
+        assertDoesNotThrow(()->VideoTeachingClassifier.validate(genericContext("《水循环·原理》","为我讲一讲水循环，原理"),genericOutput("水循环原理")));
+        assertDoesNotThrow(()->VideoTeachingClassifier.validate(genericContext("PYTHON 循环入门","PYTHON 循环"),genericOutput("python循环")));
+        assertDoesNotThrow(()->VideoTeachingClassifier.validate(genericContext("英语 th 发音：看口型，听声音","英语 TH 发音"),genericOutput("英语th")));
+        assertDoesNotThrow(()->VideoTeachingClassifier.validate(genericContext("English th pronunciation","English th pronunciation"),genericOutput("English th")));
+        for(String[] pair:List.of(new String[]{"C++函数入门","C#函数"},new String[]{"小数3.14的意义","小数314"},new String[]{"Python循环","th"},new String[]{"JavaScript函数","Java"})){
+            var failure=assertThrows(ClassroomAiGateway.ContractViolation.class,()->VideoTeachingClassifier.validate(genericContext(pair[0],pair[0]),genericOutput(pair[1])));
+            assertEquals(ClassroomAiGateway.ContractCode.PUBLIC_TOPIC_NOT_IN_THEME,failure.code());
+        }}
+    @Test void sourceOnlyWordsAndBannerSlogansHaveSafeRepairCodes(){
+        var c=genericContext("水循环原理","水循环原理");var sourceOnly=assertThrows(ClassroomAiGateway.ContractViolation.class,()->VideoTeachingClassifier.validate(c,genericOutput("核心原理")));
+        assertEquals(ClassroomAiGateway.ContractCode.PUBLIC_TOPIC_NOT_IN_THEME,sourceOnly.code());
+        var banner=genericContext("英语 th 发音：看口型，听声音","英语 TH 发音");
+        var broad=assertThrows(ClassroomAiGateway.ContractViolation.class,()->VideoTeachingClassifier.validate(banner,genericOutput(banner.title())));
+        assertEquals(ClassroomAiGateway.ContractCode.PUBLIC_TOPIC_NOT_CORE,broad.code());
+        var privateGrade=assertThrows(ClassroomAiGateway.ContractViolation.class,()->VideoTeachingClassifier.validate(genericContext("高 一数学","高 一数学"),genericOutput("高 一数学")));
+        assertEquals(ClassroomAiGateway.ContractCode.PUBLIC_TOPIC_FORMAT,privateGrade.code());
+        var inventedAnchor=genericOutput("水循环");((ObjectNode)inventedAnchor.path("basis").get(0)).put("quote","私密内容不在原文");
+        assertEquals(ClassroomAiGateway.ContractCode.COURSE_ANCHOR_INVALID,assertThrows(ClassroomAiGateway.ContractViolation.class,()->VideoTeachingClassifier.validate(c,inventedAnchor)).code());}
+    @Test void searchTopicUsesCoreAndDoesNotRepeatTeachingPurpose(){assertEquals("英语th",VideoTeachingClassifier.searchTopic("英语 TH 发音","pronunciation"));
+        assertEquals("春江月夜",VideoTeachingClassifier.searchTopic("《春江·月夜》朗诵","recitation"));assertEquals("c++函数",VideoTeachingClassifier.searchTopic("C++ 函数概念","concept"));}
 }

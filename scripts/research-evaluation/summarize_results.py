@@ -81,6 +81,8 @@ def main():
     feedback2 = read(source / "live-r2/feedback-results.json")
     replay = read(source / "features-r1/replay/algorithm-comparison.json")
     snapshots = read(source / "snapshot-audit.json")
+    server_timing_path = source.parent / "optimizer-server-timing.json"
+    server_timing = read(server_timing_path) if server_timing_path.exists() else None
     outcomes = [read(path) for path in sorted((source / "features-r1").glob("BILI-*.json"))]
     by_id = {row["id"]: row for row in replay["queries"]}
     comparable = [row for row in replay["queries"] if row["status"] == "completed"]
@@ -168,12 +170,17 @@ def main():
                                       "validEmptyFeasibleSetCasesIncluded": sum(row["comparable"] and row["selectedCount"] == 0 for row in query_rows)},
         "algorithmVersion": "classroom-combination-v1", "baselineVersion": replay["baselineVersion"], "baselineComparison": baseline, "ablations": ablations, "firstHit": first_hit,
         "optimizerLocalTiming": {"host": replay["optimizerTimingHost"], "p95Ms": replay["optimizerP95Ms"], "scope": "Windows fixed-input optimizer only; does not establish server P95"},
-        "optimizerServerTiming": {"status": "NOT_RUN_IN_THIS_REPORT", "requiredInput": "24 frozen verified feature inputs exported by export_timing_inputs.py; no new model call"},
+        "optimizerServerTiming": ({"status": "PASS", "hostOs": server_timing["hostOs"], "javaVersion": server_timing["javaVersion"],
+            "realInputCount": server_timing["realInputCount"], "realFixedInputTiming": server_timing["realFixedInputTiming"],
+            "syntheticCapacity20Timing": server_timing["syntheticCapacity20Timing"], "scope": server_timing["scope"]} if server_timing else
+            {"status": "NOT_RUN_IN_THIS_REPORT", "requiredInput": "24 frozen verified feature inputs exported by export_timing_inputs.py; no new model call"}),
         "queryOutcomes": query_rows, "observedLimitations": issues, "reportedModelUsage": calls,
         "modelIdentityBoundary": "Cloud text model returned qwen3.8-flash; embeddings returned qwen3.7-text-embedding-flash at 1024 dimensions. Adapter name siliconflow denotes compatibility code path, not verified actual provider. Embedding provider field was absent; no provider invented.",
         "testSnapshot": {"fullBackend": {"tests": 752, "failures": 0, "errors": 14, "skipped": 1, "status": "FAILED_LOCAL_DATABASE_AUTHENTICATION", "cause": "Existing local MySQL Access denied for root@localhost"},
                          "frontend": {"files": 19, "tests": 178, "status": "PASS", "typecheck": "PASS", "build": "PASS"},
-                         "engine": {"tests": 27, "status": "PASS", "build": "PASS"}, "postPatchTargeted": "PENDING_ROOT_FINAL_COUNTS", "deploymentAcceptance": "NOT_CLAIMED_BY_THIS_REPORT"},
+                         "engine": {"tests": 27, "status": "PASS", "build": "PASS"},
+                         "postPatchTargeted": {"completedBatchTests": 284, "status": "PASS", "additionalConceptGateTests": 7, "additionalConceptGateStatus": "PASS", "batchCountsMayOverlap": True, "finalV13AdditionalTests": "PENDING_ROOT_FINAL_COUNTS"},
+                         "deploymentAcceptance": "NOT_CLAIMED_BY_THIS_REPORT"},
         "releasePolicy": "Only this allowlisted summary is publishable; original run files remain local. No request IDs, prompts, raw answers, credentials or endpoint fingerprints copied."}
     # 显式允许清单输出；最后再检查常见内部trace字段，阻止将原JSON整段粘贴进入可发布资料。
     serialized = json.dumps(report, ensure_ascii=False, indent=2)
@@ -217,8 +224,9 @@ def main():
     md += ["", "反馈r2的两个未确定项为 `FB-paraphrase-02` 与 `FB-conflict-07`，均为两次结构尝试后 `contract-invalid`。它们保持未确定，不计成学生错误；没有通过修改期望标签或覆盖r1结果消除失败。", "",
            "## 模型、耗时与验证边界", "",
            "文本接口真实返回模型为qwen3.8-flash；向量接口真实返回qwen3.7-text-embedding-flash，1024维。代码中的siliconflow是兼容适配器名称，不能据此断言实际上游厂商；向量响应未提供provider字段，报告保留未知。只统计本轮新embedding batches，缓存历史来源不重复计入用量；各运行Token聚合见JSON，不估算缺失用量或货币费用。", "",
-           f"Windows 11本机固定输入优化器P95为**{replay['optimizerP95Ms']:.4f}毫秒**，仅计算选择器，不含模型、网络或独立Verifier。此数值不代替正式Linux服务器P95；服务器需使用同24个冻结输入另测。固定特征重放没有重新检索，原采集仅记录请求时间，不能据此虚构搜索延迟。", "",
-           "当前全后端快照：752项、0失败、14错误、1跳过；14项错误关联既有本机MySQL认证失败，所以全量构建没有通过。前端19个文件、178项测试通过，类型检查与发布构建通过；课程引擎27项测试及构建通过。通用提示、来源和手动重试等后续补丁的最终针对性测试由主任务补充，本文不提前声称部署验收完成。", "",
+           f"Windows 11本机固定输入优化器P95为**{replay['optimizerP95Ms']:.4f}毫秒**，仅计算选择器，不含模型、网络或独立Verifier。固定特征重放没有重新检索，原采集仅记录请求时间，不能据此虚构搜索延迟。", "",
+           (f"正式Linux服务器使用Java {server_timing['javaVersion']}，在同24个冻结输入上采样{server_timing['realFixedInputTiming']['samples']}次，P95为**{server_timing['realFixedInputTiming']['p95Ms']:.6f}毫秒**；另列20候选合成容量夹具采样{server_timing['syntheticCapacity20Timing']['samples']}次，P95为**{server_timing['syntheticCapacity20Timing']['p95Ms']:.6f}毫秒**，两项均低于100毫秒。容量夹具只验证性能边界，不算真实资源样本或教学成效。" if server_timing else "正式Linux服务器P95待测，本机结果不代替服务器验收。"), "",
+           "当前全后端快照：752项、0失败、14错误、1跳过；14项错误关联既有本机MySQL认证失败，所以全量构建没有通过。前端19个文件、178项测试通过，类型检查与发布构建通过；课程引擎27项测试及构建通过。后端284项针对性检查通过，另一次编程概念门控7项通过，批次可能重叠，不累计成291项唯一测试。v13追加补丁最终检查仍待主任务回填，本文不提前声称部署验收完成。", "",
            "## 复核入口", "",
            "- [脱敏机器可读结果](工程评测结果.json)：全部30条结果、基线分值、消融和首次命中上下界。",
            "- [评测程序说明](../../scripts/research-evaluation/README.md)：固定输入、模型调用、源码及编译身份和复跑规则。",

@@ -23,6 +23,8 @@ for persistent in data logs; do
   fi
   ln -sfn -- "${base}/shared/${persistent}" "${release}/${persistent}"
 done
+# 兼容旧版确定性归档的零mtime；入口必须在每次发布后重新验证。
+touch -- "${release}/desktop-app/dist/index.html"
 previous=$(readlink -f -- "${base}/current" 2>/dev/null || true)
 if [[ -e ${base}/current && ! -L ${base}/current ]]; then
   echo 'current is not a symlink; refusing to replace it.' >&2

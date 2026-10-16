@@ -238,6 +238,14 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <!-- 同步客户端临时标记可能在打包扫描期间消失；它不属于应用资源。 -->
+                    <excludes><exclude>**/*.baiduyun.uploading.cfg</exclude></excludes>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 </project>

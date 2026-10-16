@@ -55,6 +55,7 @@ function Test-PublishExcluded([IO.FileInfo]$File) {
         if ($segment -in $skipDirectoryNames) { return $true }
     }
     $name = $File.Name
+    if ($name.EndsWith('.baiduyun.uploading.cfg', [StringComparison]::OrdinalIgnoreCase)) { return $true }
     if ($name -like '.env*' -and $name -notin @('.env.example', '.env.sample')) { return $true }
     if ($name -match '^application-(local|private|secret)([.-].*)?\.properties$') { return $true }
     if ($name -match '(?i)(^credentials\.|^secrets?\.|\.local\.|\.bak(?:-|\.|$)|~$|^~\$)') { return $true }

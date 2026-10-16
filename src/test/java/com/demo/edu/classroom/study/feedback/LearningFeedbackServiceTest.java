@@ -194,6 +194,59 @@ class LearningFeedbackServiceTest {
         service.hint(id, new LearningFeedbackService.HintRequest(4)); assertEquals(1, modelCalls.get());
     }
 
+    @Test void validUncertainQuestionGetsHintsBeforeEarlierCoveredAnswer() {
+        String questionQuote = "比较两个分数表示的实际面积时，必须先确认整体大小相同。";
+        course.put("sourceText", "长方形的面积等于长乘宽。\n" + questionQuote);
+        String id = create("hint-question", "面积用长乘宽，但我还不明白为什么要先看整体。", null).path("id").asText();
+        modelAnswer = analysis();
+        modelAnswer.withArray("analysis").addObject().put("goal", "比较时的整体条件").put("status", "uncertain")
+                .put("feedback", "你明确提出了这个疑问，可以先回到资料核对。")
+                .put("anchorId", "source-2").put("quote", questionQuote);
+        var checked = service.check(id, null);
+        assertEquals("covered", checked.path("analysis").get(0).path("status").asText());
+        assertEquals("uncertain", checked.path("analysis").get(1).path("status").asText());
+        for (int level = 1; level <= 3; level++) {
+            var hinted = service.hint(id, new LearningFeedbackService.HintRequest(level));
+            assertEquals("source-2", hinted.path("hints").get(level - 1).path("anchorId").asText());
+            assertEquals("uncertain", hinted.path("analysis").get(1).path("status").asText());
+            assertTrue(hinted.path("suggestedGoals").isEmpty(), "提示疑问不等于把疑问计成错误或薄弱点");
+        }
+        assertEquals(1, modelCalls.get(), "前三层提示不追加模型调用");
+        assertEquals(0, jdbc.queryForObject("SELECT COUNT(*) FROM quiz_audit", Integer.class)); verifyNoInteractions(quiz);
+    }
+
+    @Test void uncertainWithoutCitationDoesNotInventHintAnchor() {
+        String id = create("hint-no-source", "面积用长乘宽，其他问题还不能确定。", null).path("id").asText();
+        modelAnswer = analysis();
+        modelAnswer.withArray("analysis").addObject().put("goal", "资料未涉及的疑问").put("status", "uncertain")
+                .put("feedback", "缺少相关资料，不能作出判断。");
+        service.check(id, null);
+        var hinted = service.hint(id, new LearningFeedbackService.HintRequest(1));
+        assertEquals("source-1", hinted.path("hints").get(0).path("anchorId").asText());
+        assertFalse(hinted.path("analysis").get(1).has("anchorId"));
+        assertFalse(hinted.path("analysis").get(1).has("quote"));
+        assertEquals("uncertain", hinted.path("analysis").get(1).path("status").asText());
+        verifyNoInteractions(quiz);
+    }
+
+    @Test void confirmedMissingPointKeepsPriorityOverUncertainAndCoveredPoints() {
+        String comparison = "比较两个分数表示的实际面积时，必须先确认整体大小相同。";
+        String units = "长和宽都以米为单位时，长方形面积应以平方米为单位。";
+        course.put("sourceText", "长方形的面积等于长乘宽。\n" + comparison + "\n" + units);
+        String id = create("hint-priority", "面积用长乘宽，整体条件还不确定。", null).path("id").asText();
+        modelAnswer = analysis();
+        modelAnswer.withArray("analysis").addObject().put("goal", "整体条件").put("status", "uncertain").put("feedback", "请回看条件")
+                .put("anchorId", "source-2").put("quote", comparison);
+        modelAnswer.withArray("analysis").addObject().put("goal", "面积单位").put("status", "missing").put("feedback", "还可以补上面积单位")
+                .put("anchorId", "source-3").put("quote", units);
+        service.check(id, null);
+        var hinted = service.hint(id, new LearningFeedbackService.HintRequest(1));
+        assertEquals("source-3", hinted.path("hints").get(0).path("anchorId").asText());
+        assertEquals("uncertain", hinted.path("analysis").get(1).path("status").asText());
+        assertEquals(1, hinted.path("suggestedGoals").size());
+        assertEquals("面积单位", hinted.path("suggestedGoals").get(0).asText()); verifyNoInteractions(quiz);
+    }
+
     @Test void noSourceSkipsModelAndDoesNotAssignWrongState() {
         course.remove("sourceText"); ((ObjectNode) course.path("scenes").get(0).path("content")).remove("canvas");
         var first = create("save", "我想核对", null);

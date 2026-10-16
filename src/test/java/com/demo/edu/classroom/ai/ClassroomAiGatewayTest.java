@@ -99,6 +99,22 @@ class ClassroomAiGatewayTest {
         assertFalse(result.evidence().toString().contains(KEY));
     }
 
+    @Test void fixedSafeViolationCodeAndHintReachRepairWithoutCauseOrSuppressedSecrets(){
+        AtomicInteger validations=new AtomicInteger();
+        var result=gateway.structured("test","system","input",Duration.ofSeconds(4),node->{
+            if(validations.incrementAndGet()==1){var error=new ClassroomAiGateway.ContractViolation(ClassroomAiGateway.ContractCode.PUBLIC_TOPIC_NOT_IN_THEME);
+                error.initCause(new IllegalArgumentException("private cause "+KEY));error.addSuppressed(new IllegalArgumentException("private suppressed "+KEY));throw error;}
+        });
+        assertEquals(2,calls.get());assertEquals("PUBLIC_TOPIC_NOT_IN_THEME",result.evidence().path("attempts").get(0).path("contractCode").asText());
+        assertEquals(ClassroomAiGateway.ContractCode.PUBLIC_TOPIC_NOT_IN_THEME.repairHint(),result.evidence().path("attempts").get(0).path("repairHint").asText());
+        String repair=requests.get(1).path("messages").get(3).path("content").asText();assertTrue(repair.contains("PUBLIC_TOPIC_NOT_IN_THEME"));assertTrue(repair.contains("连续子串"));
+        assertFalse(repair.contains(KEY));assertFalse(result.evidence().toString().contains(KEY));assertFalse(requests.get(1).toString().contains("private suppressed"));
+    }
+
+    @Test void repeatedSafeAnchorFailureStillStopsAtTwoCalls(){var failure=assertThrows(ClassroomAiGateway.Failure.class,()->gateway.structured("test","system","input",Duration.ofSeconds(4),
+            node->{throw new ClassroomAiGateway.ContractViolation(ClassroomAiGateway.ContractCode.COURSE_ANCHOR_INVALID);}));
+        assertEquals(2,calls.get());assertEquals("contract-invalid",failure.failureKind());assertEquals("COURSE_ANCHOR_INVALID",failure.evidence().path("attempts").get(1).path("contractCode").asText());}
+
     @Test void rejectsTrailingDuplicateFencedArrayAndDeepJsonWithBoundedRepair() {
         for (String invalid : List.of("{\"ok\":true} {\"another\":1}", "{\"ok\":true,\"ok\":false}",
                 "```json\n{\"ok\":true}\n```", "[{\"ok\":true}]", "{\"ok\":" + "[".repeat(70) + "1" + "]".repeat(70) + "}")) {

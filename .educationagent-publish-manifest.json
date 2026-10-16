@@ -1,6 +1,6 @@
 {
   "Producer": "educationagent/Prepare-GitHubSnapshot.ps1",
-  "CreatedAtUtc": "2026-10-16T12:25:05.5625330Z",
+  "CreatedAtUtc": "2026-10-16T12:45:26.1452308Z",
   "SecretCheck": "PASS",
   "Files": [
     ".gitattributes",
@@ -298,6 +298,7 @@
     "desktop-app/vite.config.js",
     "docs/安全管控链路_与代码对齐版.md",
     "docs/参考项目迁移清单_20261016.md",
+    "docs/测试报告_20261016.md",
     "docs/服务器部署.md",
     "docs/核心算法说明_20261016.md",
     "docs/技术架构与创新_20261016.md",
@@ -341,6 +342,7 @@
     "scripts/build-classroom-export.mjs",
     "scripts/build-classroom-interactive.mjs",
     "scripts/Build-Classroom.ps1",
+    "scripts/build-public-classroom.mjs",
     "scripts/build-team-reference-library.py",
     "scripts/capture-reference-excerpt.py",
     "scripts/classroom-server.mjs",

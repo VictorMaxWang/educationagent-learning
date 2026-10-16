@@ -76,8 +76,54 @@
     "cause": "既有本机MySQL root@localhost认证失败",
     "evidence": "target/research-upgrade-20261016/backend-full-final.log"
   },
-  "online": "PENDING",
-  "release": "PENDING",
+  "online": {
+    "status": "V12_PARTIAL_V13_FINAL_PENDING",
+    "codeRunner": {
+      "status": "PASS",
+      "languages": 4,
+      "foreignIdentity404Checks": 8,
+      "cancellationJobs": 1,
+      "cancellationStabilityReads": 3,
+      "preservedCancellationTraceSteps": 43
+    },
+    "feedback": {
+      "firstStatement": "PASS",
+      "fourHints": "PASS",
+      "newVersionAndOriginalPreserved": "PASS",
+      "automaticSmoke": "PARTIAL_SELF_CHECK_NOT_SUBMITTED",
+      "followupPublicQuestionSubmission": "PASS_CORRECT_TRUE",
+      "bothReceiptsRetained": true
+    },
+    "videoFirstRound": {
+      "totalCases": 4,
+      "expectationPassed": 2,
+      "expectationFailed": 2,
+      "positiveCases": 3,
+      "positivePassed": 1,
+      "excludedCaseNoExternalSearch": "PASS",
+      "resultsRetained": true
+    },
+    "metadataCache": {
+      "serverDetailHttpStatus": 412,
+      "acceptedUniqueSeeds": 237,
+      "rejectedUniqueSeeds": 1,
+      "rejectedReason": "empty part title",
+      "originalVerifiedAtPreserved": true,
+      "validityHours": 24,
+      "expiredUnavailableBehavior": "hide recommendation area"
+    },
+    "v12Cutover": {
+      "original12CourseDocumentsIdentical": true,
+      "coursesAtCutover": 12,
+      "papersAtCutover": 12,
+      "answersAtCutover": 37,
+      "questionsAtCutover": 29,
+      "activeServices": 6,
+      "CherryHealth": "PASS"
+    },
+    "finalV13": "PENDING"
+  },
+  "release": "PENDING_V13_FINAL",
   "labelBoundary": "工程夹具及代理标签不声称教师评审或真实学生教学效果",
   "updateInstruction": "主任务完成后用真实日志更新本文件，再运行索引校验脚本生成总览。",
   "engine": {
@@ -86,7 +132,20 @@
     "build": "PASS",
     "evidence": "target/research-upgrade-20261016/engine-test-final.log"
   },
-  "postPatchTargeted": "PENDING_ROOT_FINAL_COUNTS",
+  "postPatchTargeted": {
+    "status": "PASS_COMPLETED_BATCHES_V13_ADDITIONS_PENDING",
+    "completedTests": 284,
+    "failures": 0,
+    "errors": 0,
+    "conceptGateSupplementalTests": 7,
+    "conceptGateSupplementalStatus": "PASS",
+    "batchCountsMayOverlap": true,
+    "finalV13Checks": "PENDING_ROOT_FINAL_COUNTS",
+    "evidence": [
+      "target/research-upgrade-20261016/backend-postpatch.log",
+      "target/research-upgrade-20261016/backend-concept-gate-final.log"
+    ]
+  },
   "fixedInputAlgorithms": {
     "status": "24_VERIFIED_OPTIMA_NO_GREEDY_ADVANTAGE",
     "comparable": 24,
@@ -97,7 +156,29 @@
     "redundancyAblationSelectionChanges": 0,
     "controlledFeedbackSelectionChanges": 0,
     "firstHitIntervalsContainingZero": 24,
-    "serverP95": "PENDING_SERVER_RUN",
+    "serverP95": {
+      "status": "PASS",
+      "hostOs": "Linux",
+      "javaVersion": "21.0.12.1",
+      "realInputCount": 24,
+      "realFixedInput": {
+        "samples": 500,
+        "p50Ms": 0.104117,
+        "p95Ms": 0.832518,
+        "maxMs": 6.189991,
+        "p95Below100Ms": true
+      },
+      "syntheticCapacity20": {
+        "samples": 500,
+        "p50Ms": 2.811906,
+        "p95Ms": 8.018594,
+        "maxMs": 40.915628,
+        "p95Below100Ms": true
+      },
+      "scope": "optimizer only; excludes model/network/independent verifier; capacity fixture not real resources",
+      "evidence": "target/research-upgrade-20261016/optimizer-server-timing.json"
+    },
     "evidence": "docs/research-20261016/工程评测结果.json"
-  }
+  },
+  "testReport": "docs/测试报告_20261016.md"
 }

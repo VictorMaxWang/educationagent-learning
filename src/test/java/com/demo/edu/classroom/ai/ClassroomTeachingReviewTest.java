@@ -92,13 +92,67 @@ class ClassroomTeachingReviewTest {
         }
     }
 
+    @Test void rejectedPatchKeepsSpecificTeachingReasonWithoutReflectingPatchOrException() {
+        String issue = "本页缺少将长与宽对应到菜园网格的示范，尚未覆盖面积计算目标";
+        ObjectNode change = verdict("needs_revision").put("reason", "<b>" + issue + "</b>");
+        change.withArray("patches").addObject().put("path", "/content/html")
+                .put("before", "PRIVATE_INVALID_PATCH_BEFORE").put("value", "PRIVATE_INVALID_PATCH_VALUE");
+        respond(change);
+        ObjectNode original = scene(), result = review.review(course(), original, new ClassroomCancellation());
+        JsonNode evidence = result.path("_teachingReview");
+        assertEquals("needs_revision", evidence.path("status").asText());
+        assertTrue(evidence.path("reason").asText().startsWith(issue));
+        assertEquals(issue, evidence.path("assessmentReason").asText());
+        assertEquals(original.path("content"), result.path("content"));
+        assertFalse(evidence.toString().contains("PRIVATE_INVALID_PATCH"));
+        assertFalse(evidence.toString().contains("patch not allowed"));
+        assertFalse(evidence.has("patches"));
+        assertFalse(review.publicMetadata(result).has("assessmentReason"));
+        verify(gateway, times(1)).structuredOnce(anyString(), anyString(), anyString(), any(), any(), any());
+    }
+
+    @Test void rejectedPatchReasonRemainsBoundedWhilePrivateAssessmentKeepsTheFullValidReason() {
+        String issue = "没有覆盖本节的面积目标。" + "需要补充网格说明。".repeat(40);
+        ObjectNode change = verdict("needs_revision").put("reason", issue);
+        change.withArray("patches").addObject().put("path", "/title").put("before", "不匹配的原文").put("value", "面积");
+        respond(change);
+        JsonNode evidence = review.review(course(), scene(), new ClassroomCancellation()).path("_teachingReview");
+        assertEquals(issue, evidence.path("assessmentReason").asText());
+        assertTrue(evidence.path("reason").asText().startsWith("没有覆盖本节的面积目标。"));
+        assertTrue(evidence.path("reason").asText().length() <= 240);
+        assertTrue(evidence.path("assessmentReason").asText().length() <= 600);
+    }
+
+    @Test void htmlBeforeIsPassedVerbatimAndOnlyExactEditableTextCanBePatched() throws Exception {
+        ObjectNode original = scene();
+        original.withObject("/content/canvas").withArray("elements").addObject()
+                .put("type", "text").put("content", "<p>面积是长度相加</p>");
+        ObjectNode change = verdict("needs_revision");
+        change.withArray("patches").addObject().put("path", "/content/canvas/elements/0/content")
+                .put("before", "<p>面积是长度相加</p>").put("value", "面积等于长乘宽");
+        respond(change, verdict("pass"));
+        ObjectNode result = review.review(course(), original, new ClassroomCancellation());
+        assertEquals("revised", result.path("_teachingReview").path("status").asText());
+        assertEquals("面积等于长乘宽", result.at("/content/canvas/elements/0/content").asText());
+        var first = mockingDetails(gateway).getInvocations().iterator().next();
+        String system = first.getArgument(1);
+        assertTrue(system.contains("逐字复制同一条editableTexts"));
+        assertTrue(system.contains("before包括原有HTML标签"));
+        JsonNode editable = json.readTree((String) first.getArgument(2)).path("editableTexts");
+        assertTrue(java.util.stream.StreamSupport.stream(editable.spliterator(), false).anyMatch(item ->
+                item.path("path").asText().equals("/content/canvas/elements/0/content")
+                        && item.path("before").asText().equals("<p>面积是长度相加</p>")));
+        verify(gateway, times(2)).structuredOnce(anyString(), anyString(), anyString(), any(), any(), any());
+    }
+
     @Test void providerFailurePreservesOriginalAndRecordsUnknown() {
         when(gateway.structuredOnce(anyString(), anyString(), anyString(), any(), any(), any()))
-                .thenThrow(new ClassroomAiGateway.Failure(504, "响应超时", "request-timeout", json.createObjectNode().put("attemptCount", 1)));
+                .thenThrow(new ClassroomAiGateway.Failure(504, "PRIVATE_PROVIDER_EXCEPTION", "request-timeout", json.createObjectNode().put("attemptCount", 1)));
         ObjectNode result = review.review(course(), scene(), new ClassroomCancellation());
         assertEquals("unknown", result.path("_teachingReview").path("status").asText());
         assertEquals(1, result.path("_teachingReview").path("modelCalls").size());
         assertEquals("面积计算", result.path("title").asText());
+        assertFalse(result.path("_teachingReview").toString().contains("PRIVATE_PROVIDER_EXCEPTION"));
     }
 
     @Test void cancellationIsPropagatedRatherThanUnknownOrPass() {
