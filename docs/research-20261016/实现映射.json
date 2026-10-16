@@ -1,0 +1,405 @@
+{
+  "schemaVersion": 1,
+  "edition": "20261016",
+  "codeCommit": null,
+  "codeCommitStatus": "PENDING_RELEASE",
+  "mapping": [
+    {
+      "id": "ALG-COMBINATION",
+      "sources": [
+        "P017",
+        "CN119025756A",
+        "CN119336991A"
+      ],
+      "change": "本轮深化",
+      "kind": "方法适配",
+      "adoption": "时间约束下的当前目标覆盖、语义、用途互补、明确偏好与同用途重复组合评分。",
+      "notAdopted": "鸽群/萤火虫随机更新与个体能力推断。",
+      "code": [
+        {
+          "path": "src/main/java/com/demo/edu/classroom/recommendation/RecommendationOptimizer.java",
+          "anchor": "public static Selection select(Input input)"
+        },
+        {
+          "path": "src/main/java/com/demo/edu/classroom/recommendation/RecommendationOptimizer.java",
+          "anchor": "public static Optional<Score> evaluate(Input input, List<String> ids)"
+        },
+        {
+          "path": "src/main/java/com/demo/edu/classroom/recommendation/ResourceSemanticFeatures.java",
+          "anchor": "public Features compute(String courseId,String query,List<BilibiliVideoCatalog.Video> videos,Duration budget)"
+        }
+      ],
+      "tests": [
+        {
+          "path": "src/test/java/com/demo/edu/classroom/recommendation/RecommendationOptimizerTest.java",
+          "anchor": "void maximumPoolEnumeratesExactly1350NonemptyCombinations()"
+        },
+        {
+          "path": "src/test/java/com/demo/edu/classroom/recommendation/RecommendationOptimizerTest.java",
+          "anchor": "void hardConstraintsExcludeIneligibleUnknownDurationDuplicateAndOverBudget()"
+        }
+      ],
+      "resultEvidence": "target/recommendation-core-check/test-results.log",
+      "resultStatus": "CORE_24_PASS"
+    },
+    {
+      "id": "ALG-VERIFY-REUSE",
+      "sources": [
+        "M001",
+        "CN120296243A"
+      ],
+      "change": "本轮深化",
+      "kind": "方法适配",
+      "adoption": "独立验证同一有限目标下最优组合和旧组合；差额不超过0.02可稳定复用。",
+      "notAdopted": "微电网LP对偶证书、经济损失、蜜獾种群更新及教学损失结论。",
+      "code": [
+        {
+          "path": "src/main/java/com/demo/edu/classroom/recommendation/RecommendationVerifier.java",
+          "anchor": "public static Verification verify("
+        },
+        {
+          "path": "src/main/java/com/demo/edu/classroom/recommendation/RecommendationOptimizer.java",
+          "anchor": "public static ReuseDecision reuse("
+        },
+        {
+          "path": "src/main/java/com/demo/edu/classroom/recommendation/ClassroomRecommendationService.java",
+          "anchor": "private List<String> oldSelection("
+        }
+      ],
+      "tests": [
+        {
+          "path": "src/test/java/com/demo/edu/classroom/recommendation/RecommendationOptimizerTest.java",
+          "anchor": "void independentVerifierRejectsFabricatedScoreAndNonOptimalClaim()"
+        },
+        {
+          "path": "src/test/java/com/demo/edu/classroom/recommendation/RecommendationOptimizerTest.java",
+          "anchor": "void reuseRecomputesOldFeasibilityAndAppliesGapInCurrentModel()"
+        }
+      ],
+      "resultEvidence": "target/recommendation-core-check/test-results.log",
+      "resultStatus": "CORE_24_PASS_INTEGRATION_PENDING"
+    },
+    {
+      "id": "ALG-FIRST-HIT",
+      "sources": [
+        "M002"
+      ],
+      "change": "本轮深化",
+      "kind": "方法适配",
+      "adoption": "两排序使用共享标签；最多12个未知枚举成本差范围；来源失败不当负标签。",
+      "notAdopted": "连续空间积分、几何覆盖和统计期望区间。",
+      "code": [
+        {
+          "path": "src/main/java/com/demo/edu/classroom/recommendation/FirstHitAudit.java",
+          "anchor": "public static AuditResult audit("
+        }
+      ],
+      "tests": [
+        {
+          "path": "src/test/java/com/demo/edu/classroom/recommendation/FirstHitAuditTest.java",
+          "anchor": "void sharedUnknownAssignmentProducesExactPermutationBoundsAndWitnesses()"
+        },
+        {
+          "path": "src/test/java/com/demo/edu/classroom/recommendation/FirstHitAuditTest.java",
+          "anchor": "void twelveUnknownsAreEnumeratedButThirteenRemainNotComputed()"
+        },
+        {
+          "path": "src/test/java/com/demo/edu/classroom/recommendation/FirstHitAuditTest.java",
+          "anchor": "void sourceFailureNeverBecomesIrrelevanceEvidence()"
+        }
+      ],
+      "resultEvidence": "target/recommendation-core-check/test-results.log",
+      "resultStatus": "CORE_24_PASS"
+    },
+    {
+      "id": "LEARNER-FIRST",
+      "sources": [
+        "M003"
+      ],
+      "change": "本轮深化",
+      "kind": "设计借鉴",
+      "adoption": "保存首次表述、版本化修订、真实资料锚点核对、提示级别和独立自检。",
+      "notAdopted": "PISA调查的因果解释、问卷频率代替真实理解。",
+      "code": [
+        {
+          "path": "src/main/java/com/demo/edu/classroom/study/feedback/LearningFeedbackService.java",
+          "anchor": "public ObjectNode create("
+        },
+        {
+          "path": "src/main/java/com/demo/edu/classroom/study/feedback/LearningFeedbackService.java",
+          "anchor": "public ObjectNode hint("
+        },
+        {
+          "path": "src/main/java/com/demo/edu/classroom/study/feedback/LearningFeedbackService.java",
+          "anchor": "public ObjectNode selfCheck("
+        },
+        {
+          "path": "src/main/java/com/demo/edu/classroom/study/feedback/LearningFeedbackPolicy.java",
+          "anchor": "static ClassroomStudyContext.Anchor verifiedAnchor("
+        }
+      ],
+      "tests": [
+        {
+          "path": "src/test/java/com/demo/edu/classroom/study/feedback/LearningFeedbackPolicyTest.java",
+          "anchor": "void objectiveAndOtherCourseAnchorsCannotBeKnowledgeEvidence()"
+        },
+        {
+          "path": "src/test/java/com/demo/edu/classroom/study/feedback/LearningFeedbackServiceTest.java",
+          "anchor": "void realSubmissionScoresOnceAndCannotMutateCourseOrInitialUnderstanding()"
+        }
+      ],
+      "resultStatus": "PENDING"
+    },
+    {
+      "id": "RESOURCE-GATE",
+      "sources": [
+        "P017",
+        "CN119025756A"
+      ],
+      "change": "本轮深化",
+      "kind": "设计借鉴",
+      "adoption": "先判教学用途适用性，再核验资源、适龄和元数据匹配；匹配证据必须可在原数据中定位。",
+      "notAdopted": "以播放量代替质量、把看过元数据表述成看过完整视频。",
+      "code": [
+        {
+          "path": "src/main/java/com/demo/edu/classroom/recommendation/VideoTeachingClassifier.java",
+          "anchor": "public Classification classify(ClassroomStudyContext.Snapshot context,Duration budget)"
+        },
+        {
+          "path": "src/main/java/com/demo/edu/classroom/recommendation/BilibiliVideoCatalog.java",
+          "anchor": "public Search search(String query,int budgetSeconds,Duration budget)"
+        },
+        {
+          "path": "src/main/java/com/demo/edu/classroom/recommendation/ClassroomRecommendationService.java",
+          "anchor": "static void validateMatches("
+        }
+      ],
+      "tests": [
+        {
+          "path": "src/test/java/com/demo/edu/classroom/recommendation/VideoTeachingClassifierTest.java",
+          "anchor": "void privateSpecificMistakesAndDebugNeverCallModel()"
+        },
+        {
+          "path": "src/test/java/com/demo/edu/classroom/recommendation/BilibiliVideoCatalogTest.java",
+          "anchor": "void changedVideoIdentityDoesNotCreateLink()"
+        }
+      ],
+      "resultStatus": "PENDING"
+    },
+    {
+      "id": "MIGRATE-DEADLINE",
+      "sources": [
+        "CHILDCARE"
+      ],
+      "change": "本轮深化",
+      "kind": "设计借鉴与跨语言适配",
+      "adoption": "连接、正文、解析和修订共享截止；完整但合约无效响应最多修订一次。",
+      "notAdopted": "供应商凭据、原托育领域、mock与网络未知结果自动重试。",
+      "code": [
+        {
+          "path": "src/main/java/com/demo/edu/classroom/ai/ClassroomAiGateway.java",
+          "anchor": "private Result execute("
+        },
+        {
+          "path": "src/main/java/com/demo/edu/classroom/ai/ClassroomAiGateway.java",
+          "anchor": "private Result perform("
+        }
+      ],
+      "tests": [
+        {
+          "path": "src/test/java/com/demo/edu/classroom/ai/ClassroomAiGatewayTest.java",
+          "anchor": "void slowBodySharesDeadlineWithHeadersAndIsNotRetried()"
+        },
+        {
+          "path": "src/test/java/com/demo/edu/classroom/ai/ClassroomAiGatewayTest.java",
+          "anchor": "void authenticationRateLimitAndServerErrorsNeverRetry()"
+        }
+      ],
+      "upstream": [
+        {
+          "path": "lib/providers/vivo/vivo-client.ts",
+          "anchor": "async function vivoFetchWithDeadline("
+        },
+        {
+          "path": "lib/providers/vivo/vivo-client.ts",
+          "anchor": "export async function vivoJsonRequest"
+        }
+      ],
+      "resultStatus": "PENDING"
+    },
+    {
+      "id": "MIGRATE-REVIEW",
+      "sources": [
+        "CHILDCARE",
+        "M001"
+      ],
+      "change": "本轮深化",
+      "kind": "设计借鉴与跨语言适配",
+      "adoption": "最多一次局部文本修订，复核通过才采纳；保留原有效候选。",
+      "notAdopted": "原托育评分阈值8、无限循环、自动更改题目答案与互动程序。",
+      "code": [
+        {
+          "path": "src/main/java/com/demo/edu/classroom/ai/ClassroomTeachingReview.java",
+          "anchor": "public ObjectNode review("
+        },
+        {
+          "path": "src/main/java/com/demo/edu/classroom/ai/ClassroomTeachingReview.java",
+          "anchor": "private ObjectNode patch("
+        }
+      ],
+      "tests": [
+        {
+          "path": "src/test/java/com/demo/edu/classroom/ai/ClassroomTeachingReviewTest.java",
+          "anchor": "void exactlyOneTextRevisionIsAdoptedOnlyAfterRecheck()"
+        },
+        {
+          "path": "src/test/java/com/demo/edu/classroom/ai/ClassroomTeachingReviewTest.java",
+          "anchor": "void failedRecheckRestoresOriginalCandidateAndDoesNotLoop()"
+        }
+      ],
+      "upstream": [
+        {
+          "path": "backend/app/services/evaluator_optimizer.py",
+          "anchor": "    async def run("
+        },
+        {
+          "path": "backend/app/services/evaluator_optimizer.py",
+          "anchor": "    def _should_replace_best("
+        }
+      ],
+      "resultStatus": "PENDING"
+    },
+    {
+      "id": "MIGRATE-TRACE",
+      "sources": [
+        "CHILDCARE"
+      ],
+      "change": "本轮深化",
+      "kind": "设计借鉴与跨语言适配",
+      "adoption": "保留实际model/requestId/usage/耗时和合约状态；未返回信息保持null。",
+      "notAdopted": "把configured视为live通过，输出密钥/原始提示词或猜造用量。",
+      "code": [
+        {
+          "path": "src/main/java/com/demo/edu/classroom/ai/ClassroomAiGateway.java",
+          "anchor": "private final class Trace {"
+        },
+        {
+          "path": "src/main/java/com/demo/edu/classroom/ai/ClassroomAiGateway.java",
+          "anchor": "public ObjectNode capabilityStatus()"
+        }
+      ],
+      "tests": [
+        {
+          "path": "src/test/java/com/demo/edu/classroom/ai/ClassroomAiGatewayTest.java",
+          "anchor": "void missingActualMetadataStaysNullRatherThanInvented()"
+        }
+      ],
+      "upstream": [
+        {
+          "path": "lib/ai/provider-trace.ts",
+          "anchor": "export function buildAiProviderTrace(input:"
+        },
+        {
+          "path": "lib/ai/provider-trace.ts",
+          "anchor": "export function normalizeAiCapabilityMode(input:"
+        }
+      ],
+      "resultStatus": "PENDING"
+    },
+    {
+      "id": "MIGRATE-FEEDBACK",
+      "sources": [
+        "CHILDCARE",
+        "M003"
+      ],
+      "change": "本轮深化",
+      "kind": "设计借鉴与跨语言适配",
+      "adoption": "反馈归一化、幂等与显式任务关联；按课程/章节/内容指纹取回。",
+      "notAdopted": "任务不匹配时回退最新一条反馈。",
+      "code": [
+        {
+          "path": "src/main/java/com/demo/edu/classroom/study/feedback/LearningFeedbackService.java",
+          "anchor": "public ObjectNode history("
+        },
+        {
+          "path": "src/main/java/com/demo/edu/classroom/study/ClassroomStudyStore.java",
+          "anchor": "public boolean create("
+        },
+        {
+          "path": "src/main/java/com/demo/edu/classroom/recommendation/ClassroomRecommendationService.java",
+          "anchor": "private List<String> verifiedFeedbackTargets("
+        }
+      ],
+      "tests": [
+        {
+          "path": "src/test/java/com/demo/edu/classroom/study/ClassroomStudyStoreTest.java",
+          "anchor": "void duplicateFirstSubmissionCannotRewriteOriginalText()"
+        },
+        {
+          "path": "src/test/java/com/demo/edu/classroom/study/feedback/LearningFeedbackServiceTest.java",
+          "anchor": "void historyIsSceneBoundAndReturnsAtMostTenNewestAttempts()"
+        }
+      ],
+      "upstream": [
+        {
+          "path": "lib/feedback/normalize.ts",
+          "anchor": "export function normalizeParentStructuredFeedback("
+        },
+        {
+          "path": "lib/feedback/normalize.ts",
+          "anchor": "function dedupeFeedbacks("
+        },
+        {
+          "path": "lib/feedback/consumption.ts",
+          "anchor": "export function selectStructuredFeedback("
+        }
+      ],
+      "resultStatus": "PENDING"
+    },
+    {
+      "id": "EXISTING-EVIDENCE",
+      "sources": [
+        "M001",
+        "M002"
+      ],
+      "change": "已有实现",
+      "kind": "既有模块保持职责",
+      "adoption": "既有知识库EvidenceSelector仅选择文档证据；本轮新增视频推荐器与其分离。",
+      "notAdopted": "把既有功能重新记作本轮新增。",
+      "code": [
+        {
+          "path": "src/main/java/com/demo/edu/classroom/research/EvidenceSelector.java",
+          "anchor": "class EvidenceSelector"
+        }
+      ],
+      "tests": [],
+      "resultStatus": "HISTORICAL_NOT_RECOUNTED"
+    }
+  ],
+  "notAdopted": [
+    "原动物群体优化器整体复现",
+    "PyTorch训练或自研基础模型",
+    "因果教学效果声明",
+    "连续几何积分器",
+    "发布全文至公开网站"
+  ],
+  "familyRelations": [
+    {
+      "family": "CN120296243",
+      "members": [
+        "CN120296243A",
+        "CN120296243B"
+      ],
+      "note": "A/B同族版本，B保留原HTML和打印PDF；本轮不重复计算贡献。"
+    },
+    {
+      "family": "CN119025756",
+      "members": [
+        "P017",
+        "CN119025756A"
+      ],
+      "note": "对应推荐思想论文和专利互证；不同文献，不按两项独立算法创新计算。"
+    }
+  ],
+  "upstreamProject": "用户提供的childcare-smart完整子项目；upstream条目为其项目相对路径。"
+}

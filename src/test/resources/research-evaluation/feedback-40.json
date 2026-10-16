@@ -1,0 +1,2152 @@
+{
+  "schemaVersion": "engineering-fixture-v1",
+  "labelProvenance": {
+    "kind": "agent-authored-engineering-expectation",
+    "status": "draft-engineering-reference",
+    "humanReviewed": false,
+    "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+    "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+  },
+  "cases": [
+    {
+      "id": "FB-paraphrase-01",
+      "category": "paraphrase",
+      "split": "development",
+      "course": {
+        "id": "FB-paraphrase-01",
+        "title": "长方形面积",
+        "topic": "长方形面积",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "长方形面积等于长乘宽。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对当前资料中的命题：长方形面积"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "长方形面积",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "核对当前资料中的命题：长方形面积"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "understanding": "长方形的面积用长和宽相乘求出。",
+      "checkPoint": "长方形面积",
+      "expectedStatuses": [
+        "covered"
+      ],
+      "basis": "自编资料与表述语义相同，不能因用词不同判错。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "FB-missing-01",
+      "category": "missing",
+      "split": "development",
+      "course": {
+        "id": "FB-missing-01",
+        "title": "长方形面积",
+        "topic": "长方形面积",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "长方形面积等于长乘宽。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对当前资料中的命题：长方形面积"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "长方形面积",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "核对当前资料中的命题：长方形面积"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "understanding": "我还记得这个标题，但没有说出资料里的具体意思。",
+      "checkPoint": "长方形面积",
+      "expectedStatuses": [
+        "missing"
+      ],
+      "basis": "本节明确目标有可靠事实资料，学生未表述该命题。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "FB-conflict-01",
+      "category": "conflict",
+      "split": "development",
+      "course": {
+        "id": "FB-conflict-01",
+        "title": "长方形面积",
+        "topic": "长方形面积",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "长方形面积等于长乘宽。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对当前资料中的命题：长方形面积"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "长方形面积",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "核对当前资料中的命题：长方形面积"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "understanding": "把长和宽相加就是长方形面积。",
+      "checkPoint": "长方形面积",
+      "expectedStatuses": [
+        "conflict"
+      ],
+      "basis": "表述与所给原文命题明确冲突，引用必须来自当前资料。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "FB-paraphrase-02",
+      "category": "paraphrase",
+      "split": "held-out",
+      "course": {
+        "id": "FB-paraphrase-02",
+        "title": "分数通分",
+        "topic": "分数通分",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "通分时把异分母分数化成与原数相等的同分母分数。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对当前资料中的命题：分数通分"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "分数通分",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "核对当前资料中的命题：分数通分"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "understanding": "通分会把分母改成相同的数，但分数大小保持原样。",
+      "checkPoint": "分数通分",
+      "expectedStatuses": [
+        "covered"
+      ],
+      "basis": "自编资料与表述语义相同，不能因用词不同判错。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "FB-missing-02",
+      "category": "missing",
+      "split": "held-out",
+      "course": {
+        "id": "FB-missing-02",
+        "title": "分数通分",
+        "topic": "分数通分",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "通分时把异分母分数化成与原数相等的同分母分数。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对当前资料中的命题：分数通分"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "分数通分",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "核对当前资料中的命题：分数通分"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "understanding": "我还记得这个标题，但没有说出资料里的具体意思。",
+      "checkPoint": "分数通分",
+      "expectedStatuses": [
+        "missing"
+      ],
+      "basis": "本节明确目标有可靠事实资料，学生未表述该命题。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "FB-conflict-02",
+      "category": "conflict",
+      "split": "held-out",
+      "course": {
+        "id": "FB-conflict-02",
+        "title": "分数通分",
+        "topic": "分数通分",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "通分时把异分母分数化成与原数相等的同分母分数。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对当前资料中的命题：分数通分"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "分数通分",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "核对当前资料中的命题：分数通分"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "understanding": "通分以后分数的大小会改变。",
+      "checkPoint": "分数通分",
+      "expectedStatuses": [
+        "conflict"
+      ],
+      "basis": "表述与所给原文命题明确冲突，引用必须来自当前资料。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "FB-paraphrase-03",
+      "category": "paraphrase",
+      "split": "held-out",
+      "course": {
+        "id": "FB-paraphrase-03",
+        "title": "植物蒸腾",
+        "topic": "植物蒸腾",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "植物通过叶片散失水分的过程叫蒸腾。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对当前资料中的命题：植物蒸腾"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "植物蒸腾",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "核对当前资料中的命题：植物蒸腾"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "understanding": "植物的水分经叶子散出去，这个过程就是蒸腾。",
+      "checkPoint": "植物蒸腾",
+      "expectedStatuses": [
+        "covered"
+      ],
+      "basis": "自编资料与表述语义相同，不能因用词不同判错。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "FB-missing-03",
+      "category": "missing",
+      "split": "held-out",
+      "course": {
+        "id": "FB-missing-03",
+        "title": "植物蒸腾",
+        "topic": "植物蒸腾",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "植物通过叶片散失水分的过程叫蒸腾。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对当前资料中的命题：植物蒸腾"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "植物蒸腾",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "核对当前资料中的命题：植物蒸腾"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "understanding": "我还记得这个标题，但没有说出资料里的具体意思。",
+      "checkPoint": "植物蒸腾",
+      "expectedStatuses": [
+        "missing"
+      ],
+      "basis": "本节明确目标有可靠事实资料，学生未表述该命题。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "FB-conflict-03",
+      "category": "conflict",
+      "split": "held-out",
+      "course": {
+        "id": "FB-conflict-03",
+        "title": "植物蒸腾",
+        "topic": "植物蒸腾",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "植物通过叶片散失水分的过程叫蒸腾。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对当前资料中的命题：植物蒸腾"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "植物蒸腾",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "核对当前资料中的命题：植物蒸腾"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "understanding": "蒸腾是植物的根吸入水分的过程。",
+      "checkPoint": "植物蒸腾",
+      "expectedStatuses": [
+        "conflict"
+      ],
+      "basis": "表述与所给原文命题明确冲突，引用必须来自当前资料。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "FB-paraphrase-04",
+      "category": "paraphrase",
+      "split": "held-out",
+      "course": {
+        "id": "FB-paraphrase-04",
+        "title": "水汽凝结",
+        "topic": "水汽凝结",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "水汽遇冷可以凝结成小水滴。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对当前资料中的命题：水汽凝结"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "水汽凝结",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "核对当前资料中的命题：水汽凝结"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "understanding": "水蒸气冷下来能够变为小水滴。",
+      "checkPoint": "水汽凝结",
+      "expectedStatuses": [
+        "covered"
+      ],
+      "basis": "自编资料与表述语义相同，不能因用词不同判错。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "FB-missing-04",
+      "category": "missing",
+      "split": "held-out",
+      "course": {
+        "id": "FB-missing-04",
+        "title": "水汽凝结",
+        "topic": "水汽凝结",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "水汽遇冷可以凝结成小水滴。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对当前资料中的命题：水汽凝结"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "水汽凝结",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "核对当前资料中的命题：水汽凝结"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "understanding": "我还记得这个标题，但没有说出资料里的具体意思。",
+      "checkPoint": "水汽凝结",
+      "expectedStatuses": [
+        "missing"
+      ],
+      "basis": "本节明确目标有可靠事实资料，学生未表述该命题。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "FB-conflict-04",
+      "category": "conflict",
+      "split": "held-out",
+      "course": {
+        "id": "FB-conflict-04",
+        "title": "水汽凝结",
+        "topic": "水汽凝结",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "水汽遇冷可以凝结成小水滴。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对当前资料中的命题：水汽凝结"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "水汽凝结",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "核对当前资料中的命题：水汽凝结"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "understanding": "水汽受热就一定凝结成水滴。",
+      "checkPoint": "水汽凝结",
+      "expectedStatuses": [
+        "conflict"
+      ],
+      "basis": "表述与所给原文命题明确冲突，引用必须来自当前资料。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "FB-paraphrase-05",
+      "category": "paraphrase",
+      "split": "held-out",
+      "course": {
+        "id": "FB-paraphrase-05",
+        "title": "尺子测量",
+        "topic": "尺子测量",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "测量时应把零刻度与物体起点对齐。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对当前资料中的命题：尺子测量"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "尺子测量",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "核对当前资料中的命题：尺子测量"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "understanding": "开始测量要让物体的一端对着尺子的零线。",
+      "checkPoint": "尺子测量",
+      "expectedStatuses": [
+        "covered"
+      ],
+      "basis": "自编资料与表述语义相同，不能因用词不同判错。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "FB-missing-05",
+      "category": "missing",
+      "split": "held-out",
+      "course": {
+        "id": "FB-missing-05",
+        "title": "尺子测量",
+        "topic": "尺子测量",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "测量时应把零刻度与物体起点对齐。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对当前资料中的命题：尺子测量"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "尺子测量",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "核对当前资料中的命题：尺子测量"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "understanding": "我还记得这个标题，但没有说出资料里的具体意思。",
+      "checkPoint": "尺子测量",
+      "expectedStatuses": [
+        "missing"
+      ],
+      "basis": "本节明确目标有可靠事实资料，学生未表述该命题。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "FB-conflict-05",
+      "category": "conflict",
+      "split": "held-out",
+      "course": {
+        "id": "FB-conflict-05",
+        "title": "尺子测量",
+        "topic": "尺子测量",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "测量时应把零刻度与物体起点对齐。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对当前资料中的命题：尺子测量"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "尺子测量",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "核对当前资料中的命题：尺子测量"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "understanding": "测量时应该把物体起点对齐尺子的数字一。",
+      "checkPoint": "尺子测量",
+      "expectedStatuses": [
+        "conflict"
+      ],
+      "basis": "表述与所给原文命题明确冲突，引用必须来自当前资料。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "FB-paraphrase-06",
+      "category": "paraphrase",
+      "split": "held-out",
+      "course": {
+        "id": "FB-paraphrase-06",
+        "title": "英语问路礼貌表达",
+        "topic": "英语问路礼貌表达",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "问路时可以先说Excuse me，再提出问题。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对当前资料中的命题：英语问路礼貌表达"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "英语问路礼貌表达",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "核对当前资料中的命题：英语问路礼貌表达"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "understanding": "向别人询问路线前，先用Excuse me礼貌打招呼。",
+      "checkPoint": "英语问路礼貌表达",
+      "expectedStatuses": [
+        "covered"
+      ],
+      "basis": "自编资料与表述语义相同，不能因用词不同判错。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "FB-missing-06",
+      "category": "missing",
+      "split": "held-out",
+      "course": {
+        "id": "FB-missing-06",
+        "title": "英语问路礼貌表达",
+        "topic": "英语问路礼貌表达",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "问路时可以先说Excuse me，再提出问题。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对当前资料中的命题：英语问路礼貌表达"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "英语问路礼貌表达",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "核对当前资料中的命题：英语问路礼貌表达"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "understanding": "我还记得这个标题，但没有说出资料里的具体意思。",
+      "checkPoint": "英语问路礼貌表达",
+      "expectedStatuses": [
+        "missing"
+      ],
+      "basis": "本节明确目标有可靠事实资料，学生未表述该命题。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "FB-conflict-06",
+      "category": "conflict",
+      "split": "held-out",
+      "course": {
+        "id": "FB-conflict-06",
+        "title": "英语问路礼貌表达",
+        "topic": "英语问路礼貌表达",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "问路时可以先说Excuse me，再提出问题。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对当前资料中的命题：英语问路礼貌表达"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "英语问路礼貌表达",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "核对当前资料中的命题：英语问路礼貌表达"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "understanding": "问路时不能先说Excuse me。",
+      "checkPoint": "英语问路礼貌表达",
+      "expectedStatuses": [
+        "conflict"
+      ],
+      "basis": "表述与所给原文命题明确冲突，引用必须来自当前资料。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "FB-paraphrase-07",
+      "category": "paraphrase",
+      "split": "held-out",
+      "course": {
+        "id": "FB-paraphrase-07",
+        "title": "光的折射",
+        "topic": "光的折射",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "光从空气斜射入水中时，传播方向通常发生改变。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对当前资料中的命题：光的折射"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "光的折射",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "核对当前资料中的命题：光的折射"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "understanding": "光斜着从空气进入水里，路线通常会偏折。",
+      "checkPoint": "光的折射",
+      "expectedStatuses": [
+        "covered"
+      ],
+      "basis": "自编资料与表述语义相同，不能因用词不同判错。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "FB-missing-07",
+      "category": "missing",
+      "split": "held-out",
+      "course": {
+        "id": "FB-missing-07",
+        "title": "光的折射",
+        "topic": "光的折射",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "光从空气斜射入水中时，传播方向通常发生改变。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对当前资料中的命题：光的折射"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "光的折射",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "核对当前资料中的命题：光的折射"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "understanding": "我还记得这个标题，但没有说出资料里的具体意思。",
+      "checkPoint": "光的折射",
+      "expectedStatuses": [
+        "missing"
+      ],
+      "basis": "本节明确目标有可靠事实资料，学生未表述该命题。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "FB-conflict-07",
+      "category": "conflict",
+      "split": "held-out",
+      "course": {
+        "id": "FB-conflict-07",
+        "title": "光的折射",
+        "topic": "光的折射",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "光从空气斜射入水中时，传播方向通常发生改变。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对当前资料中的命题：光的折射"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "光的折射",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "核对当前资料中的命题：光的折射"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "understanding": "光斜着进入水中时传播方向一定不变。",
+      "checkPoint": "光的折射",
+      "expectedStatuses": [
+        "conflict"
+      ],
+      "basis": "表述与所给原文命题明确冲突，引用必须来自当前资料。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "FB-paraphrase-08",
+      "category": "paraphrase",
+      "split": "held-out",
+      "course": {
+        "id": "FB-paraphrase-08",
+        "title": "递归终止",
+        "topic": "递归终止",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "递归程序需要可达到的终止条件。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对当前资料中的命题：递归终止"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "递归终止",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "核对当前资料中的命题：递归终止"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "understanding": "递归必须能走到一个停止继续调用自己的条件。",
+      "checkPoint": "递归终止",
+      "expectedStatuses": [
+        "covered"
+      ],
+      "basis": "自编资料与表述语义相同，不能因用词不同判错。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "FB-missing-08",
+      "category": "missing",
+      "split": "held-out",
+      "course": {
+        "id": "FB-missing-08",
+        "title": "递归终止",
+        "topic": "递归终止",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "递归程序需要可达到的终止条件。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对当前资料中的命题：递归终止"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "递归终止",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "核对当前资料中的命题：递归终止"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "understanding": "我还记得这个标题，但没有说出资料里的具体意思。",
+      "checkPoint": "递归终止",
+      "expectedStatuses": [
+        "missing"
+      ],
+      "basis": "本节明确目标有可靠事实资料，学生未表述该命题。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "FB-conflict-08",
+      "category": "conflict",
+      "split": "held-out",
+      "course": {
+        "id": "FB-conflict-08",
+        "title": "递归终止",
+        "topic": "递归终止",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "递归程序需要可达到的终止条件。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对当前资料中的命题：递归终止"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "递归终止",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "核对当前资料中的命题：递归终止"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "understanding": "递归程序不需要任何终止条件。",
+      "checkPoint": "递归终止",
+      "expectedStatuses": [
+        "conflict"
+      ],
+      "basis": "表述与所给原文命题明确冲突，引用必须来自当前资料。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "FB-no-evidence-01",
+      "category": "no-evidence",
+      "split": "development",
+      "course": {
+        "id": "FB-no-evidence-01",
+        "title": "长方形面积",
+        "topic": "长方形面积",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对当前资料中的命题：长方形面积"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "长方形面积",
+            "type": "slide",
+            "content": {},
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "understanding": "长方形的面积用长和宽相乘求出。",
+      "checkPoint": "长方形面积",
+      "expectedStatuses": [
+        "uncertain"
+      ],
+      "basis": "只有主题与目标，缺少reference/lesson事实来源，不能凭模型常识判定。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      },
+      "noEvidence": true
+    },
+    {
+      "id": "FB-no-evidence-02",
+      "category": "no-evidence",
+      "split": "held-out",
+      "course": {
+        "id": "FB-no-evidence-02",
+        "title": "分数通分",
+        "topic": "分数通分",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对当前资料中的命题：分数通分"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "分数通分",
+            "type": "slide",
+            "content": {},
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "understanding": "通分会把分母改成相同的数，但分数大小保持原样。",
+      "checkPoint": "分数通分",
+      "expectedStatuses": [
+        "uncertain"
+      ],
+      "basis": "只有主题与目标，缺少reference/lesson事实来源，不能凭模型常识判定。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      },
+      "noEvidence": true
+    },
+    {
+      "id": "FB-no-evidence-03",
+      "category": "no-evidence",
+      "split": "held-out",
+      "course": {
+        "id": "FB-no-evidence-03",
+        "title": "植物蒸腾",
+        "topic": "植物蒸腾",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对当前资料中的命题：植物蒸腾"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "植物蒸腾",
+            "type": "slide",
+            "content": {},
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "understanding": "植物的水分经叶子散出去，这个过程就是蒸腾。",
+      "checkPoint": "植物蒸腾",
+      "expectedStatuses": [
+        "uncertain"
+      ],
+      "basis": "只有主题与目标，缺少reference/lesson事实来源，不能凭模型常识判定。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      },
+      "noEvidence": true
+    },
+    {
+      "id": "FB-no-evidence-04",
+      "category": "no-evidence",
+      "split": "held-out",
+      "course": {
+        "id": "FB-no-evidence-04",
+        "title": "水汽凝结",
+        "topic": "水汽凝结",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对当前资料中的命题：水汽凝结"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "水汽凝结",
+            "type": "slide",
+            "content": {},
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "understanding": "水蒸气冷下来能够变为小水滴。",
+      "checkPoint": "水汽凝结",
+      "expectedStatuses": [
+        "uncertain"
+      ],
+      "basis": "只有主题与目标，缺少reference/lesson事实来源，不能凭模型常识判定。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      },
+      "noEvidence": true
+    },
+    {
+      "id": "FB-no-evidence-05",
+      "category": "no-evidence",
+      "split": "held-out",
+      "course": {
+        "id": "FB-no-evidence-05",
+        "title": "尺子测量",
+        "topic": "尺子测量",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对当前资料中的命题：尺子测量"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "尺子测量",
+            "type": "slide",
+            "content": {},
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "understanding": "开始测量要让物体的一端对着尺子的零线。",
+      "checkPoint": "尺子测量",
+      "expectedStatuses": [
+        "uncertain"
+      ],
+      "basis": "只有主题与目标，缺少reference/lesson事实来源，不能凭模型常识判定。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      },
+      "noEvidence": true
+    },
+    {
+      "id": "FB-no-evidence-06",
+      "category": "no-evidence",
+      "split": "held-out",
+      "course": {
+        "id": "FB-no-evidence-06",
+        "title": "英语问路礼貌表达",
+        "topic": "英语问路礼貌表达",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对当前资料中的命题：英语问路礼貌表达"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "英语问路礼貌表达",
+            "type": "slide",
+            "content": {},
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "understanding": "向别人询问路线前，先用Excuse me礼貌打招呼。",
+      "checkPoint": "英语问路礼貌表达",
+      "expectedStatuses": [
+        "uncertain"
+      ],
+      "basis": "只有主题与目标，缺少reference/lesson事实来源，不能凭模型常识判定。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      },
+      "noEvidence": true
+    },
+    {
+      "id": "FB-ambiguous-01",
+      "category": "ambiguous",
+      "split": "development",
+      "course": {
+        "id": "FB-ambiguous-01",
+        "title": "长方形面积",
+        "topic": "长方形面积",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "资料甲：长方形面积等于长乘宽。\n资料乙：把长和宽相加就是长方形面积。\n两份资料均未说明来源或适用条件。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对当前资料中的命题：长方形面积"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "长方形面积",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "核对当前资料中的命题：长方形面积"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "understanding": "长方形的面积用长和宽相乘求出。",
+      "checkPoint": "长方形面积",
+      "expectedStatuses": [
+        "uncertain"
+      ],
+      "basis": "当前资料相互冲突且没有优先来源，不能强行确认对错。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "FB-version-change-01",
+      "category": "version-change",
+      "split": "development",
+      "course": {
+        "id": "FB-version-change-01",
+        "title": "长方形面积",
+        "topic": "长方形面积",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "长方形面积等于长乘宽。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对当前资料中的命题：长方形面积"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "长方形面积",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "核对当前资料中的命题：长方形面积"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "understanding": "长方形的面积用长和宽相乘求出。",
+      "checkPoint": "长方形面积",
+      "expectedStatuses": [
+        "stale"
+      ],
+      "basis": "保存后资料内容版本改变，旧表述核对请求应停在stale，不调用模型。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      },
+      "priorSourceText": "长方形面积等于长乘宽。\n旧版附加说明。",
+      "requiresVersionCheck": true
+    },
+    {
+      "id": "FB-ambiguous-02",
+      "category": "ambiguous",
+      "split": "held-out",
+      "course": {
+        "id": "FB-ambiguous-02",
+        "title": "分数通分",
+        "topic": "分数通分",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "资料甲：通分时把异分母分数化成与原数相等的同分母分数。\n资料乙：通分以后分数的大小会改变。\n两份资料均未说明来源或适用条件。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对当前资料中的命题：分数通分"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "分数通分",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "核对当前资料中的命题：分数通分"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "understanding": "通分会把分母改成相同的数，但分数大小保持原样。",
+      "checkPoint": "分数通分",
+      "expectedStatuses": [
+        "uncertain"
+      ],
+      "basis": "当前资料相互冲突且没有优先来源，不能强行确认对错。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "FB-version-change-02",
+      "category": "version-change",
+      "split": "held-out",
+      "course": {
+        "id": "FB-version-change-02",
+        "title": "分数通分",
+        "topic": "分数通分",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "通分时把异分母分数化成与原数相等的同分母分数。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对当前资料中的命题：分数通分"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "分数通分",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "核对当前资料中的命题：分数通分"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "understanding": "通分会把分母改成相同的数，但分数大小保持原样。",
+      "checkPoint": "分数通分",
+      "expectedStatuses": [
+        "stale"
+      ],
+      "basis": "保存后资料内容版本改变，旧表述核对请求应停在stale，不调用模型。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      },
+      "priorSourceText": "通分时把异分母分数化成与原数相等的同分母分数。\n旧版附加说明。",
+      "requiresVersionCheck": true
+    },
+    {
+      "id": "FB-ambiguous-03",
+      "category": "ambiguous",
+      "split": "held-out",
+      "course": {
+        "id": "FB-ambiguous-03",
+        "title": "植物蒸腾",
+        "topic": "植物蒸腾",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "资料甲：植物通过叶片散失水分的过程叫蒸腾。\n资料乙：蒸腾是植物的根吸入水分的过程。\n两份资料均未说明来源或适用条件。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对当前资料中的命题：植物蒸腾"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "植物蒸腾",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "核对当前资料中的命题：植物蒸腾"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "understanding": "植物的水分经叶子散出去，这个过程就是蒸腾。",
+      "checkPoint": "植物蒸腾",
+      "expectedStatuses": [
+        "uncertain"
+      ],
+      "basis": "当前资料相互冲突且没有优先来源，不能强行确认对错。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "FB-version-change-03",
+      "category": "version-change",
+      "split": "held-out",
+      "course": {
+        "id": "FB-version-change-03",
+        "title": "植物蒸腾",
+        "topic": "植物蒸腾",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "植物通过叶片散失水分的过程叫蒸腾。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对当前资料中的命题：植物蒸腾"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "植物蒸腾",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "核对当前资料中的命题：植物蒸腾"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "understanding": "植物的水分经叶子散出去，这个过程就是蒸腾。",
+      "checkPoint": "植物蒸腾",
+      "expectedStatuses": [
+        "stale"
+      ],
+      "basis": "保存后资料内容版本改变，旧表述核对请求应停在stale，不调用模型。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      },
+      "priorSourceText": "植物通过叶片散失水分的过程叫蒸腾。\n旧版附加说明。",
+      "requiresVersionCheck": true
+    },
+    {
+      "id": "FB-ambiguous-04",
+      "category": "ambiguous",
+      "split": "held-out",
+      "course": {
+        "id": "FB-ambiguous-04",
+        "title": "水汽凝结",
+        "topic": "水汽凝结",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "资料甲：水汽遇冷可以凝结成小水滴。\n资料乙：水汽受热就一定凝结成水滴。\n两份资料均未说明来源或适用条件。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对当前资料中的命题：水汽凝结"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "水汽凝结",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "核对当前资料中的命题：水汽凝结"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "understanding": "水蒸气冷下来能够变为小水滴。",
+      "checkPoint": "水汽凝结",
+      "expectedStatuses": [
+        "uncertain"
+      ],
+      "basis": "当前资料相互冲突且没有优先来源，不能强行确认对错。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "FB-version-change-04",
+      "category": "version-change",
+      "split": "held-out",
+      "course": {
+        "id": "FB-version-change-04",
+        "title": "水汽凝结",
+        "topic": "水汽凝结",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "水汽遇冷可以凝结成小水滴。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对当前资料中的命题：水汽凝结"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "水汽凝结",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "核对当前资料中的命题：水汽凝结"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "understanding": "水蒸气冷下来能够变为小水滴。",
+      "checkPoint": "水汽凝结",
+      "expectedStatuses": [
+        "stale"
+      ],
+      "basis": "保存后资料内容版本改变，旧表述核对请求应停在stale，不调用模型。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      },
+      "priorSourceText": "水汽遇冷可以凝结成小水滴。\n旧版附加说明。",
+      "requiresVersionCheck": true
+    },
+    {
+      "id": "FB-ambiguous-05",
+      "category": "ambiguous",
+      "split": "held-out",
+      "course": {
+        "id": "FB-ambiguous-05",
+        "title": "尺子测量",
+        "topic": "尺子测量",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "资料甲：测量时应把零刻度与物体起点对齐。\n资料乙：测量时应该把物体起点对齐尺子的数字一。\n两份资料均未说明来源或适用条件。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对当前资料中的命题：尺子测量"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "尺子测量",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "核对当前资料中的命题：尺子测量"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "understanding": "开始测量要让物体的一端对着尺子的零线。",
+      "checkPoint": "尺子测量",
+      "expectedStatuses": [
+        "uncertain"
+      ],
+      "basis": "当前资料相互冲突且没有优先来源，不能强行确认对错。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "FB-version-change-05",
+      "category": "version-change",
+      "split": "held-out",
+      "course": {
+        "id": "FB-version-change-05",
+        "title": "尺子测量",
+        "topic": "尺子测量",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "测量时应把零刻度与物体起点对齐。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对当前资料中的命题：尺子测量"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "尺子测量",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "核对当前资料中的命题：尺子测量"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "understanding": "开始测量要让物体的一端对着尺子的零线。",
+      "checkPoint": "尺子测量",
+      "expectedStatuses": [
+        "stale"
+      ],
+      "basis": "保存后资料内容版本改变，旧表述核对请求应停在stale，不调用模型。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      },
+      "priorSourceText": "测量时应把零刻度与物体起点对齐。\n旧版附加说明。",
+      "requiresVersionCheck": true
+    }
+  ]
+}

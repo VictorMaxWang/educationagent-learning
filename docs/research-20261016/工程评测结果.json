@@ -1,0 +1,2019 @@
+{
+  "schemaVersion": "publishable-research-evaluation-v1",
+  "asOf": "2026-10-16",
+  "humanReviewed": false,
+  "independentGeneralizationClaim": false,
+  "studyScope": "engineering contract checks, fixed-input finite-objective comparisons and controlled sensitivity; no real student study",
+  "classification": {
+    "run": "classification-r1",
+    "totalCases": 72,
+    "completedCases": 72,
+    "agreementCases": 72,
+    "failedOrUnknown": 0,
+    "modelCalledCases": 48,
+    "categoryCounts": {
+      "classification": {
+        "total": 72,
+        "completed": 72,
+        "agreement": 72,
+        "failedOrUnknown": 0
+      }
+    },
+    "failureCases": [],
+    "completedMismatchCases": [],
+    "purpose": "initial-development-engineering-check",
+    "humanReviewed": false,
+    "independentGeneralizationClaim": false
+  },
+  "feedbackInitial": {
+    "run": "feedback-r1",
+    "totalCases": 40,
+    "completedCases": 40,
+    "agreementCases": 35,
+    "failedOrUnknown": 0,
+    "modelCalledCases": 29,
+    "categoryCounts": {
+      "paraphrase": {
+        "total": 8,
+        "completed": 8,
+        "agreement": 8,
+        "failedOrUnknown": 0
+      },
+      "missing": {
+        "total": 8,
+        "completed": 8,
+        "agreement": 8,
+        "failedOrUnknown": 0
+      },
+      "conflict": {
+        "total": 8,
+        "completed": 8,
+        "agreement": 8,
+        "failedOrUnknown": 0
+      },
+      "no-evidence": {
+        "total": 6,
+        "completed": 6,
+        "agreement": 6,
+        "failedOrUnknown": 0
+      },
+      "ambiguous": {
+        "total": 5,
+        "completed": 5,
+        "agreement": 0,
+        "failedOrUnknown": 0
+      },
+      "version-change": {
+        "total": 5,
+        "completed": 5,
+        "agreement": 5,
+        "failedOrUnknown": 0
+      }
+    },
+    "failureCases": [],
+    "completedMismatchCases": [
+      {
+        "id": "FB-ambiguous-01",
+        "category": "ambiguous",
+        "actualStatuses": [
+          "covered",
+          "uncertain"
+        ],
+        "expected": [
+          "uncertain"
+        ]
+      },
+      {
+        "id": "FB-ambiguous-02",
+        "category": "ambiguous",
+        "actualStatuses": [
+          "covered",
+          "uncertain"
+        ],
+        "expected": [
+          "uncertain"
+        ]
+      },
+      {
+        "id": "FB-ambiguous-03",
+        "category": "ambiguous",
+        "actualStatuses": [
+          "covered",
+          "uncertain"
+        ],
+        "expected": [
+          "uncertain"
+        ]
+      },
+      {
+        "id": "FB-ambiguous-04",
+        "category": "ambiguous",
+        "actualStatuses": [
+          "covered",
+          "uncertain"
+        ],
+        "expected": [
+          "uncertain"
+        ]
+      },
+      {
+        "id": "FB-ambiguous-05",
+        "category": "ambiguous",
+        "actualStatuses": [
+          "missing",
+          "uncertain"
+        ],
+        "expected": [
+          "uncertain"
+        ]
+      }
+    ],
+    "purpose": "initial-development-engineering-check",
+    "humanReviewed": false,
+    "independentGeneralizationClaim": false
+  },
+  "feedbackRegression": {
+    "run": "feedback-r2",
+    "totalCases": 40,
+    "completedCases": 38,
+    "agreementCases": 38,
+    "failedOrUnknown": 2,
+    "modelCalledCases": 29,
+    "categoryCounts": {
+      "paraphrase": {
+        "total": 8,
+        "completed": 7,
+        "agreement": 7,
+        "failedOrUnknown": 1
+      },
+      "missing": {
+        "total": 8,
+        "completed": 8,
+        "agreement": 8,
+        "failedOrUnknown": 0
+      },
+      "conflict": {
+        "total": 8,
+        "completed": 7,
+        "agreement": 7,
+        "failedOrUnknown": 1
+      },
+      "no-evidence": {
+        "total": 6,
+        "completed": 6,
+        "agreement": 6,
+        "failedOrUnknown": 0
+      },
+      "ambiguous": {
+        "total": 5,
+        "completed": 5,
+        "agreement": 5,
+        "failedOrUnknown": 0
+      },
+      "version-change": {
+        "total": 5,
+        "completed": 5,
+        "agreement": 5,
+        "failedOrUnknown": 0
+      }
+    },
+    "failureCases": [
+      {
+        "id": "FB-paraphrase-02",
+        "category": "paraphrase",
+        "failureKind": "contract-invalid",
+        "attempts": 2,
+        "gradeEffect": "unknown outcome; no confirmed error or score"
+      },
+      {
+        "id": "FB-conflict-07",
+        "category": "conflict",
+        "failureKind": "contract-invalid",
+        "attempts": 2,
+        "gradeEffect": "unknown outcome; no confirmed error or score"
+      }
+    ],
+    "completedMismatchCases": [],
+    "purpose": "development-contract-repair-regression",
+    "humanReviewed": false,
+    "independentGeneralizationClaim": false
+  },
+  "publicResourceCapture": {
+    "queryCount": 30,
+    "outcomeCounts": {
+      "ok": 30
+    },
+    "candidateOccurrences": 240,
+    "uniqueVideos": 238,
+    "verifiedOccurrences": 240,
+    "humanReviewed": false
+  },
+  "recommendationDenominators": {
+    "queryOutcomes": 30,
+    "businessStatusCounts": {
+      "ready": 23,
+      "hidden": 6,
+      "error": 1
+    },
+    "comparableFeatureInputs": 24,
+    "nonComparableOutcomesRetained": 6,
+    "validEmptyFeasibleSetCasesIncluded": 1
+  },
+  "algorithmVersion": "classroom-combination-v1",
+  "baselineVersion": "same-pool-feasible-baselines-v1",
+  "baselineComparison": {
+    "search_order": {
+      "denominator": 24,
+      "meanFiniteObjective": 0.748189,
+      "meanDurationSecondsIncludingEmpty": 312.541667,
+      "meanSelectedCountIncludingEmpty": 2.041667,
+      "meanGoalCoverageIncludingEmpty": 0.958333,
+      "meanRedundancyIncludingEmpty": 0.473674,
+      "sameSelectionAsOptimum": 6,
+      "feasibleOrValidEmpty": 24
+    },
+    "semantic_rank": {
+      "denominator": 24,
+      "meanFiniteObjective": 0.747248,
+      "meanDurationSecondsIncludingEmpty": 314.458333,
+      "meanSelectedCountIncludingEmpty": 2.083333,
+      "meanGoalCoverageIncludingEmpty": 0.958333,
+      "meanRedundancyIncludingEmpty": 0.502061,
+      "sameSelectionAsOptimum": 6,
+      "feasibleOrValidEmpty": 24
+    },
+    "lexical_bigram_rank": {
+      "denominator": 24,
+      "meanFiniteObjective": 0.75242,
+      "meanDurationSecondsIncludingEmpty": 338.583333,
+      "meanSelectedCountIncludingEmpty": 2,
+      "meanGoalCoverageIncludingEmpty": 0.958333,
+      "meanRedundancyIncludingEmpty": 0.457094,
+      "sameSelectionAsOptimum": 6,
+      "feasibleOrValidEmpty": 24
+    },
+    "greedy": {
+      "denominator": 24,
+      "meanFiniteObjective": 0.857174,
+      "meanDurationSecondsIncludingEmpty": 146.458333,
+      "meanSelectedCountIncludingEmpty": 0.958333,
+      "meanGoalCoverageIncludingEmpty": 0.958333,
+      "meanRedundancyIncludingEmpty": 0.0,
+      "sameSelectionAsOptimum": 24,
+      "feasibleOrValidEmpty": 24
+    },
+    "optimum": {
+      "denominator": 24,
+      "meanFiniteObjective": 0.857174,
+      "meanDurationSecondsIncludingEmpty": 146.458333,
+      "meanSelectedCountIncludingEmpty": 0.958333,
+      "meanGoalCoverageIncludingEmpty": 0.958333,
+      "meanRedundancyIncludingEmpty": 0.0,
+      "sameSelectionAsOptimum": 24,
+      "feasibleOrValidEmpty": 24
+    }
+  },
+  "ablations": {
+    "without_semantic_relevance": {
+      "denominator": 24,
+      "selectionChanged": 11,
+      "meanOriginalObjective": 0.844998
+    },
+    "without_coverage": {
+      "denominator": 24,
+      "selectionChanged": 0,
+      "meanOriginalObjective": 0.857174
+    },
+    "without_redundancy": {
+      "denominator": 24,
+      "selectionChanged": 0,
+      "meanOriginalObjective": 0.857174
+    },
+    "controlled_feedback": {
+      "denominator": 24,
+      "selectionChanged": 0,
+      "baseGoalCounts": {
+        "1": 23,
+        "2": 1
+      },
+      "mode": "controlled-feedback-fixture",
+      "realStudentFeedback": false,
+      "conclusion": "No observed selection change in these inputs; no feedback benefit established"
+    },
+    "gate": {
+      "mode": "counterfactual-always-search-policy",
+      "inputCases": 72,
+      "actualPipelineWouldSearch": 24,
+      "withoutGateWouldSearch": 72,
+      "authoredProhibitedCases": 24,
+      "authoredProhibitedCasesBlocked": 24,
+      "modelFailureCasesRetained": 0,
+      "networkSearchesForThisAblation": 0
+    }
+  },
+  "firstHit": {
+    "retrieval_vs_semantic": {
+      "totalComparableQueries": 24,
+      "computed": 24,
+      "intervalContainsZero": 24,
+      "strictCostSavingCertified": 0,
+      "strictCostIncreaseCertified": 0,
+      "identicallyZeroInterval": 7,
+      "minimumLowerBound": -4,
+      "maximumUpperBound": 5,
+      "allCandidateLabelsUnknown": true,
+      "eachComparedRankingUsesSameFullPool": true,
+      "scope": "exact compatibility bounds on checks, not estimated probabilities or observed student cost"
+    },
+    "retrieval_vs_optimized_first": {
+      "totalComparableQueries": 24,
+      "computed": 24,
+      "intervalContainsZero": 24,
+      "strictCostSavingCertified": 0,
+      "strictCostIncreaseCertified": 0,
+      "identicallyZeroInterval": 7,
+      "minimumLowerBound": -4,
+      "maximumUpperBound": 5,
+      "allCandidateLabelsUnknown": true,
+      "eachComparedRankingUsesSameFullPool": true,
+      "scope": "exact compatibility bounds on checks, not estimated probabilities or observed student cost"
+    }
+  },
+  "optimizerLocalTiming": {
+    "host": "Windows 11",
+    "p95Ms": 0.1338,
+    "scope": "Windows fixed-input optimizer only; does not establish server P95"
+  },
+  "optimizerServerTiming": {
+    "status": "NOT_RUN_IN_THIS_REPORT",
+    "requiredInput": "24 frozen verified feature inputs exported by export_timing_inputs.py; no new model call"
+  },
+  "queryOutcomes": [
+    {
+      "id": "BILI-01",
+      "query": "沁园春长沙 朗诵",
+      "snapshotSearchStatus": "ok",
+      "featureStatus": "features_ready",
+      "businessDisplayStatus": "ready",
+      "comparable": true,
+      "matchedCandidateCount": 4,
+      "selectedCount": 1,
+      "failureKind": null,
+      "classificationStatus": "eligible",
+      "fixedCatalogInvocations": 1,
+      "newLiveSearchRequestsDuringReplay": 0,
+      "baselineScores": {
+        "search_order": 0.745722,
+        "semantic_rank": 0.745282,
+        "lexical_bigram_rank": 0.745722,
+        "greedy": 0.884133,
+        "optimum": 0.884133
+      },
+      "selectedPublicResourceIds": [
+        "BV1wT4y1Y76S:1"
+      ],
+      "independentlyVerifiedOptimum": true,
+      "ablations": {
+        "without_semantic_relevance": {
+          "selectionChanged": true,
+          "originalObjective": 0.8428
+        },
+        "without_coverage": {
+          "selectionChanged": false,
+          "originalObjective": 0.884133
+        },
+        "without_redundancy": {
+          "selectionChanged": false,
+          "originalObjective": 0.884133
+        }
+      },
+      "controlledFeedbackSelectionChanged": false,
+      "firstHitSemantic": {
+        "status": "COMPUTED",
+        "minCostDifference": -3,
+        "maxCostDifference": 2,
+        "unknownCount": 4,
+        "evaluatedAssignments": 16,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      },
+      "firstHitOptimizedFirst": {
+        "status": "COMPUTED",
+        "minCostDifference": -3,
+        "maxCostDifference": 2,
+        "unknownCount": 4,
+        "evaluatedAssignments": 16,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      }
+    },
+    {
+      "id": "BILI-02",
+      "query": "沁园春长沙 意象赏析",
+      "snapshotSearchStatus": "ok",
+      "featureStatus": "features_ready",
+      "businessDisplayStatus": "ready",
+      "comparable": true,
+      "matchedCandidateCount": 3,
+      "selectedCount": 1,
+      "failureKind": null,
+      "classificationStatus": "eligible",
+      "fixedCatalogInvocations": 1,
+      "newLiveSearchRequestsDuringReplay": 0,
+      "baselineScores": {
+        "search_order": 0.684862,
+        "semantic_rank": 0.684862,
+        "lexical_bigram_rank": 0.684862,
+        "greedy": 0.881522,
+        "optimum": 0.881522
+      },
+      "selectedPublicResourceIds": [
+        "BV1H24y187Ho:1"
+      ],
+      "independentlyVerifiedOptimum": true,
+      "ablations": {
+        "without_semantic_relevance": {
+          "selectionChanged": false,
+          "originalObjective": 0.881522
+        },
+        "without_coverage": {
+          "selectionChanged": false,
+          "originalObjective": 0.881522
+        },
+        "without_redundancy": {
+          "selectionChanged": false,
+          "originalObjective": 0.881522
+        }
+      },
+      "controlledFeedbackSelectionChanged": false,
+      "firstHitSemantic": {
+        "status": "COMPUTED",
+        "minCostDifference": -1,
+        "maxCostDifference": 1,
+        "unknownCount": 3,
+        "evaluatedAssignments": 8,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      },
+      "firstHitOptimizedFirst": {
+        "status": "COMPUTED",
+        "minCostDifference": -1,
+        "maxCostDifference": 1,
+        "unknownCount": 3,
+        "evaluatedAssignments": 8,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      }
+    },
+    {
+      "id": "BILI-03",
+      "query": "静夜思 朗读",
+      "snapshotSearchStatus": "ok",
+      "featureStatus": "features_ready",
+      "businessDisplayStatus": "ready",
+      "comparable": true,
+      "matchedCandidateCount": 2,
+      "selectedCount": 1,
+      "failureKind": null,
+      "classificationStatus": "eligible",
+      "fixedCatalogInvocations": 1,
+      "newLiveSearchRequestsDuringReplay": 0,
+      "baselineScores": {
+        "search_order": 0.760997,
+        "semantic_rank": 0.760997,
+        "lexical_bigram_rank": 0.760997,
+        "greedy": 0.894,
+        "optimum": 0.894
+      },
+      "selectedPublicResourceIds": [
+        "BV1ZRNiezEXt:1"
+      ],
+      "independentlyVerifiedOptimum": true,
+      "ablations": {
+        "without_semantic_relevance": {
+          "selectionChanged": false,
+          "originalObjective": 0.894
+        },
+        "without_coverage": {
+          "selectionChanged": false,
+          "originalObjective": 0.894
+        },
+        "without_redundancy": {
+          "selectionChanged": false,
+          "originalObjective": 0.894
+        }
+      },
+      "controlledFeedbackSelectionChanged": false,
+      "firstHitSemantic": {
+        "status": "COMPUTED",
+        "minCostDifference": 0,
+        "maxCostDifference": 0,
+        "unknownCount": 2,
+        "evaluatedAssignments": 4,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      },
+      "firstHitOptimizedFirst": {
+        "status": "COMPUTED",
+        "minCostDifference": 0,
+        "maxCostDifference": 0,
+        "unknownCount": 2,
+        "evaluatedAssignments": 4,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      }
+    },
+    {
+      "id": "BILI-04",
+      "query": "观沧海 朗诵",
+      "snapshotSearchStatus": "ok",
+      "featureStatus": "features_ready",
+      "businessDisplayStatus": "ready",
+      "comparable": true,
+      "matchedCandidateCount": 4,
+      "selectedCount": 1,
+      "failureKind": null,
+      "classificationStatus": "eligible",
+      "fixedCatalogInvocations": 1,
+      "newLiveSearchRequestsDuringReplay": 0,
+      "baselineScores": {
+        "search_order": 0.755549,
+        "semantic_rank": 0.758467,
+        "lexical_bigram_rank": 0.755549,
+        "greedy": 0.901,
+        "optimum": 0.901
+      },
+      "selectedPublicResourceIds": [
+        "BV1BV411d7Lw:1"
+      ],
+      "independentlyVerifiedOptimum": true,
+      "ablations": {
+        "without_semantic_relevance": {
+          "selectionChanged": false,
+          "originalObjective": 0.901
+        },
+        "without_coverage": {
+          "selectionChanged": false,
+          "originalObjective": 0.901
+        },
+        "without_redundancy": {
+          "selectionChanged": false,
+          "originalObjective": 0.901
+        }
+      },
+      "controlledFeedbackSelectionChanged": false,
+      "firstHitSemantic": {
+        "status": "COMPUTED",
+        "minCostDifference": -2,
+        "maxCostDifference": 1,
+        "unknownCount": 4,
+        "evaluatedAssignments": 16,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      },
+      "firstHitOptimizedFirst": {
+        "status": "COMPUTED",
+        "minCostDifference": -2,
+        "maxCostDifference": 1,
+        "unknownCount": 4,
+        "evaluatedAssignments": 16,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      }
+    },
+    {
+      "id": "BILI-05",
+      "query": "英语th 发音示范",
+      "snapshotSearchStatus": "ok",
+      "featureStatus": "features_ready",
+      "businessDisplayStatus": "ready",
+      "comparable": true,
+      "matchedCandidateCount": 6,
+      "selectedCount": 1,
+      "failureKind": null,
+      "classificationStatus": "eligible",
+      "fixedCatalogInvocations": 1,
+      "newLiveSearchRequestsDuringReplay": 0,
+      "baselineScores": {
+        "search_order": 0.76198,
+        "semantic_rank": 0.782027,
+        "lexical_bigram_rank": 0.772713,
+        "greedy": 0.924267,
+        "optimum": 0.924267
+      },
+      "selectedPublicResourceIds": [
+        "BV14J411x7if:1"
+      ],
+      "independentlyVerifiedOptimum": true,
+      "ablations": {
+        "without_semantic_relevance": {
+          "selectionChanged": true,
+          "originalObjective": 0.922867
+        },
+        "without_coverage": {
+          "selectionChanged": false,
+          "originalObjective": 0.924267
+        },
+        "without_redundancy": {
+          "selectionChanged": false,
+          "originalObjective": 0.924267
+        }
+      },
+      "controlledFeedbackSelectionChanged": false,
+      "firstHitSemantic": {
+        "status": "COMPUTED",
+        "minCostDifference": -4,
+        "maxCostDifference": 4,
+        "unknownCount": 6,
+        "evaluatedAssignments": 64,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      },
+      "firstHitOptimizedFirst": {
+        "status": "COMPUTED",
+        "minCostDifference": -4,
+        "maxCostDifference": 4,
+        "unknownCount": 6,
+        "evaluatedAssignments": 64,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      }
+    },
+    {
+      "id": "BILI-06",
+      "query": "英语家乡介绍 对话",
+      "snapshotSearchStatus": "ok",
+      "featureStatus": "features_ready",
+      "businessDisplayStatus": "ready",
+      "comparable": true,
+      "matchedCandidateCount": 7,
+      "selectedCount": 1,
+      "failureKind": null,
+      "classificationStatus": "eligible",
+      "fixedCatalogInvocations": 1,
+      "newLiveSearchRequestsDuringReplay": 0,
+      "baselineScores": {
+        "search_order": 0.72574,
+        "semantic_rank": 0.712696,
+        "lexical_bigram_rank": 0.710327,
+        "greedy": 0.858133,
+        "optimum": 0.858133
+      },
+      "selectedPublicResourceIds": [
+        "BV1ZC4y177xt:1"
+      ],
+      "independentlyVerifiedOptimum": true,
+      "ablations": {
+        "without_semantic_relevance": {
+          "selectionChanged": true,
+          "originalObjective": 0.8252
+        },
+        "without_coverage": {
+          "selectionChanged": false,
+          "originalObjective": 0.858133
+        },
+        "without_redundancy": {
+          "selectionChanged": false,
+          "originalObjective": 0.858133
+        }
+      },
+      "controlledFeedbackSelectionChanged": false,
+      "firstHitSemantic": {
+        "status": "COMPUTED",
+        "minCostDifference": -3,
+        "maxCostDifference": 5,
+        "unknownCount": 7,
+        "evaluatedAssignments": 128,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      },
+      "firstHitOptimizedFirst": {
+        "status": "COMPUTED",
+        "minCostDifference": -3,
+        "maxCostDifference": 5,
+        "unknownCount": 7,
+        "evaluatedAssignments": 128,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      }
+    },
+    {
+      "id": "BILI-07",
+      "query": "英语问路 对话",
+      "snapshotSearchStatus": "ok",
+      "featureStatus": "features_ready",
+      "businessDisplayStatus": "ready",
+      "comparable": true,
+      "matchedCandidateCount": 3,
+      "selectedCount": 1,
+      "failureKind": null,
+      "classificationStatus": "eligible",
+      "fixedCatalogInvocations": 1,
+      "newLiveSearchRequestsDuringReplay": 0,
+      "baselineScores": {
+        "search_order": 0.763897,
+        "semantic_rank": 0.763897,
+        "lexical_bigram_rank": 0.763897,
+        "greedy": 0.890567,
+        "optimum": 0.890567
+      },
+      "selectedPublicResourceIds": [
+        "BV1BJ411d76L:1"
+      ],
+      "independentlyVerifiedOptimum": true,
+      "ablations": {
+        "without_semantic_relevance": {
+          "selectionChanged": true,
+          "originalObjective": 0.860267
+        },
+        "without_coverage": {
+          "selectionChanged": false,
+          "originalObjective": 0.890567
+        },
+        "without_redundancy": {
+          "selectionChanged": false,
+          "originalObjective": 0.890567
+        }
+      },
+      "controlledFeedbackSelectionChanged": false,
+      "firstHitSemantic": {
+        "status": "COMPUTED",
+        "minCostDifference": -1,
+        "maxCostDifference": 1,
+        "unknownCount": 3,
+        "evaluatedAssignments": 8,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      },
+      "firstHitOptimizedFirst": {
+        "status": "COMPUTED",
+        "minCostDifference": -1,
+        "maxCostDifference": 1,
+        "unknownCount": 3,
+        "evaluatedAssignments": 8,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      }
+    },
+    {
+      "id": "BILI-08",
+      "query": "水循环 实景观察",
+      "snapshotSearchStatus": "ok",
+      "featureStatus": "hidden",
+      "businessDisplayStatus": "hidden",
+      "comparable": false,
+      "matchedCandidateCount": 0,
+      "selectedCount": 0,
+      "failureKind": null,
+      "classificationStatus": "eligible",
+      "fixedCatalogInvocations": 1,
+      "newLiveSearchRequestsDuringReplay": 0
+    },
+    {
+      "id": "BILI-09",
+      "query": "种子萌发 观察",
+      "snapshotSearchStatus": "ok",
+      "featureStatus": "features_ready",
+      "businessDisplayStatus": "ready",
+      "comparable": true,
+      "matchedCandidateCount": 1,
+      "selectedCount": 1,
+      "failureKind": null,
+      "classificationStatus": "eligible",
+      "fixedCatalogInvocations": 1,
+      "newLiveSearchRequestsDuringReplay": 0,
+      "baselineScores": {
+        "search_order": 0.9022,
+        "semantic_rank": 0.9022,
+        "lexical_bigram_rank": 0.9022,
+        "greedy": 0.9022,
+        "optimum": 0.9022
+      },
+      "selectedPublicResourceIds": [
+        "BV1fFtZz1Er8:1"
+      ],
+      "independentlyVerifiedOptimum": true,
+      "ablations": {
+        "without_semantic_relevance": {
+          "selectionChanged": false,
+          "originalObjective": 0.9022
+        },
+        "without_coverage": {
+          "selectionChanged": false,
+          "originalObjective": 0.9022
+        },
+        "without_redundancy": {
+          "selectionChanged": false,
+          "originalObjective": 0.9022
+        }
+      },
+      "controlledFeedbackSelectionChanged": false,
+      "firstHitSemantic": {
+        "status": "COMPUTED",
+        "minCostDifference": 0,
+        "maxCostDifference": 0,
+        "unknownCount": 1,
+        "evaluatedAssignments": 2,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      },
+      "firstHitOptimizedFirst": {
+        "status": "COMPUTED",
+        "minCostDifference": 0,
+        "maxCostDifference": 0,
+        "unknownCount": 1,
+        "evaluatedAssignments": 2,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      }
+    },
+    {
+      "id": "BILI-10",
+      "query": "植物蒸腾 实验",
+      "snapshotSearchStatus": "ok",
+      "featureStatus": "features_ready",
+      "businessDisplayStatus": "ready",
+      "comparable": true,
+      "matchedCandidateCount": 2,
+      "selectedCount": 1,
+      "failureKind": null,
+      "classificationStatus": "eligible",
+      "fixedCatalogInvocations": 1,
+      "newLiveSearchRequestsDuringReplay": 0,
+      "baselineScores": {
+        "search_order": 0.75658,
+        "semantic_rank": 0.75658,
+        "lexical_bigram_rank": 0.75658,
+        "greedy": 0.921067,
+        "optimum": 0.921067
+      },
+      "selectedPublicResourceIds": [
+        "BV1QL411T7eD:1"
+      ],
+      "independentlyVerifiedOptimum": true,
+      "ablations": {
+        "without_semantic_relevance": {
+          "selectionChanged": false,
+          "originalObjective": 0.921067
+        },
+        "without_coverage": {
+          "selectionChanged": false,
+          "originalObjective": 0.921067
+        },
+        "without_redundancy": {
+          "selectionChanged": false,
+          "originalObjective": 0.921067
+        }
+      },
+      "controlledFeedbackSelectionChanged": false,
+      "firstHitSemantic": {
+        "status": "COMPUTED",
+        "minCostDifference": -1,
+        "maxCostDifference": 1,
+        "unknownCount": 2,
+        "evaluatedAssignments": 4,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      },
+      "firstHitOptimizedFirst": {
+        "status": "COMPUTED",
+        "minCostDifference": -1,
+        "maxCostDifference": 1,
+        "unknownCount": 2,
+        "evaluatedAssignments": 4,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      }
+    },
+    {
+      "id": "BILI-11",
+      "query": "浮力 实验演示",
+      "snapshotSearchStatus": "ok",
+      "featureStatus": "features_ready",
+      "businessDisplayStatus": "ready",
+      "comparable": true,
+      "matchedCandidateCount": 5,
+      "selectedCount": 1,
+      "failureKind": null,
+      "classificationStatus": "eligible",
+      "fixedCatalogInvocations": 1,
+      "newLiveSearchRequestsDuringReplay": 0,
+      "baselineScores": {
+        "search_order": 0.755403,
+        "semantic_rank": 0.751024,
+        "lexical_bigram_rank": 0.751024,
+        "greedy": 0.9042,
+        "optimum": 0.9042
+      },
+      "selectedPublicResourceIds": [
+        "BV1WgHCerE8j:1"
+      ],
+      "independentlyVerifiedOptimum": true,
+      "ablations": {
+        "without_semantic_relevance": {
+          "selectionChanged": true,
+          "originalObjective": 0.841667
+        },
+        "without_coverage": {
+          "selectionChanged": false,
+          "originalObjective": 0.9042
+        },
+        "without_redundancy": {
+          "selectionChanged": false,
+          "originalObjective": 0.9042
+        }
+      },
+      "controlledFeedbackSelectionChanged": false,
+      "firstHitSemantic": {
+        "status": "COMPUTED",
+        "minCostDifference": -3,
+        "maxCostDifference": 2,
+        "unknownCount": 5,
+        "evaluatedAssignments": 32,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      },
+      "firstHitOptimizedFirst": {
+        "status": "COMPUTED",
+        "minCostDifference": -3,
+        "maxCostDifference": 2,
+        "unknownCount": 5,
+        "evaluatedAssignments": 32,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      }
+    },
+    {
+      "id": "BILI-12",
+      "query": "光的折射 实验",
+      "snapshotSearchStatus": "ok",
+      "featureStatus": "hidden",
+      "businessDisplayStatus": "hidden",
+      "comparable": false,
+      "matchedCandidateCount": 0,
+      "selectedCount": 0,
+      "failureKind": null,
+      "classificationStatus": "eligible",
+      "fixedCatalogInvocations": 1,
+      "newLiveSearchRequestsDuringReplay": 0
+    },
+    {
+      "id": "BILI-13",
+      "query": "校园消防 疏散演示",
+      "snapshotSearchStatus": "ok",
+      "featureStatus": "features_ready",
+      "businessDisplayStatus": "ready",
+      "comparable": true,
+      "matchedCandidateCount": 1,
+      "selectedCount": 1,
+      "failureKind": null,
+      "classificationStatus": "eligible",
+      "fixedCatalogInvocations": 1,
+      "newLiveSearchRequestsDuringReplay": 0,
+      "baselineScores": {
+        "search_order": 0.857167,
+        "semantic_rank": 0.857167,
+        "lexical_bigram_rank": 0.857167,
+        "greedy": 0.857167,
+        "optimum": 0.857167
+      },
+      "selectedPublicResourceIds": [
+        "BV16T4y1q7Ui:1"
+      ],
+      "independentlyVerifiedOptimum": true,
+      "ablations": {
+        "without_semantic_relevance": {
+          "selectionChanged": false,
+          "originalObjective": 0.857167
+        },
+        "without_coverage": {
+          "selectionChanged": false,
+          "originalObjective": 0.857167
+        },
+        "without_redundancy": {
+          "selectionChanged": false,
+          "originalObjective": 0.857167
+        }
+      },
+      "controlledFeedbackSelectionChanged": false,
+      "firstHitSemantic": {
+        "status": "COMPUTED",
+        "minCostDifference": 0,
+        "maxCostDifference": 0,
+        "unknownCount": 1,
+        "evaluatedAssignments": 2,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      },
+      "firstHitOptimizedFirst": {
+        "status": "COMPUTED",
+        "minCostDifference": 0,
+        "maxCostDifference": 0,
+        "unknownCount": 1,
+        "evaluatedAssignments": 2,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      }
+    },
+    {
+      "id": "BILI-14",
+      "query": "过马路 交通安全演示",
+      "snapshotSearchStatus": "ok",
+      "featureStatus": "features_ready",
+      "businessDisplayStatus": "ready",
+      "comparable": true,
+      "matchedCandidateCount": 4,
+      "selectedCount": 1,
+      "failureKind": null,
+      "classificationStatus": "eligible",
+      "fixedCatalogInvocations": 1,
+      "newLiveSearchRequestsDuringReplay": 0,
+      "baselineScores": {
+        "search_order": 0.753787,
+        "semantic_rank": 0.753787,
+        "lexical_bigram_rank": 0.753787,
+        "greedy": 0.911933,
+        "optimum": 0.911933
+      },
+      "selectedPublicResourceIds": [
+        "BV1RgYe6uEGy:1"
+      ],
+      "independentlyVerifiedOptimum": true,
+      "ablations": {
+        "without_semantic_relevance": {
+          "selectionChanged": true,
+          "originalObjective": 0.852167
+        },
+        "without_coverage": {
+          "selectionChanged": false,
+          "originalObjective": 0.911933
+        },
+        "without_redundancy": {
+          "selectionChanged": false,
+          "originalObjective": 0.911933
+        }
+      },
+      "controlledFeedbackSelectionChanged": false,
+      "firstHitSemantic": {
+        "status": "COMPUTED",
+        "minCostDifference": -2,
+        "maxCostDifference": 3,
+        "unknownCount": 4,
+        "evaluatedAssignments": 16,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      },
+      "firstHitOptimizedFirst": {
+        "status": "COMPUTED",
+        "minCostDifference": -2,
+        "maxCostDifference": 3,
+        "unknownCount": 4,
+        "evaluatedAssignments": 16,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      }
+    },
+    {
+      "id": "BILI-15",
+      "query": "七步洗手法 示范",
+      "snapshotSearchStatus": "ok",
+      "featureStatus": "features_ready",
+      "businessDisplayStatus": "ready",
+      "comparable": true,
+      "matchedCandidateCount": 6,
+      "selectedCount": 1,
+      "failureKind": null,
+      "classificationStatus": "eligible",
+      "fixedCatalogInvocations": 1,
+      "newLiveSearchRequestsDuringReplay": 0,
+      "baselineScores": {
+        "search_order": 0.736413,
+        "semantic_rank": 0.736413,
+        "lexical_bigram_rank": 0.874667,
+        "greedy": 0.908167,
+        "optimum": 0.908167
+      },
+      "selectedPublicResourceIds": [
+        "BV1HF411o7xA:1"
+      ],
+      "independentlyVerifiedOptimum": true,
+      "ablations": {
+        "without_semantic_relevance": {
+          "selectionChanged": true,
+          "originalObjective": 0.896467
+        },
+        "without_coverage": {
+          "selectionChanged": false,
+          "originalObjective": 0.908167
+        },
+        "without_redundancy": {
+          "selectionChanged": false,
+          "originalObjective": 0.908167
+        }
+      },
+      "controlledFeedbackSelectionChanged": false,
+      "firstHitSemantic": {
+        "status": "COMPUTED",
+        "minCostDifference": -1,
+        "maxCostDifference": 2,
+        "unknownCount": 6,
+        "evaluatedAssignments": 64,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      },
+      "firstHitOptimizedFirst": {
+        "status": "COMPUTED",
+        "minCostDifference": -1,
+        "maxCostDifference": 2,
+        "unknownCount": 6,
+        "evaluatedAssignments": 64,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      }
+    },
+    {
+      "id": "BILI-16",
+      "query": "长方形面积 演示",
+      "snapshotSearchStatus": "ok",
+      "featureStatus": "features_ready",
+      "businessDisplayStatus": "ready",
+      "comparable": true,
+      "matchedCandidateCount": 2,
+      "selectedCount": 1,
+      "failureKind": null,
+      "classificationStatus": "eligible",
+      "fixedCatalogInvocations": 1,
+      "newLiveSearchRequestsDuringReplay": 0,
+      "baselineScores": {
+        "search_order": 0.74316,
+        "semantic_rank": 0.74316,
+        "lexical_bigram_rank": 0.74316,
+        "greedy": 0.8932,
+        "optimum": 0.8932
+      },
+      "selectedPublicResourceIds": [
+        "BV1bHVd6kEez:1"
+      ],
+      "independentlyVerifiedOptimum": true,
+      "ablations": {
+        "without_semantic_relevance": {
+          "selectionChanged": true,
+          "originalObjective": 0.876
+        },
+        "without_coverage": {
+          "selectionChanged": false,
+          "originalObjective": 0.8932
+        },
+        "without_redundancy": {
+          "selectionChanged": false,
+          "originalObjective": 0.8932
+        }
+      },
+      "controlledFeedbackSelectionChanged": false,
+      "firstHitSemantic": {
+        "status": "COMPUTED",
+        "minCostDifference": 0,
+        "maxCostDifference": 0,
+        "unknownCount": 2,
+        "evaluatedAssignments": 4,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      },
+      "firstHitOptimizedFirst": {
+        "status": "COMPUTED",
+        "minCostDifference": 0,
+        "maxCostDifference": 0,
+        "unknownCount": 2,
+        "evaluatedAssignments": 4,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      }
+    },
+    {
+      "id": "BILI-17",
+      "query": "分数通分 图示",
+      "snapshotSearchStatus": "ok",
+      "featureStatus": "error",
+      "businessDisplayStatus": "error",
+      "comparable": false,
+      "matchedCandidateCount": 0,
+      "selectedCount": 0,
+      "failureKind": "contract-invalid",
+      "classificationStatus": "eligible",
+      "fixedCatalogInvocations": 1,
+      "newLiveSearchRequestsDuringReplay": 0
+    },
+    {
+      "id": "BILI-18",
+      "query": "分数约分 讲解",
+      "snapshotSearchStatus": "ok",
+      "featureStatus": "features_ready",
+      "businessDisplayStatus": "hidden",
+      "comparable": true,
+      "matchedCandidateCount": 4,
+      "selectedCount": 0,
+      "failureKind": null,
+      "classificationStatus": "eligible",
+      "fixedCatalogInvocations": 1,
+      "newLiveSearchRequestsDuringReplay": 0,
+      "baselineScores": {
+        "search_order": 0.0,
+        "semantic_rank": 0.0,
+        "lexical_bigram_rank": 0.0,
+        "greedy": 0.0,
+        "optimum": 0.0
+      },
+      "selectedPublicResourceIds": [],
+      "independentlyVerifiedOptimum": true,
+      "ablations": {
+        "without_semantic_relevance": {
+          "selectionChanged": false,
+          "originalObjective": 0.0
+        },
+        "without_coverage": {
+          "selectionChanged": false,
+          "originalObjective": 0.0
+        },
+        "without_redundancy": {
+          "selectionChanged": false,
+          "originalObjective": 0.0
+        }
+      },
+      "controlledFeedbackSelectionChanged": false,
+      "firstHitSemantic": {
+        "status": "COMPUTED",
+        "minCostDifference": -2,
+        "maxCostDifference": 2,
+        "unknownCount": 4,
+        "evaluatedAssignments": 16,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      },
+      "firstHitOptimizedFirst": {
+        "status": "COMPUTED",
+        "minCostDifference": -2,
+        "maxCostDifference": 2,
+        "unknownCount": 4,
+        "evaluatedAssignments": 16,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      }
+    },
+    {
+      "id": "BILI-19",
+      "query": "平行四边形面积 剪拼",
+      "snapshotSearchStatus": "ok",
+      "featureStatus": "features_ready",
+      "businessDisplayStatus": "ready",
+      "comparable": true,
+      "matchedCandidateCount": 6,
+      "selectedCount": 1,
+      "failureKind": null,
+      "classificationStatus": "eligible",
+      "fixedCatalogInvocations": 1,
+      "newLiveSearchRequestsDuringReplay": 0,
+      "baselineScores": {
+        "search_order": 0.887296,
+        "semantic_rank": 0.859658,
+        "lexical_bigram_rank": 0.859658,
+        "greedy": 0.9256,
+        "optimum": 0.9256
+      },
+      "selectedPublicResourceIds": [
+        "BV1qraq6QEmA:1"
+      ],
+      "independentlyVerifiedOptimum": true,
+      "ablations": {
+        "without_semantic_relevance": {
+          "selectionChanged": false,
+          "originalObjective": 0.9256
+        },
+        "without_coverage": {
+          "selectionChanged": false,
+          "originalObjective": 0.9256
+        },
+        "without_redundancy": {
+          "selectionChanged": false,
+          "originalObjective": 0.9256
+        }
+      },
+      "controlledFeedbackSelectionChanged": false,
+      "firstHitSemantic": {
+        "status": "COMPUTED",
+        "minCostDifference": -4,
+        "maxCostDifference": 2,
+        "unknownCount": 6,
+        "evaluatedAssignments": 64,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      },
+      "firstHitOptimizedFirst": {
+        "status": "COMPUTED",
+        "minCostDifference": -4,
+        "maxCostDifference": 2,
+        "unknownCount": 6,
+        "evaluatedAssignments": 64,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      }
+    },
+    {
+      "id": "BILI-20",
+      "query": "小数乘法 算理",
+      "snapshotSearchStatus": "ok",
+      "featureStatus": "features_ready",
+      "businessDisplayStatus": "ready",
+      "comparable": true,
+      "matchedCandidateCount": 2,
+      "selectedCount": 1,
+      "failureKind": null,
+      "classificationStatus": "eligible",
+      "fixedCatalogInvocations": 1,
+      "newLiveSearchRequestsDuringReplay": 0,
+      "baselineScores": {
+        "search_order": 0.843322,
+        "semantic_rank": 0.843322,
+        "lexical_bigram_rank": 0.843322,
+        "greedy": 0.843322,
+        "optimum": 0.843322
+      },
+      "selectedPublicResourceIds": [
+        "BV1aJ7rzaELB:1"
+      ],
+      "independentlyVerifiedOptimum": true,
+      "ablations": {
+        "without_semantic_relevance": {
+          "selectionChanged": false,
+          "originalObjective": 0.843322
+        },
+        "without_coverage": {
+          "selectionChanged": false,
+          "originalObjective": 0.843322
+        },
+        "without_redundancy": {
+          "selectionChanged": false,
+          "originalObjective": 0.843322
+        }
+      },
+      "controlledFeedbackSelectionChanged": false,
+      "firstHitSemantic": {
+        "status": "COMPUTED",
+        "minCostDifference": -1,
+        "maxCostDifference": 1,
+        "unknownCount": 2,
+        "evaluatedAssignments": 4,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      },
+      "firstHitOptimizedFirst": {
+        "status": "COMPUTED",
+        "minCostDifference": -1,
+        "maxCostDifference": 1,
+        "unknownCount": 2,
+        "evaluatedAssignments": 4,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      }
+    },
+    {
+      "id": "BILI-21",
+      "query": "勾股定理 验证",
+      "snapshotSearchStatus": "ok",
+      "featureStatus": "features_ready",
+      "businessDisplayStatus": "ready",
+      "comparable": true,
+      "matchedCandidateCount": 6,
+      "selectedCount": 1,
+      "failureKind": null,
+      "classificationStatus": "eligible",
+      "fixedCatalogInvocations": 1,
+      "newLiveSearchRequestsDuringReplay": 0,
+      "baselineScores": {
+        "search_order": 0.750884,
+        "semantic_rank": 0.750884,
+        "lexical_bigram_rank": 0.750884,
+        "greedy": 0.8961,
+        "optimum": 0.8961
+      },
+      "selectedPublicResourceIds": [
+        "BV1pr4y187cW:1"
+      ],
+      "independentlyVerifiedOptimum": true,
+      "ablations": {
+        "without_semantic_relevance": {
+          "selectionChanged": false,
+          "originalObjective": 0.8961
+        },
+        "without_coverage": {
+          "selectionChanged": false,
+          "originalObjective": 0.8961
+        },
+        "without_redundancy": {
+          "selectionChanged": false,
+          "originalObjective": 0.8961
+        }
+      },
+      "controlledFeedbackSelectionChanged": false,
+      "firstHitSemantic": {
+        "status": "COMPUTED",
+        "minCostDifference": -2,
+        "maxCostDifference": 2,
+        "unknownCount": 6,
+        "evaluatedAssignments": 64,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      },
+      "firstHitOptimizedFirst": {
+        "status": "COMPUTED",
+        "minCostDifference": -2,
+        "maxCostDifference": 2,
+        "unknownCount": 6,
+        "evaluatedAssignments": 64,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      }
+    },
+    {
+      "id": "BILI-22",
+      "query": "地球自转公转 模型",
+      "snapshotSearchStatus": "ok",
+      "featureStatus": "features_ready",
+      "businessDisplayStatus": "ready",
+      "comparable": true,
+      "matchedCandidateCount": 2,
+      "selectedCount": 1,
+      "failureKind": null,
+      "classificationStatus": "eligible",
+      "fixedCatalogInvocations": 1,
+      "newLiveSearchRequestsDuringReplay": 0,
+      "baselineScores": {
+        "search_order": 0.734623,
+        "semantic_rank": 0.734623,
+        "lexical_bigram_rank": 0.734623,
+        "greedy": 0.867667,
+        "optimum": 0.867667
+      },
+      "selectedPublicResourceIds": [
+        "BV1fQ4y1R7Si:1"
+      ],
+      "independentlyVerifiedOptimum": true,
+      "ablations": {
+        "without_semantic_relevance": {
+          "selectionChanged": true,
+          "originalObjective": 0.8651
+        },
+        "without_coverage": {
+          "selectionChanged": false,
+          "originalObjective": 0.867667
+        },
+        "without_redundancy": {
+          "selectionChanged": false,
+          "originalObjective": 0.867667
+        }
+      },
+      "controlledFeedbackSelectionChanged": false,
+      "firstHitSemantic": {
+        "status": "COMPUTED",
+        "minCostDifference": 0,
+        "maxCostDifference": 0,
+        "unknownCount": 2,
+        "evaluatedAssignments": 4,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      },
+      "firstHitOptimizedFirst": {
+        "status": "COMPUTED",
+        "minCostDifference": 0,
+        "maxCostDifference": 0,
+        "unknownCount": 2,
+        "evaluatedAssignments": 4,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      }
+    },
+    {
+      "id": "BILI-23",
+      "query": "太阳能发电 原理",
+      "snapshotSearchStatus": "ok",
+      "featureStatus": "features_ready",
+      "businessDisplayStatus": "ready",
+      "comparable": true,
+      "matchedCandidateCount": 4,
+      "selectedCount": 1,
+      "failureKind": null,
+      "classificationStatus": "eligible",
+      "fixedCatalogInvocations": 1,
+      "newLiveSearchRequestsDuringReplay": 0,
+      "baselineScores": {
+        "search_order": 0.747646,
+        "semantic_rank": 0.747646,
+        "lexical_bigram_rank": 0.747646,
+        "greedy": 0.929389,
+        "optimum": 0.929389
+      },
+      "selectedPublicResourceIds": [
+        "BV1UD4y1N7jM:1"
+      ],
+      "independentlyVerifiedOptimum": true,
+      "ablations": {
+        "without_semantic_relevance": {
+          "selectionChanged": true,
+          "originalObjective": 0.9153
+        },
+        "without_coverage": {
+          "selectionChanged": false,
+          "originalObjective": 0.929389
+        },
+        "without_redundancy": {
+          "selectionChanged": false,
+          "originalObjective": 0.929389
+        }
+      },
+      "controlledFeedbackSelectionChanged": false,
+      "firstHitSemantic": {
+        "status": "COMPUTED",
+        "minCostDifference": -1,
+        "maxCostDifference": 3,
+        "unknownCount": 4,
+        "evaluatedAssignments": 16,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      },
+      "firstHitOptimizedFirst": {
+        "status": "COMPUTED",
+        "minCostDifference": -1,
+        "maxCostDifference": 3,
+        "unknownCount": 4,
+        "evaluatedAssignments": 16,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      }
+    },
+    {
+      "id": "BILI-24",
+      "query": "杠杆原理 实验",
+      "snapshotSearchStatus": "ok",
+      "featureStatus": "features_ready",
+      "businessDisplayStatus": "ready",
+      "comparable": true,
+      "matchedCandidateCount": 1,
+      "selectedCount": 1,
+      "failureKind": null,
+      "classificationStatus": "eligible",
+      "fixedCatalogInvocations": 1,
+      "newLiveSearchRequestsDuringReplay": 0,
+      "baselineScores": {
+        "search_order": 0.891367,
+        "semantic_rank": 0.891367,
+        "lexical_bigram_rank": 0.891367,
+        "greedy": 0.891367,
+        "optimum": 0.891367
+      },
+      "selectedPublicResourceIds": [
+        "BV1fR5PzwEPT:1"
+      ],
+      "independentlyVerifiedOptimum": true,
+      "ablations": {
+        "without_semantic_relevance": {
+          "selectionChanged": false,
+          "originalObjective": 0.891367
+        },
+        "without_coverage": {
+          "selectionChanged": false,
+          "originalObjective": 0.891367
+        },
+        "without_redundancy": {
+          "selectionChanged": false,
+          "originalObjective": 0.891367
+        }
+      },
+      "controlledFeedbackSelectionChanged": false,
+      "firstHitSemantic": {
+        "status": "COMPUTED",
+        "minCostDifference": 0,
+        "maxCostDifference": 0,
+        "unknownCount": 1,
+        "evaluatedAssignments": 2,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      },
+      "firstHitOptimizedFirst": {
+        "status": "COMPUTED",
+        "minCostDifference": 0,
+        "maxCostDifference": 0,
+        "unknownCount": 1,
+        "evaluatedAssignments": 2,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      }
+    },
+    {
+      "id": "BILI-25",
+      "query": "尺子测量 方法示范",
+      "snapshotSearchStatus": "ok",
+      "featureStatus": "features_ready",
+      "businessDisplayStatus": "ready",
+      "comparable": true,
+      "matchedCandidateCount": 1,
+      "selectedCount": 1,
+      "failureKind": null,
+      "classificationStatus": "eligible",
+      "fixedCatalogInvocations": 1,
+      "newLiveSearchRequestsDuringReplay": 0,
+      "baselineScores": {
+        "search_order": 0.886167,
+        "semantic_rank": 0.886167,
+        "lexical_bigram_rank": 0.886167,
+        "greedy": 0.886167,
+        "optimum": 0.886167
+      },
+      "selectedPublicResourceIds": [
+        "BV1vS4y1i7P8:1"
+      ],
+      "independentlyVerifiedOptimum": true,
+      "ablations": {
+        "without_semantic_relevance": {
+          "selectionChanged": false,
+          "originalObjective": 0.886167
+        },
+        "without_coverage": {
+          "selectionChanged": false,
+          "originalObjective": 0.886167
+        },
+        "without_redundancy": {
+          "selectionChanged": false,
+          "originalObjective": 0.886167
+        }
+      },
+      "controlledFeedbackSelectionChanged": false,
+      "firstHitSemantic": {
+        "status": "COMPUTED",
+        "minCostDifference": 0,
+        "maxCostDifference": 0,
+        "unknownCount": 1,
+        "evaluatedAssignments": 2,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      },
+      "firstHitOptimizedFirst": {
+        "status": "COMPUTED",
+        "minCostDifference": 0,
+        "maxCostDifference": 0,
+        "unknownCount": 1,
+        "evaluatedAssignments": 2,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      }
+    },
+    {
+      "id": "BILI-26",
+      "query": "蔬菜播种 步骤",
+      "snapshotSearchStatus": "ok",
+      "featureStatus": "features_ready",
+      "businessDisplayStatus": "ready",
+      "comparable": true,
+      "matchedCandidateCount": 3,
+      "selectedCount": 1,
+      "failureKind": null,
+      "classificationStatus": "eligible",
+      "fixedCatalogInvocations": 1,
+      "newLiveSearchRequestsDuringReplay": 0,
+      "baselineScores": {
+        "search_order": 0.758393,
+        "semantic_rank": 0.758393,
+        "lexical_bigram_rank": 0.758393,
+        "greedy": 0.865633,
+        "optimum": 0.865633
+      },
+      "selectedPublicResourceIds": [
+        "BV1vqeu6BEAB:1"
+      ],
+      "independentlyVerifiedOptimum": true,
+      "ablations": {
+        "without_semantic_relevance": {
+          "selectionChanged": true,
+          "originalObjective": 0.847233
+        },
+        "without_coverage": {
+          "selectionChanged": false,
+          "originalObjective": 0.865633
+        },
+        "without_redundancy": {
+          "selectionChanged": false,
+          "originalObjective": 0.865633
+        }
+      },
+      "controlledFeedbackSelectionChanged": false,
+      "firstHitSemantic": {
+        "status": "COMPUTED",
+        "minCostDifference": -1,
+        "maxCostDifference": 1,
+        "unknownCount": 3,
+        "evaluatedAssignments": 8,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      },
+      "firstHitOptimizedFirst": {
+        "status": "COMPUTED",
+        "minCostDifference": -1,
+        "maxCostDifference": 2,
+        "unknownCount": 3,
+        "evaluatedAssignments": 8,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      }
+    },
+    {
+      "id": "BILI-27",
+      "query": "折纸 长方体",
+      "snapshotSearchStatus": "ok",
+      "featureStatus": "features_ready",
+      "businessDisplayStatus": "ready",
+      "comparable": true,
+      "matchedCandidateCount": 6,
+      "selectedCount": 1,
+      "failureKind": null,
+      "classificationStatus": "eligible",
+      "fixedCatalogInvocations": 1,
+      "newLiveSearchRequestsDuringReplay": 0,
+      "baselineScores": {
+        "search_order": 0.753369,
+        "semantic_rank": 0.753322,
+        "lexical_bigram_rank": 0.753369,
+        "greedy": 0.935367,
+        "optimum": 0.935367
+      },
+      "selectedPublicResourceIds": [
+        "BV11Z4wzvEhN:1"
+      ],
+      "independentlyVerifiedOptimum": true,
+      "ablations": {
+        "without_semantic_relevance": {
+          "selectionChanged": false,
+          "originalObjective": 0.935367
+        },
+        "without_coverage": {
+          "selectionChanged": false,
+          "originalObjective": 0.935367
+        },
+        "without_redundancy": {
+          "selectionChanged": false,
+          "originalObjective": 0.935367
+        }
+      },
+      "controlledFeedbackSelectionChanged": false,
+      "firstHitSemantic": {
+        "status": "COMPUTED",
+        "minCostDifference": -2,
+        "maxCostDifference": 3,
+        "unknownCount": 6,
+        "evaluatedAssignments": 64,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      },
+      "firstHitOptimizedFirst": {
+        "status": "COMPUTED",
+        "minCostDifference": -2,
+        "maxCostDifference": 3,
+        "unknownCount": 6,
+        "evaluatedAssignments": 64,
+        "noHitLeftAssignments": 1,
+        "noHitRightAssignments": 1,
+        "reason": "EXACT_SHARED_LABEL_ENUMERATION"
+      }
+    },
+    {
+      "id": "BILI-28",
+      "query": "JavaScript数组排序 可视化",
+      "snapshotSearchStatus": "ok",
+      "featureStatus": "hidden",
+      "businessDisplayStatus": "hidden",
+      "comparable": false,
+      "matchedCandidateCount": 0,
+      "selectedCount": 0,
+      "failureKind": null,
+      "classificationStatus": "ineligible",
+      "fixedCatalogInvocations": 0,
+      "newLiveSearchRequestsDuringReplay": 0
+    },
+    {
+      "id": "BILI-29",
+      "query": "Python循环 讲解",
+      "snapshotSearchStatus": "ok",
+      "featureStatus": "hidden",
+      "businessDisplayStatus": "hidden",
+      "comparable": false,
+      "matchedCandidateCount": 0,
+      "selectedCount": 0,
+      "failureKind": null,
+      "classificationStatus": "ineligible",
+      "fixedCatalogInvocations": 0,
+      "newLiveSearchRequestsDuringReplay": 0
+    },
+    {
+      "id": "BILI-30",
+      "query": "Java递归 流程",
+      "snapshotSearchStatus": "ok",
+      "featureStatus": "hidden",
+      "businessDisplayStatus": "hidden",
+      "comparable": false,
+      "matchedCandidateCount": 0,
+      "selectedCount": 0,
+      "failureKind": null,
+      "classificationStatus": "ineligible",
+      "fixedCatalogInvocations": 0,
+      "newLiveSearchRequestsDuringReplay": 0
+    }
+  ],
+  "observedLimitations": [
+    {
+      "ids": [
+        "BILI-08"
+      ],
+      "stage": "metadata-semantic-matching",
+      "finding": "水循环：8项均被语义/学段检查排除；若干有明确高中标记，另一些只因缺少适龄标记或作者名称被排除。",
+      "boundary": "筛除是模型判断，未经人工内容质量审核；存在将缺少年级标签等同不适合的过度保守风险。"
+    },
+    {
+      "ids": [
+        "BILI-12"
+      ],
+      "stage": "metadata-semantic-matching",
+      "finding": "光的折射：8项均被排除；包含明确初高中内容，也有仅因年级信息不足而被排除的实验。",
+      "boundary": "不能把所有排除项当作已证实不适合，未观看完整视频。"
+    },
+    {
+      "ids": [
+        "BILI-17"
+      ],
+      "stage": "video-metadata-matching",
+      "finding": "分数通分：分类通过；匹配两次HTTP200响应均未通过输出契约校验，最终contract-invalid，未进入向量及选优。",
+      "attempts": 2,
+      "elapsedMs": 28136,
+      "boundary": "失败原始输出和具体字段未保存，现有证据无法进一步定位是哪个字段；不能推断资源不相关，也未再次付费重试。"
+    },
+    {
+      "ids": [
+        "BILI-18"
+      ],
+      "stage": "hard-duration-constraint",
+      "finding": "分数约分：4个已匹配候选时长分别为1560、625、833、936秒，全部超过600秒预算；独立校验确认空可行集。",
+      "boundary": "这是有效的空结果比较，计入24组算法分母；业务上隐藏视频区域。"
+    },
+    {
+      "ids": [
+        "BILI-28",
+        "BILI-29",
+        "BILI-30"
+      ],
+      "stage": "teaching-task-classification",
+      "finding": "数组排序可视化、Python循环讲解、Java递归流程被分类器判为代码调试/不在补充视频范围。",
+      "boundary": "Python循环概念与递归流程不当然等同当前代码调试；这暴露出分类过度阻断风险，不能把3条都宣传为正确拒绝。后续通用提示修订不改变本轮冻结结果。"
+    }
+  ],
+  "reportedModelUsage": {
+    "classification-r1": {
+      "tasks": 48,
+      "transportAttempts": 48,
+      "usageMissingTasks": 0,
+      "reportedPromptTokens": 29684,
+      "reportedCompletionTokens": 5836,
+      "reportedTotalTokens": 35520,
+      "actualModels": [
+        "qwen3.8-flash"
+      ],
+      "knownElapsedMs": 133678,
+      "billingCostInCurrency": null,
+      "usageMeaning": "reported token fields only; missing fields are not estimated; no monetary price inferred"
+    },
+    "feedback-r1": {
+      "tasks": 29,
+      "transportAttempts": 29,
+      "usageMissingTasks": 0,
+      "reportedPromptTokens": 19349,
+      "reportedCompletionTokens": 5384,
+      "reportedTotalTokens": 24733,
+      "actualModels": [
+        "qwen3.8-flash"
+      ],
+      "knownElapsedMs": 138196,
+      "billingCostInCurrency": null,
+      "usageMeaning": "reported token fields only; missing fields are not estimated; no monetary price inferred"
+    },
+    "feedback-r2": {
+      "tasks": 29,
+      "transportAttempts": 31,
+      "usageMissingTasks": 0,
+      "reportedPromptTokens": 27344,
+      "reportedCompletionTokens": 10453,
+      "reportedTotalTokens": 37797,
+      "actualModels": [
+        "qwen3.8-flash"
+      ],
+      "knownElapsedMs": 248850,
+      "billingCostInCurrency": null,
+      "usageMeaning": "reported token fields only; missing fields are not estimated; no monetary price inferred"
+    },
+    "features-r1-chat": {
+      "tasks": 57,
+      "transportAttempts": 58,
+      "usageMissingTasks": 0,
+      "reportedPromptTokens": 80055,
+      "reportedCompletionTokens": 33399,
+      "reportedTotalTokens": 113454,
+      "actualModels": [
+        "qwen3.8-flash"
+      ],
+      "knownElapsedMs": 556315,
+      "billingCostInCurrency": null,
+      "usageMeaning": "reported token fields only; missing fields are not estimated; no monetary price inferred"
+    },
+    "features-r1-embedding-new-batches": {
+      "tasks": 24,
+      "transportAttempts": 24,
+      "usageMissingTasks": 0,
+      "reportedPromptTokens": 5321,
+      "reportedCompletionTokens": 0,
+      "reportedTotalTokens": 5321,
+      "actualModels": [
+        "qwen3.7-text-embedding-flash"
+      ],
+      "knownElapsedMs": 4342,
+      "billingCostInCurrency": null,
+      "usageMeaning": "reported token fields only; missing fields are not estimated; no monetary price inferred"
+    }
+  },
+  "modelIdentityBoundary": "Cloud text model returned qwen3.8-flash; embeddings returned qwen3.7-text-embedding-flash at 1024 dimensions. Adapter name siliconflow denotes compatibility code path, not verified actual provider. Embedding provider field was absent; no provider invented.",
+  "testSnapshot": {
+    "fullBackend": {
+      "tests": 752,
+      "failures": 0,
+      "errors": 14,
+      "skipped": 1,
+      "status": "FAILED_LOCAL_DATABASE_AUTHENTICATION",
+      "cause": "Existing local MySQL Access denied for root@localhost"
+    },
+    "frontend": {
+      "files": 19,
+      "tests": 178,
+      "status": "PASS",
+      "typecheck": "PASS",
+      "build": "PASS"
+    },
+    "engine": {
+      "tests": 27,
+      "status": "PASS",
+      "build": "PASS"
+    },
+    "postPatchTargeted": "PENDING_ROOT_FINAL_COUNTS",
+    "deploymentAcceptance": "NOT_CLAIMED_BY_THIS_REPORT"
+  },
+  "releasePolicy": "Only this allowlisted summary is publishable; original run files remain local. No request IDs, prompts, raw answers, credentials or endpoint fingerprints copied."
+}

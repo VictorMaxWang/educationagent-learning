@@ -1,4 +1,5 @@
 import type { Course, Question, Scene } from '../types';
+import { portableSupplementaryResources } from './supplementary';
 
 /** 离线练习明确携带标准答案；在线课堂的普通 Course 响应不包含这些字段。 */
 export interface PortableQuestion extends Question {
@@ -61,5 +62,6 @@ export function validateEnvelope(value: unknown): PortableEnvelope {
   const course = envelope.course as PortableCourse | undefined;
   if (!course || typeof course.title !== 'string' || !Number.isInteger(course.grade) || course.grade < 1 || course.grade > 12 || !Array.isArray(course.scenes) || course.scenes.length === 0 || course.scenes.length > 64) throw new Error('课程标题、年级或页面列表无效');
   if (course.scenes.some(scene => !scene || !['slide', 'quiz', 'interactive'].includes(scene.type) || typeof scene.id !== 'string' || !scene.content)) throw new Error('课程包含无效页面');
+  if (course.supplementaryResources !== undefined) course.supplementaryResources = portableSupplementaryResources(course.supplementaryResources, new Set(course.scenes.map(scene => scene.id)));
   return envelope as unknown as PortableEnvelope;
 }

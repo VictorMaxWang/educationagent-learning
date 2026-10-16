@@ -18,6 +18,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.io.ByteArrayOutputStream;
+import java.time.Duration;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.Flow;
+import java.util.concurrent.TimeUnit;
+import jakarta.annotation.PreDestroy;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * 向量嵌入服务 —— 支持三种提供方，通过 {@code memory.embedding.provider} 切换：
@@ -28,8 +43,8 @@ import java.util.stream.Collectors;
  *   <li>{@code ollama}：本地模型（默认 bge-m3，1024 维；完全免费、离线、无额度限制）</li>
  * </ul>
  *
- * <p>{@code siliconflow} 与 {@code ollama} 的默认模型均为 <b>1024 维</b>，与 DashScope 一致，
- * 因此在这三者之间切换 <b>不需要清理任何集合</b>；若换成 768 维的 nomic-embed-text 则需要。</p>
+ * <p>默认模型维度可能都为 1024，但不同模型的语义空间并不兼容。
+ * 切换模型须按集合归属规划重新嵌入，不能仅凭维度相同混用新旧向量；本服务不会自动迁移集合。</p>
  *
  * <p><b>维度是硬约束</b>：Chroma 的集合维度在首次写入时确定，之后写入不同维度的向量会直接
  * 返回 400 {@code Collection expecting embedding with dimension of X, got Y}。
@@ -72,7 +87,7 @@ public class EmbeddingService {
     @Value("${memory.embedding.siliconflow.url:https://api.siliconflow.cn/v1/embeddings}")
     private String siliconflowUrl;
 
-    /** 硅基流动模型名。BAAI/bge-m3 为 1024 维，与 DashScope 一致，切换后无需清理集合 */
+    /** 硅基流动模型名；同维度模型切换仍需由集合持有者处理语义空间迁移。 */
     @Value("${memory.embedding.siliconflow.model:BAAI/bge-m3}")
     private String siliconflowModel;
 
@@ -106,6 +121,10 @@ public class EmbeddingService {
 
     private final AtomicLong lastFailureLogAt = new AtomicLong(0);
     private final AtomicLong failureCount = new AtomicLong(0);
+
+    /** 新推荐入口不经可能自动重试 POST 的旧 Apache/RestTemplate 客户端。 */
+    private final HttpClient onceHttp = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(8))
+            .followRedirects(HttpClient.Redirect.NEVER).version(HttpClient.Version.HTTP_1_1).build();
 
     /** 失败日志节流输出：窗口内首次用 WARN，其余降到 DEBUG（次数仍累计） */
     private void logThrottled(String label, String msg) {
@@ -185,6 +204,230 @@ public class EmbeddingService {
     }
 
     /**
+     * 向调用者公开不含凭据的模型身份；相同维度不表示不同模型的向量空间兼容。
+     * 新推荐模块据此分区自己的缓存，本方法不迁移或清理任何既有 Chroma 集合。
+     */
+    /** provider 是历史配置中的适配器标签，不据此宣称兼容网关背后的真实模型供应商。 */
+    public record Identity(String provider, String model, int dimension, String endpointFingerprint) {
+        public Identity(String provider, String model, int dimension) { this(provider,model,dimension,"legacy-unspecified"); }
+    }
+    public Identity describeIdentity() {
+        return new Identity(isOllama() ? "ollama" : isSiliconflow() ? "siliconflow" : "dashscope",
+                isOllama() ? ollamaModel : isSiliconflow() ? siliconflowModel : dashscopeModel,
+                expectedDimension,endpointFingerprint(isOllama()?ollamaUrl+OLLAMA_EMBED_PATH:isSiliconflow()?siliconflowUrl:DASHSCOPE_EMBEDDING_URL));
+    }
+
+    private static String endpointFingerprint(String endpoint) {
+        try {
+            URI uri=URI.create(endpoint).normalize();String scheme=uri.getScheme()==null?"":uri.getScheme().toLowerCase(java.util.Locale.ROOT);
+            String host=uri.getHost()==null?"":uri.getHost().toLowerCase(java.util.Locale.ROOT);int port=uri.getPort();
+            if((scheme.equals("https")&&port==443)||(scheme.equals("http")&&port==80))port=-1;
+            String canonical=scheme+"://"+host+(port<0?"":":"+port)+(uri.getRawPath()==null||uri.getRawPath().isEmpty()?"/":uri.getRawPath())
+                    +(uri.getRawQuery()==null?"":"?"+uri.getRawQuery());
+            return java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256").digest(canonical.getBytes(StandardCharsets.UTF_8)));
+        }catch(Exception invalid){throw new IllegalStateException("embedding endpoint identity unavailable");}
+    }
+
+    public record BatchResult(List<List<Float>> vectors,ObjectNode evidence) {
+        public BatchResult {
+            vectors=vectors==null?null:vectors.stream().map(List::copyOf).toList();evidence=evidence.deepCopy();
+        }
+    }
+
+    /**
+     * 新资源推荐的单次批量入口（最多 10 条），失败返回 null，不逐条补发或切换旧接口。
+     * 显式校验响应索引、数量、维度及有限值；调用方同时绑定 describeIdentity 的模型空间身份。
+     * 旧接口的容错行为保持不变，未知结果不能靠重复付费请求伪装成成功。
+     */
+    public List<List<Float>> generateEmbeddingsOnce(List<String> texts) {
+        return generateEmbeddingsOnce(texts, Duration.ofSeconds(20));
+    }
+
+    /** 总预算包含请求构造、响应正文和解析；429/503、慢正文、连接中断均不重发 POST。 */
+    public List<List<Float>> generateEmbeddingsOnce(List<String> texts, Duration budget) {
+        return generateEmbeddingsOnceWithEvidence(texts,budget).vectors();
+    }
+
+    public BatchResult generateEmbeddingsOnceWithEvidence(List<String> texts) {
+        return generateEmbeddingsOnceWithEvidence(texts,Duration.ofSeconds(20));
+    }
+
+    /** 返回本次真实调用证据；配置模型与响应模型分别记录，无响应字段时明确为 null。 */
+    public BatchResult generateEmbeddingsOnceWithEvidence(List<String> texts, Duration budget) {
+        if (texts == null || texts.isEmpty() || texts.size() > 10
+                || texts.stream().anyMatch(t -> t == null || t.isBlank() || t.length() > 20_000)
+                || budget == null || budget.isNegative() || budget.isZero() || budget.compareTo(Duration.ofSeconds(20)) > 0)
+            throw new IllegalArgumentException("embedding batch requires 1 to 10 bounded texts and a budget up to 20 seconds");
+        long deadline = System.nanoTime() + budget.toNanos();
+        List<String> inputTexts=List.copyOf(texts);
+        EmbeddingTrace trace=new EmbeddingTrace(describeIdentity());
+        java.util.concurrent.atomic.AtomicReference<CompletableFuture<HttpResponse<byte[]>>> transport = new java.util.concurrent.atomic.AtomicReference<>();
+        java.util.concurrent.FutureTask<List<List<Float>>> operation = new java.util.concurrent.FutureTask<>(() -> performOnce(inputTexts, deadline, transport,trace));
+        Thread.ofVirtual().name("recommendation-embedding-once").start(operation);
+        try {
+            List<List<Float>> vectors=operation.get(onceRemaining(deadline), TimeUnit.NANOSECONDS);
+            return new BatchResult(vectors,trace.snapshot(vectors!=null?null:"response-unknown"));
+        } catch (InterruptedException interrupted) {
+            Thread.currentThread().interrupt();return new BatchResult(null,trace.snapshot("cancelled"));
+        } catch (Exception unavailable) {
+            logThrottled("推荐单次批量", "供应商响应未知；未重试，请手动重新准备推荐");
+            return new BatchResult(null,trace.snapshot(unavailable instanceof java.util.concurrent.TimeoutException?"deadline":"response-unknown"));
+        } finally {
+            if (!operation.isDone()) operation.cancel(true);
+            CompletableFuture<HttpResponse<byte[]>> pending = transport.get();
+            if (pending != null && !pending.isDone()) pending.cancel(true);
+        }
+    }
+
+    private List<List<Float>> performOnce(List<String> texts, long deadline,
+            java.util.concurrent.atomic.AtomicReference<CompletableFuture<HttpResponse<byte[]>>> transport,EmbeddingTrace trace) throws Exception {
+            JSONObject body = new JSONObject();
+            String endpoint;
+            String apiKey = null;
+            if (isOllama()) {
+                body.put("model", ollamaModel);body.put("input", texts);
+                endpoint = ollamaUrl + OLLAMA_EMBED_PATH;
+            } else if (isSiliconflow()) {
+                body.put("model", siliconflowModel);body.put("input", texts);
+                if (requestDimensions) body.put("dimensions", expectedDimension);
+                endpoint = siliconflowUrl;apiKey = siliconflowKey;
+            } else {
+                body.put("model", dashscopeModel);
+                JSONObject input = new JSONObject();input.put("texts", texts);body.put("input", input);
+                JSONObject parameters = new JSONObject();parameters.put("dimension", expectedDimension);body.put("parameters", parameters);
+                endpoint = DASHSCOPE_EMBEDDING_URL;apiKey = dashscopeApiKey;
+            }
+            HttpRequest.Builder request = HttpRequest.newBuilder(URI.create(endpoint))
+                    .timeout(Duration.ofNanos(onceRemaining(deadline))).header("Content-Type", "application/json")
+                    .header("Accept-Encoding", "identity")
+                    .POST(HttpRequest.BodyPublishers.ofString(body.toJSONString(), StandardCharsets.UTF_8));
+            if (apiKey != null && !apiKey.isBlank()) request.header("Authorization", "Bearer " + apiKey);
+            onceRemaining(deadline);
+            trace.started();
+            CompletableFuture<HttpResponse<byte[]>> pending = onceHttp.sendAsync(request.build(), info -> {trace.headers(info.statusCode(),info.headers());return new OnceBody();});
+            transport.set(pending);
+            try {
+            HttpResponse<byte[]> response = pending.get(onceRemaining(deadline), TimeUnit.NANOSECONDS);
+            onceRemaining(deadline);
+            JSONObject parsed = JSON.parseObject(new String(response.body(), StandardCharsets.UTF_8));
+            trace.received(parsed);
+            if (response.statusCode() < 200 || response.statusCode() >= 300) return null;
+            List<List<Float>> result = parseOnceEmbeddings(parsed,texts.size(),isOllama(),isSiliconflow());
+            onceRemaining(deadline);
+            return result;
+            } finally { if (!pending.isDone()) pending.cancel(true); }
+    }
+
+    private List<List<Float>> parseOnceEmbeddings(JSONObject parsed,int count,boolean ollama,boolean siliconflow) {
+            JSONArray rows;
+            List<List<Float>> result = new ArrayList<>(java.util.Collections.nCopies(count, null));
+            if (ollama) {
+                rows = parsed == null ? null : parsed.getJSONArray("embeddings");
+                if (rows == null || rows.size() != count) return null;
+                for (int i = 0; i < rows.size(); i++) result.set(i, onceVector(rows.getJSONArray(i)));
+            } else {
+                rows = parsed == null ? null : siliconflow ? parsed.getJSONArray("data")
+                        : parsed.getJSONObject("output") == null ? null : parsed.getJSONObject("output").getJSONArray("embeddings");
+                if (rows == null || rows.size() != count) return null;
+                for (int i = 0; i < rows.size(); i++) {
+                    JSONObject item = rows.getJSONObject(i);String field = siliconflow ? "index" : "text_index";
+                    if (item == null || !item.containsKey(field)) return null;
+                    Object rawIndex = item.get(field);
+                    if (!(rawIndex instanceof Integer) && !(rawIndex instanceof Long)) return null;
+                    long index = ((Number) rawIndex).longValue();
+                    if (index < 0 || index >= count || result.get((int) index) != null) return null;
+                    result.set((int) index, onceVector(item.getJSONArray("embedding")));
+                }
+            }
+            if (result.stream().anyMatch(v -> v == null || v.size() != expectedDimension
+                    || v.stream().anyMatch(n -> n == null || !Float.isFinite(n)))) return null;
+            return result;
+    }
+
+    /** 只记录响应确实给出的元数据，不保存URL、请求文本、密钥或完整上游错误正文。 */
+    private final class EmbeddingTrace {
+        private final long startedAt=System.nanoTime();
+        private final ObjectMapper mapper=new ObjectMapper();
+        private final ObjectNode value=mapper.createObjectNode();
+        EmbeddingTrace(Identity identity) {
+            value.put("transport","jdk-http-once").put("adapterMode",identity.provider()).put("endpointFingerprint",identity.endpointFingerprint())
+                    .put("attemptCount",0).put("startedAt",java.time.Instant.now().toString()).put("dimension",identity.dimension());
+            safePut("requestedModel",identity.model());
+            for(String field:List.of("httpStatus","requestId","model","provider","tokenUsage"))value.putNull(field);
+        }
+        synchronized void started(){value.put("attemptCount",1);}
+        synchronized void headers(int status,java.net.http.HttpHeaders headers) {
+            value.put("httpStatus",status);
+            safePut("requestId",headers.firstValue("x-request-id").orElseGet(()->headers.firstValue("x-dashscope-request-id")
+                    .orElseGet(()->headers.firstValue("request-id").orElse(null))));
+        }
+        synchronized void received(JSONObject response) {
+            if(response==null)return;
+            safePut("model",response.get("model") instanceof String model?model:null);
+            if(value.path("requestId").isNull()) {
+                Object id=response.get("request_id");if(!(id instanceof String))id=response.get("requestId");if(!(id instanceof String))id=response.get("id");
+                safePut("requestId",id instanceof String text?text:null);
+            }
+            if(response.get("provider") instanceof String provider)safePut("provider",provider);
+            Object raw=response.get("usage");ObjectNode usage=mapper.createObjectNode();
+            if(raw instanceof JSONObject source)for(String field:List.of("prompt_tokens","completion_tokens","total_tokens","input_tokens","output_tokens")) {
+                var count=mapper.valueToTree(source.get(field));
+                if(count!=null&&count.isIntegralNumber()&&count.canConvertToLong()&&count.asLong()>=0)usage.put(field,count.asLong());
+            }
+            value.set("tokenUsage",usage.isEmpty()?mapper.nullNode():usage);
+        }
+        synchronized ObjectNode snapshot(String failureKind) {
+            ObjectNode out=value.deepCopy().put("elapsedMs",TimeUnit.NANOSECONDS.toMillis(System.nanoTime()-startedAt))
+                    .put("mode",value.path("attemptCount").asInt()==0?"configured":"live").put("validation",failureKind==null?"passed":"unknown");
+            if(failureKind==null)out.putNull("failureKind");else out.put("failureKind",failureKind);
+            return out;
+        }
+        private void safePut(String field,String raw) {
+            if(raw==null||raw.isBlank()||raw.length()>200||!raw.matches("[A-Za-z0-9._:/@-]+")
+                    ||raw.startsWith("http:")||raw.startsWith("https:")){value.putNull(field);return;}
+            for(String key:new String[]{dashscopeApiKey,siliconflowKey})if(key!=null&&!key.isBlank()&&raw.contains(key)){value.putNull(field);return;}
+            value.put(field,raw);
+        }
+    }
+
+    private static long onceRemaining(long deadline) throws java.util.concurrent.TimeoutException {
+        long remaining = deadline - System.nanoTime();
+        if (remaining <= 0 || Thread.currentThread().isInterrupted()) throw new java.util.concurrent.TimeoutException("embedding deadline");
+        return remaining;
+    }
+
+    private static final class OnceBody implements HttpResponse.BodySubscriber<byte[]> {
+        private final CompletableFuture<byte[]> result = new CompletableFuture<>();
+        private final ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        private Flow.Subscription subscription;
+        public CompletionStage<byte[]> getBody() { return result; }
+        public void onSubscribe(Flow.Subscription value) { subscription = value; value.request(1); }
+        public void onNext(List<ByteBuffer> chunks) {
+            for (ByteBuffer chunk : chunks) {
+                if (chunk.remaining() > 2 * 1024 * 1024 - bytes.size()) {
+                    subscription.cancel();result.completeExceptionally(new IllegalStateException("embedding response too large"));return;
+                }
+                byte[] data = new byte[chunk.remaining()];chunk.get(data);bytes.writeBytes(data);
+            }
+            subscription.request(1);
+        }
+        public void onError(Throwable error) { result.completeExceptionally(error); }
+        public void onComplete() { result.complete(bytes.toByteArray()); }
+    }
+
+    @PreDestroy public void closeOnceTransport() { onceHttp.shutdownNow(); }
+
+    private List<Float> onceVector(JSONArray raw) {
+        if (raw == null || raw.size() != expectedDimension) return null;
+        List<Float> vector = new ArrayList<>(raw.size());
+        for (Object value : raw) {
+            if (!(value instanceof Number number) || !Float.isFinite(number.floatValue())) return null;
+            vector.add(number.floatValue());
+        }
+        return vector;
+    }
+
+    /**
      * 批量转向量（每条独立调用，稳定性优先）。
      */
     public List<List<Float>> generateEmbeddings(List<String> texts) {
@@ -253,8 +496,7 @@ public class EmbeddingService {
 
     /**
      * 调用硅基流动 /v1/embeddings（OpenAI 兼容协议）。
-     * <p>默认模型 BAAI/bge-m3 为 1024 维，与 DashScope text-embedding-v3 一致，
-     * 因此从 dashscope 切到 siliconflow <b>不需要清理任何集合</b>。</p>
+     * <p>返回维度可能与其他提供方相同，但不能据此混合不同模型的缓存或集合。</p>
      */
     private List<List<Float>> siliconflowEmbed(List<String> batch) {
         try {

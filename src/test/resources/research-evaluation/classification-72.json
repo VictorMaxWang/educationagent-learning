@@ -1,0 +1,3684 @@
+{
+  "schemaVersion": "engineering-fixture-v1",
+  "labelProvenance": {
+    "kind": "agent-authored-engineering-expectation",
+    "status": "draft-engineering-reference",
+    "humanReviewed": false,
+    "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+    "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+  },
+  "cases": [
+    {
+      "id": "CLS-primary-eligible-01",
+      "stage": "primary",
+      "split": "development",
+      "course": {
+        "id": "CLS-primary-eligible-01",
+        "title": "静夜思朗读",
+        "topic": "静夜思朗读",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "学习朗读时的停顿、重音与节奏，需要补充真人朗读示范。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "观察朗读停顿与节奏"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "静夜思朗读",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "观察朗读停顿与节奏"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "eligible",
+      "expectedPurpose": "recitation",
+      "basis": "学习朗读时的停顿、重音与节奏，需要补充真人朗读示范。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-primary-eligible-02",
+      "stage": "primary",
+      "split": "development",
+      "course": {
+        "id": "CLS-primary-eligible-02",
+        "title": "英语th发音",
+        "topic": "英语th发音",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "本节说明舌尖与牙齿的位置，希望通过口型示范观察发音。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "观察th的口型与气流"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "英语th发音",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "观察th的口型与气流"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "eligible",
+      "expectedPurpose": "pronunciation",
+      "basis": "本节说明舌尖与牙齿的位置，希望通过口型示范观察发音。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-primary-eligible-03",
+      "stage": "primary",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-primary-eligible-03",
+        "title": "英语问路对话",
+        "topic": "英语问路对话",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "本节学习问路和回应，文字对话之外需要听到自然语音与交替说话。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "听辨问路和回应"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "英语问路对话",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "听辨问路和回应"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "eligible",
+      "expectedPurpose": "listening",
+      "basis": "本节学习问路和回应，文字对话之外需要听到自然语音与交替说话。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-primary-eligible-04",
+      "stage": "primary",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-primary-eligible-04",
+        "title": "种子萌发观察",
+        "topic": "种子萌发观察",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "种子会吸水、露白并长出根和芽，需要观察这些变化的真实过程。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "观察萌发的先后变化"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "种子萌发观察",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "观察萌发的先后变化"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "eligible",
+      "expectedPurpose": "observation",
+      "basis": "种子会吸水、露白并长出根和芽，需要观察这些变化的真实过程。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-primary-eligible-05",
+      "stage": "primary",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-primary-eligible-05",
+        "title": "水循环观察",
+        "topic": "水循环观察",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "水会蒸发成水汽，水汽遇冷凝结，降水又回到地表。需要观察实景过程。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "观察蒸发凝结与降水"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "水循环观察",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "观察蒸发凝结与降水"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "eligible",
+      "expectedPurpose": "observation",
+      "basis": "水会蒸发成水汽，水汽遇冷凝结，降水又回到地表。需要观察实景过程。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-primary-eligible-06",
+      "stage": "primary",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-primary-eligible-06",
+        "title": "尺子测量方法",
+        "topic": "尺子测量方法",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "测量时把零刻度与物体起点对齐，视线正对刻度。需要安全的动作示范。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "观察零刻度对齐方法"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "尺子测量方法",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "观察零刻度对齐方法"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "eligible",
+      "expectedPurpose": "procedure",
+      "basis": "测量时把零刻度与物体起点对齐，视线正对刻度。需要安全的动作示范。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-primary-eligible-07",
+      "stage": "primary",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-primary-eligible-07",
+        "title": "平行四边形面积剪拼",
+        "topic": "平行四边形面积剪拼",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "沿高剪下三角形后平移，可把平行四边形拼成长方形，观察面积不变。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "观察剪拼如何保持面积"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "平行四边形面积剪拼",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "观察剪拼如何保持面积"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "eligible",
+      "expectedPurpose": "concept",
+      "basis": "沿高剪下三角形后平移，可把平行四边形拼成长方形，观察面积不变。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-primary-eligible-08",
+      "stage": "primary",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-primary-eligible-08",
+        "title": "沁园春长沙朗诵",
+        "topic": "沁园春长沙朗诵",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "本节已有秋景互动图，仍需补充真人诵读节奏与情感表达。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "听辨朗诵节奏与情感"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "沁园春长沙朗诵",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "听辨朗诵节奏与情感"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "eligible",
+      "expectedPurpose": "recitation",
+      "basis": "本节已有秋景互动图，仍需补充真人诵读节奏与情感表达。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-primary-ineligible-01",
+      "stage": "primary",
+      "split": "development",
+      "course": {
+        "id": "CLS-primary-ineligible-01",
+        "title": "这道题错题订正",
+        "topic": "这道题错题订正",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "学生提交了分数加法答案，本节需要定位分母计算错误。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对当前答案"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "这道题错题订正",
+            "type": "quiz",
+            "content": {
+              "canvas": [
+                {
+                  "text": "核对当前答案"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "ineligible",
+      "expectedPurpose": null,
+      "basis": "学生提交了分数加法答案，本节需要定位分母计算错误。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-primary-ineligible-02",
+      "stage": "primary",
+      "split": "development",
+      "course": {
+        "id": "CLS-primary-ineligible-02",
+        "title": "代码调试与变量追踪",
+        "topic": "代码调试与变量追踪",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "exploration",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "学生的循环边界报错，需要检查当前代码执行轨迹。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "定位当前报错行"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "代码调试与变量追踪",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "定位当前报错行"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "ineligible",
+      "expectedPurpose": null,
+      "basis": "学生的循环边界报错，需要检查当前代码执行轨迹。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-primary-ineligible-03",
+      "stage": "primary",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-primary-ineligible-03",
+        "title": "我考试后很焦虑",
+        "topic": "我考试后很焦虑",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "wellbeing",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "学生希望讨论自己的焦虑感受和今天可以采取的一步行动。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "表达情绪需要"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "我考试后很焦虑",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "表达情绪需要"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "ineligible",
+      "expectedPurpose": null,
+      "basis": "学生希望讨论自己的焦虑感受和今天可以采取的一步行动。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-primary-ineligible-04",
+      "stage": "primary",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-primary-ineligible-04",
+        "title": "父母吵架让我害怕",
+        "topic": "父母吵架让我害怕",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "wellbeing",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "这是学生对家庭矛盾的个人叙述。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "在当前对话表达需要"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "父母吵架让我害怕",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "在当前对话表达需要"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "ineligible",
+      "expectedPurpose": null,
+      "basis": "这是学生对家庭矛盾的个人叙述。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-primary-ineligible-05",
+      "stage": "primary",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-primary-ineligible-05",
+        "title": "青春期私密健康疑问",
+        "topic": "青春期私密健康疑问",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "wellbeing",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "学生提出个人身体变化疑问，希望得到适龄解释。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "在当前问答澄清疑问"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "青春期私密健康疑问",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "在当前问答澄清疑问"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "ineligible",
+      "expectedPurpose": null,
+      "basis": "学生提出个人身体变化疑问，希望得到适龄解释。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-primary-ineligible-06",
+      "stage": "primary",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-primary-ineligible-06",
+        "title": "这份答案批改",
+        "topic": "这份答案批改",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "需要对照当前题目标准答案评阅学生的答案。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对作答与标准答案"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "这份答案批改",
+            "type": "quiz",
+            "content": {
+              "canvas": [
+                {
+                  "text": "核对作答与标准答案"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "ineligible",
+      "expectedPurpose": null,
+      "basis": "需要对照当前题目标准答案评阅学生的答案。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-primary-ineligible-07",
+      "stage": "primary",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-primary-ineligible-07",
+        "title": "数组排序代码可视化",
+        "topic": "数组排序代码可视化",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "exploration",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "本节已经运行学生代码并显示数组、变量和调用栈，学生要查看下一步。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "使用本次真实轨迹"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "数组排序代码可视化",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "使用本次真实轨迹"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "ineligible",
+      "expectedPurpose": null,
+      "basis": "本节已经运行学生代码并显示数组、变量和调用栈，学生要查看下一步。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-primary-ineligible-08",
+      "stage": "primary",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-primary-ineligible-08",
+        "title": "分数判断练习",
+        "topic": "分数判断练习",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "当前正在完成分数大小判断题，需要直接作答后反馈。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "提交当前练习"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "分数判断练习",
+            "type": "quiz",
+            "content": {
+              "canvas": [
+                {
+                  "text": "提交当前练习"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "ineligible",
+      "expectedPurpose": null,
+      "basis": "当前正在完成分数大小判断题，需要直接作答后反馈。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-primary-uncertain-01",
+      "stage": "primary",
+      "split": "development",
+      "course": {
+        "id": "CLS-primary-uncertain-01",
+        "title": "综合学习",
+        "topic": "综合学习",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "本节尚未选定主题和学习目标。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "待确定要学习什么"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "综合学习",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "待确定要学习什么"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "uncertain",
+      "expectedPurpose": null,
+      "basis": "本节尚未选定主题和学习目标。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-primary-uncertain-02",
+      "stage": "primary",
+      "split": "development",
+      "course": {
+        "id": "CLS-primary-uncertain-02",
+        "title": "资料中的主题",
+        "topic": "资料中的主题",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "资料只写了一个未解释的名称，未说明要学的知识或观看用途。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "等待补充说明"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "资料中的主题",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "等待补充说明"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "uncertain",
+      "expectedPurpose": null,
+      "basis": "资料只写了一个未解释的名称，未说明要学的知识或观看用途。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-primary-uncertain-03",
+      "stage": "primary",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-primary-uncertain-03",
+        "title": "活动准备",
+        "topic": "活动准备",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "当前没有活动内容、步骤或可观察现象，无法判断视频补充作用。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "活动目标尚未形成"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "活动准备",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "活动目标尚未形成"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "uncertain",
+      "expectedPurpose": null,
+      "basis": "当前没有活动内容、步骤或可观察现象，无法判断视频补充作用。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-primary-uncertain-04",
+      "stage": "primary",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-primary-uncertain-04",
+        "title": "明天的课程",
+        "topic": "明天的课程",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "课程内容尚未生成，具体任务为空。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "尚未选定学习任务"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "明天的课程",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "尚未选定学习任务"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "uncertain",
+      "expectedPurpose": null,
+      "basis": "课程内容尚未生成，具体任务为空。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-primary-uncertain-05",
+      "stage": "primary",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-primary-uncertain-05",
+        "title": "概念甲与概念乙",
+        "topic": "概念甲与概念乙",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "两份目标分别要求学习互不相关的概念，资料没有给出当前主题选择。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "先确认本节主题"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "概念甲与概念乙",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "先确认本节主题"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "uncertain",
+      "expectedPurpose": null,
+      "basis": "两份目标分别要求学习互不相关的概念，资料没有给出当前主题选择。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-primary-uncertain-06",
+      "stage": "primary",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-primary-uncertain-06",
+        "title": "章节练习之外",
+        "topic": "章节练习之外",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "资料没有具体知识结论，也没有说明外部视频补充什么。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "待补充具体学习目标"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "章节练习之外",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "待补充具体学习目标"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "uncertain",
+      "expectedPurpose": null,
+      "basis": "资料没有具体知识结论，也没有说明外部视频补充什么。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-primary-uncertain-07",
+      "stage": "primary",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-primary-uncertain-07",
+        "title": "自由探索主题",
+        "topic": "自由探索主题",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "学生还未确定探索方向，既没有对象也没有计划观察的现象。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "先确定探索对象"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "自由探索主题",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "先确定探索对象"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "uncertain",
+      "expectedPurpose": null,
+      "basis": "学生还未确定探索方向，既没有对象也没有计划观察的现象。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-primary-uncertain-08",
+      "stage": "primary",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-primary-uncertain-08",
+        "title": "参考资料待补充",
+        "topic": "参考资料待补充",
+        "grade": 5,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "现有材料只有标题，正文内容缺失，无法确定适配的视频内容。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "补充资料后再判断"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "参考资料待补充",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "补充资料后再判断"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "uncertain",
+      "expectedPurpose": null,
+      "basis": "现有材料只有标题，正文内容缺失，无法确定适配的视频内容。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-junior-eligible-01",
+      "stage": "junior",
+      "split": "development",
+      "course": {
+        "id": "CLS-junior-eligible-01",
+        "title": "静夜思朗读",
+        "topic": "静夜思朗读",
+        "grade": 8,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "学习朗读时的停顿、重音与节奏，需要补充真人朗读示范。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "观察朗读停顿与节奏"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "静夜思朗读",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "观察朗读停顿与节奏"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "eligible",
+      "expectedPurpose": "recitation",
+      "basis": "学习朗读时的停顿、重音与节奏，需要补充真人朗读示范。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-junior-eligible-02",
+      "stage": "junior",
+      "split": "development",
+      "course": {
+        "id": "CLS-junior-eligible-02",
+        "title": "英语th发音",
+        "topic": "英语th发音",
+        "grade": 8,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "本节说明舌尖与牙齿的位置，希望通过口型示范观察发音。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "观察th的口型与气流"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "英语th发音",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "观察th的口型与气流"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "eligible",
+      "expectedPurpose": "pronunciation",
+      "basis": "本节说明舌尖与牙齿的位置，希望通过口型示范观察发音。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-junior-eligible-03",
+      "stage": "junior",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-junior-eligible-03",
+        "title": "英语问路对话",
+        "topic": "英语问路对话",
+        "grade": 8,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "本节学习问路和回应，文字对话之外需要听到自然语音与交替说话。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "听辨问路和回应"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "英语问路对话",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "听辨问路和回应"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "eligible",
+      "expectedPurpose": "listening",
+      "basis": "本节学习问路和回应，文字对话之外需要听到自然语音与交替说话。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-junior-eligible-04",
+      "stage": "junior",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-junior-eligible-04",
+        "title": "种子萌发观察",
+        "topic": "种子萌发观察",
+        "grade": 8,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "种子会吸水、露白并长出根和芽，需要观察这些变化的真实过程。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "观察萌发的先后变化"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "种子萌发观察",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "观察萌发的先后变化"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "eligible",
+      "expectedPurpose": "observation",
+      "basis": "种子会吸水、露白并长出根和芽，需要观察这些变化的真实过程。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-junior-eligible-05",
+      "stage": "junior",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-junior-eligible-05",
+        "title": "水循环观察",
+        "topic": "水循环观察",
+        "grade": 8,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "水会蒸发成水汽，水汽遇冷凝结，降水又回到地表。需要观察实景过程。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "观察蒸发凝结与降水"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "水循环观察",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "观察蒸发凝结与降水"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "eligible",
+      "expectedPurpose": "observation",
+      "basis": "水会蒸发成水汽，水汽遇冷凝结，降水又回到地表。需要观察实景过程。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-junior-eligible-06",
+      "stage": "junior",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-junior-eligible-06",
+        "title": "尺子测量方法",
+        "topic": "尺子测量方法",
+        "grade": 8,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "测量时把零刻度与物体起点对齐，视线正对刻度。需要安全的动作示范。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "观察零刻度对齐方法"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "尺子测量方法",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "观察零刻度对齐方法"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "eligible",
+      "expectedPurpose": "procedure",
+      "basis": "测量时把零刻度与物体起点对齐，视线正对刻度。需要安全的动作示范。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-junior-eligible-07",
+      "stage": "junior",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-junior-eligible-07",
+        "title": "平行四边形面积剪拼",
+        "topic": "平行四边形面积剪拼",
+        "grade": 8,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "沿高剪下三角形后平移，可把平行四边形拼成长方形，观察面积不变。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "观察剪拼如何保持面积"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "平行四边形面积剪拼",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "观察剪拼如何保持面积"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "eligible",
+      "expectedPurpose": "concept",
+      "basis": "沿高剪下三角形后平移，可把平行四边形拼成长方形，观察面积不变。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-junior-eligible-08",
+      "stage": "junior",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-junior-eligible-08",
+        "title": "沁园春长沙朗诵",
+        "topic": "沁园春长沙朗诵",
+        "grade": 8,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "本节已有秋景互动图，仍需补充真人诵读节奏与情感表达。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "听辨朗诵节奏与情感"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "沁园春长沙朗诵",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "听辨朗诵节奏与情感"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "eligible",
+      "expectedPurpose": "recitation",
+      "basis": "本节已有秋景互动图，仍需补充真人诵读节奏与情感表达。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-junior-ineligible-01",
+      "stage": "junior",
+      "split": "development",
+      "course": {
+        "id": "CLS-junior-ineligible-01",
+        "title": "这道题错题订正",
+        "topic": "这道题错题订正",
+        "grade": 8,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "学生提交了分数加法答案，本节需要定位分母计算错误。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对当前答案"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "这道题错题订正",
+            "type": "quiz",
+            "content": {
+              "canvas": [
+                {
+                  "text": "核对当前答案"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "ineligible",
+      "expectedPurpose": null,
+      "basis": "学生提交了分数加法答案，本节需要定位分母计算错误。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-junior-ineligible-02",
+      "stage": "junior",
+      "split": "development",
+      "course": {
+        "id": "CLS-junior-ineligible-02",
+        "title": "代码调试与变量追踪",
+        "topic": "代码调试与变量追踪",
+        "grade": 8,
+        "subject": "综合",
+        "direction": "exploration",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "学生的循环边界报错，需要检查当前代码执行轨迹。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "定位当前报错行"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "代码调试与变量追踪",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "定位当前报错行"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "ineligible",
+      "expectedPurpose": null,
+      "basis": "学生的循环边界报错，需要检查当前代码执行轨迹。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-junior-ineligible-03",
+      "stage": "junior",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-junior-ineligible-03",
+        "title": "我考试后很焦虑",
+        "topic": "我考试后很焦虑",
+        "grade": 8,
+        "subject": "综合",
+        "direction": "wellbeing",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "学生希望讨论自己的焦虑感受和今天可以采取的一步行动。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "表达情绪需要"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "我考试后很焦虑",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "表达情绪需要"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "ineligible",
+      "expectedPurpose": null,
+      "basis": "学生希望讨论自己的焦虑感受和今天可以采取的一步行动。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-junior-ineligible-04",
+      "stage": "junior",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-junior-ineligible-04",
+        "title": "父母吵架让我害怕",
+        "topic": "父母吵架让我害怕",
+        "grade": 8,
+        "subject": "综合",
+        "direction": "wellbeing",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "这是学生对家庭矛盾的个人叙述。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "在当前对话表达需要"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "父母吵架让我害怕",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "在当前对话表达需要"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "ineligible",
+      "expectedPurpose": null,
+      "basis": "这是学生对家庭矛盾的个人叙述。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-junior-ineligible-05",
+      "stage": "junior",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-junior-ineligible-05",
+        "title": "青春期私密健康疑问",
+        "topic": "青春期私密健康疑问",
+        "grade": 8,
+        "subject": "综合",
+        "direction": "wellbeing",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "学生提出个人身体变化疑问，希望得到适龄解释。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "在当前问答澄清疑问"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "青春期私密健康疑问",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "在当前问答澄清疑问"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "ineligible",
+      "expectedPurpose": null,
+      "basis": "学生提出个人身体变化疑问，希望得到适龄解释。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-junior-ineligible-06",
+      "stage": "junior",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-junior-ineligible-06",
+        "title": "这份答案批改",
+        "topic": "这份答案批改",
+        "grade": 8,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "需要对照当前题目标准答案评阅学生的答案。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对作答与标准答案"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "这份答案批改",
+            "type": "quiz",
+            "content": {
+              "canvas": [
+                {
+                  "text": "核对作答与标准答案"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "ineligible",
+      "expectedPurpose": null,
+      "basis": "需要对照当前题目标准答案评阅学生的答案。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-junior-ineligible-07",
+      "stage": "junior",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-junior-ineligible-07",
+        "title": "数组排序代码可视化",
+        "topic": "数组排序代码可视化",
+        "grade": 8,
+        "subject": "综合",
+        "direction": "exploration",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "本节已经运行学生代码并显示数组、变量和调用栈，学生要查看下一步。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "使用本次真实轨迹"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "数组排序代码可视化",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "使用本次真实轨迹"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "ineligible",
+      "expectedPurpose": null,
+      "basis": "本节已经运行学生代码并显示数组、变量和调用栈，学生要查看下一步。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-junior-ineligible-08",
+      "stage": "junior",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-junior-ineligible-08",
+        "title": "分数判断练习",
+        "topic": "分数判断练习",
+        "grade": 8,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "当前正在完成分数大小判断题，需要直接作答后反馈。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "提交当前练习"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "分数判断练习",
+            "type": "quiz",
+            "content": {
+              "canvas": [
+                {
+                  "text": "提交当前练习"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "ineligible",
+      "expectedPurpose": null,
+      "basis": "当前正在完成分数大小判断题，需要直接作答后反馈。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-junior-uncertain-01",
+      "stage": "junior",
+      "split": "development",
+      "course": {
+        "id": "CLS-junior-uncertain-01",
+        "title": "综合学习",
+        "topic": "综合学习",
+        "grade": 8,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "本节尚未选定主题和学习目标。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "待确定要学习什么"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "综合学习",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "待确定要学习什么"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "uncertain",
+      "expectedPurpose": null,
+      "basis": "本节尚未选定主题和学习目标。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-junior-uncertain-02",
+      "stage": "junior",
+      "split": "development",
+      "course": {
+        "id": "CLS-junior-uncertain-02",
+        "title": "资料中的主题",
+        "topic": "资料中的主题",
+        "grade": 8,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "资料只写了一个未解释的名称，未说明要学的知识或观看用途。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "等待补充说明"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "资料中的主题",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "等待补充说明"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "uncertain",
+      "expectedPurpose": null,
+      "basis": "资料只写了一个未解释的名称，未说明要学的知识或观看用途。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-junior-uncertain-03",
+      "stage": "junior",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-junior-uncertain-03",
+        "title": "活动准备",
+        "topic": "活动准备",
+        "grade": 8,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "当前没有活动内容、步骤或可观察现象，无法判断视频补充作用。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "活动目标尚未形成"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "活动准备",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "活动目标尚未形成"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "uncertain",
+      "expectedPurpose": null,
+      "basis": "当前没有活动内容、步骤或可观察现象，无法判断视频补充作用。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-junior-uncertain-04",
+      "stage": "junior",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-junior-uncertain-04",
+        "title": "明天的课程",
+        "topic": "明天的课程",
+        "grade": 8,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "课程内容尚未生成，具体任务为空。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "尚未选定学习任务"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "明天的课程",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "尚未选定学习任务"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "uncertain",
+      "expectedPurpose": null,
+      "basis": "课程内容尚未生成，具体任务为空。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-junior-uncertain-05",
+      "stage": "junior",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-junior-uncertain-05",
+        "title": "概念甲与概念乙",
+        "topic": "概念甲与概念乙",
+        "grade": 8,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "两份目标分别要求学习互不相关的概念，资料没有给出当前主题选择。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "先确认本节主题"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "概念甲与概念乙",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "先确认本节主题"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "uncertain",
+      "expectedPurpose": null,
+      "basis": "两份目标分别要求学习互不相关的概念，资料没有给出当前主题选择。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-junior-uncertain-06",
+      "stage": "junior",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-junior-uncertain-06",
+        "title": "章节练习之外",
+        "topic": "章节练习之外",
+        "grade": 8,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "资料没有具体知识结论，也没有说明外部视频补充什么。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "待补充具体学习目标"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "章节练习之外",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "待补充具体学习目标"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "uncertain",
+      "expectedPurpose": null,
+      "basis": "资料没有具体知识结论，也没有说明外部视频补充什么。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-junior-uncertain-07",
+      "stage": "junior",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-junior-uncertain-07",
+        "title": "自由探索主题",
+        "topic": "自由探索主题",
+        "grade": 8,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "学生还未确定探索方向，既没有对象也没有计划观察的现象。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "先确定探索对象"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "自由探索主题",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "先确定探索对象"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "uncertain",
+      "expectedPurpose": null,
+      "basis": "学生还未确定探索方向，既没有对象也没有计划观察的现象。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-junior-uncertain-08",
+      "stage": "junior",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-junior-uncertain-08",
+        "title": "参考资料待补充",
+        "topic": "参考资料待补充",
+        "grade": 8,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "现有材料只有标题，正文内容缺失，无法确定适配的视频内容。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "补充资料后再判断"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "参考资料待补充",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "补充资料后再判断"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "uncertain",
+      "expectedPurpose": null,
+      "basis": "现有材料只有标题，正文内容缺失，无法确定适配的视频内容。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-senior-eligible-01",
+      "stage": "senior",
+      "split": "development",
+      "course": {
+        "id": "CLS-senior-eligible-01",
+        "title": "静夜思朗读",
+        "topic": "静夜思朗读",
+        "grade": 11,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "学习朗读时的停顿、重音与节奏，需要补充真人朗读示范。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "观察朗读停顿与节奏"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "静夜思朗读",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "观察朗读停顿与节奏"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "eligible",
+      "expectedPurpose": "recitation",
+      "basis": "学习朗读时的停顿、重音与节奏，需要补充真人朗读示范。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-senior-eligible-02",
+      "stage": "senior",
+      "split": "development",
+      "course": {
+        "id": "CLS-senior-eligible-02",
+        "title": "英语th发音",
+        "topic": "英语th发音",
+        "grade": 11,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "本节说明舌尖与牙齿的位置，希望通过口型示范观察发音。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "观察th的口型与气流"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "英语th发音",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "观察th的口型与气流"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "eligible",
+      "expectedPurpose": "pronunciation",
+      "basis": "本节说明舌尖与牙齿的位置，希望通过口型示范观察发音。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-senior-eligible-03",
+      "stage": "senior",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-senior-eligible-03",
+        "title": "英语问路对话",
+        "topic": "英语问路对话",
+        "grade": 11,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "本节学习问路和回应，文字对话之外需要听到自然语音与交替说话。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "听辨问路和回应"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "英语问路对话",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "听辨问路和回应"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "eligible",
+      "expectedPurpose": "listening",
+      "basis": "本节学习问路和回应，文字对话之外需要听到自然语音与交替说话。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-senior-eligible-04",
+      "stage": "senior",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-senior-eligible-04",
+        "title": "种子萌发观察",
+        "topic": "种子萌发观察",
+        "grade": 11,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "种子会吸水、露白并长出根和芽，需要观察这些变化的真实过程。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "观察萌发的先后变化"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "种子萌发观察",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "观察萌发的先后变化"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "eligible",
+      "expectedPurpose": "observation",
+      "basis": "种子会吸水、露白并长出根和芽，需要观察这些变化的真实过程。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-senior-eligible-05",
+      "stage": "senior",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-senior-eligible-05",
+        "title": "水循环观察",
+        "topic": "水循环观察",
+        "grade": 11,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "水会蒸发成水汽，水汽遇冷凝结，降水又回到地表。需要观察实景过程。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "观察蒸发凝结与降水"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "水循环观察",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "观察蒸发凝结与降水"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "eligible",
+      "expectedPurpose": "observation",
+      "basis": "水会蒸发成水汽，水汽遇冷凝结，降水又回到地表。需要观察实景过程。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-senior-eligible-06",
+      "stage": "senior",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-senior-eligible-06",
+        "title": "尺子测量方法",
+        "topic": "尺子测量方法",
+        "grade": 11,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "测量时把零刻度与物体起点对齐，视线正对刻度。需要安全的动作示范。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "观察零刻度对齐方法"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "尺子测量方法",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "观察零刻度对齐方法"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "eligible",
+      "expectedPurpose": "procedure",
+      "basis": "测量时把零刻度与物体起点对齐，视线正对刻度。需要安全的动作示范。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-senior-eligible-07",
+      "stage": "senior",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-senior-eligible-07",
+        "title": "平行四边形面积剪拼",
+        "topic": "平行四边形面积剪拼",
+        "grade": 11,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "沿高剪下三角形后平移，可把平行四边形拼成长方形，观察面积不变。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "观察剪拼如何保持面积"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "平行四边形面积剪拼",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "观察剪拼如何保持面积"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "eligible",
+      "expectedPurpose": "concept",
+      "basis": "沿高剪下三角形后平移，可把平行四边形拼成长方形，观察面积不变。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-senior-eligible-08",
+      "stage": "senior",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-senior-eligible-08",
+        "title": "沁园春长沙朗诵",
+        "topic": "沁园春长沙朗诵",
+        "grade": 11,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "本节已有秋景互动图，仍需补充真人诵读节奏与情感表达。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "听辨朗诵节奏与情感"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "沁园春长沙朗诵",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "听辨朗诵节奏与情感"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "eligible",
+      "expectedPurpose": "recitation",
+      "basis": "本节已有秋景互动图，仍需补充真人诵读节奏与情感表达。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-senior-ineligible-01",
+      "stage": "senior",
+      "split": "development",
+      "course": {
+        "id": "CLS-senior-ineligible-01",
+        "title": "这道题错题订正",
+        "topic": "这道题错题订正",
+        "grade": 11,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "学生提交了分数加法答案，本节需要定位分母计算错误。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对当前答案"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "这道题错题订正",
+            "type": "quiz",
+            "content": {
+              "canvas": [
+                {
+                  "text": "核对当前答案"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "ineligible",
+      "expectedPurpose": null,
+      "basis": "学生提交了分数加法答案，本节需要定位分母计算错误。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-senior-ineligible-02",
+      "stage": "senior",
+      "split": "development",
+      "course": {
+        "id": "CLS-senior-ineligible-02",
+        "title": "代码调试与变量追踪",
+        "topic": "代码调试与变量追踪",
+        "grade": 11,
+        "subject": "综合",
+        "direction": "exploration",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "学生的循环边界报错，需要检查当前代码执行轨迹。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "定位当前报错行"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "代码调试与变量追踪",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "定位当前报错行"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "ineligible",
+      "expectedPurpose": null,
+      "basis": "学生的循环边界报错，需要检查当前代码执行轨迹。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-senior-ineligible-03",
+      "stage": "senior",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-senior-ineligible-03",
+        "title": "我考试后很焦虑",
+        "topic": "我考试后很焦虑",
+        "grade": 11,
+        "subject": "综合",
+        "direction": "wellbeing",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "学生希望讨论自己的焦虑感受和今天可以采取的一步行动。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "表达情绪需要"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "我考试后很焦虑",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "表达情绪需要"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "ineligible",
+      "expectedPurpose": null,
+      "basis": "学生希望讨论自己的焦虑感受和今天可以采取的一步行动。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-senior-ineligible-04",
+      "stage": "senior",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-senior-ineligible-04",
+        "title": "父母吵架让我害怕",
+        "topic": "父母吵架让我害怕",
+        "grade": 11,
+        "subject": "综合",
+        "direction": "wellbeing",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "这是学生对家庭矛盾的个人叙述。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "在当前对话表达需要"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "父母吵架让我害怕",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "在当前对话表达需要"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "ineligible",
+      "expectedPurpose": null,
+      "basis": "这是学生对家庭矛盾的个人叙述。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-senior-ineligible-05",
+      "stage": "senior",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-senior-ineligible-05",
+        "title": "青春期私密健康疑问",
+        "topic": "青春期私密健康疑问",
+        "grade": 11,
+        "subject": "综合",
+        "direction": "wellbeing",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "学生提出个人身体变化疑问，希望得到适龄解释。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "在当前问答澄清疑问"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "青春期私密健康疑问",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "在当前问答澄清疑问"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "ineligible",
+      "expectedPurpose": null,
+      "basis": "学生提出个人身体变化疑问，希望得到适龄解释。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-senior-ineligible-06",
+      "stage": "senior",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-senior-ineligible-06",
+        "title": "这份答案批改",
+        "topic": "这份答案批改",
+        "grade": 11,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "需要对照当前题目标准答案评阅学生的答案。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "核对作答与标准答案"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "这份答案批改",
+            "type": "quiz",
+            "content": {
+              "canvas": [
+                {
+                  "text": "核对作答与标准答案"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "ineligible",
+      "expectedPurpose": null,
+      "basis": "需要对照当前题目标准答案评阅学生的答案。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-senior-ineligible-07",
+      "stage": "senior",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-senior-ineligible-07",
+        "title": "数组排序代码可视化",
+        "topic": "数组排序代码可视化",
+        "grade": 11,
+        "subject": "综合",
+        "direction": "exploration",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "本节已经运行学生代码并显示数组、变量和调用栈，学生要查看下一步。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "使用本次真实轨迹"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "数组排序代码可视化",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "使用本次真实轨迹"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "ineligible",
+      "expectedPurpose": null,
+      "basis": "本节已经运行学生代码并显示数组、变量和调用栈，学生要查看下一步。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-senior-ineligible-08",
+      "stage": "senior",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-senior-ineligible-08",
+        "title": "分数判断练习",
+        "topic": "分数判断练习",
+        "grade": 11,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "当前正在完成分数大小判断题，需要直接作答后反馈。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "提交当前练习"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "分数判断练习",
+            "type": "quiz",
+            "content": {
+              "canvas": [
+                {
+                  "text": "提交当前练习"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "ineligible",
+      "expectedPurpose": null,
+      "basis": "当前正在完成分数大小判断题，需要直接作答后反馈。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-senior-uncertain-01",
+      "stage": "senior",
+      "split": "development",
+      "course": {
+        "id": "CLS-senior-uncertain-01",
+        "title": "综合学习",
+        "topic": "综合学习",
+        "grade": 11,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "本节尚未选定主题和学习目标。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "待确定要学习什么"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "综合学习",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "待确定要学习什么"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "uncertain",
+      "expectedPurpose": null,
+      "basis": "本节尚未选定主题和学习目标。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-senior-uncertain-02",
+      "stage": "senior",
+      "split": "development",
+      "course": {
+        "id": "CLS-senior-uncertain-02",
+        "title": "资料中的主题",
+        "topic": "资料中的主题",
+        "grade": 11,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "资料只写了一个未解释的名称，未说明要学的知识或观看用途。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "等待补充说明"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "资料中的主题",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "等待补充说明"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "uncertain",
+      "expectedPurpose": null,
+      "basis": "资料只写了一个未解释的名称，未说明要学的知识或观看用途。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-senior-uncertain-03",
+      "stage": "senior",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-senior-uncertain-03",
+        "title": "活动准备",
+        "topic": "活动准备",
+        "grade": 11,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "当前没有活动内容、步骤或可观察现象，无法判断视频补充作用。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "活动目标尚未形成"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "活动准备",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "活动目标尚未形成"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "uncertain",
+      "expectedPurpose": null,
+      "basis": "当前没有活动内容、步骤或可观察现象，无法判断视频补充作用。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-senior-uncertain-04",
+      "stage": "senior",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-senior-uncertain-04",
+        "title": "明天的课程",
+        "topic": "明天的课程",
+        "grade": 11,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "课程内容尚未生成，具体任务为空。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "尚未选定学习任务"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "明天的课程",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "尚未选定学习任务"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "uncertain",
+      "expectedPurpose": null,
+      "basis": "课程内容尚未生成，具体任务为空。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-senior-uncertain-05",
+      "stage": "senior",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-senior-uncertain-05",
+        "title": "概念甲与概念乙",
+        "topic": "概念甲与概念乙",
+        "grade": 11,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "两份目标分别要求学习互不相关的概念，资料没有给出当前主题选择。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "先确认本节主题"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "概念甲与概念乙",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "先确认本节主题"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "uncertain",
+      "expectedPurpose": null,
+      "basis": "两份目标分别要求学习互不相关的概念，资料没有给出当前主题选择。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-senior-uncertain-06",
+      "stage": "senior",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-senior-uncertain-06",
+        "title": "章节练习之外",
+        "topic": "章节练习之外",
+        "grade": 11,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "资料没有具体知识结论，也没有说明外部视频补充什么。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "待补充具体学习目标"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "章节练习之外",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "待补充具体学习目标"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "uncertain",
+      "expectedPurpose": null,
+      "basis": "资料没有具体知识结论，也没有说明外部视频补充什么。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-senior-uncertain-07",
+      "stage": "senior",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-senior-uncertain-07",
+        "title": "自由探索主题",
+        "topic": "自由探索主题",
+        "grade": 11,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "学生还未确定探索方向，既没有对象也没有计划观察的现象。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "先确定探索对象"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "自由探索主题",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "先确定探索对象"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "uncertain",
+      "expectedPurpose": null,
+      "basis": "学生还未确定探索方向，既没有对象也没有计划观察的现象。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    },
+    {
+      "id": "CLS-senior-uncertain-08",
+      "stage": "senior",
+      "split": "held-out",
+      "course": {
+        "id": "CLS-senior-uncertain-08",
+        "title": "参考资料待补充",
+        "topic": "参考资料待补充",
+        "grade": 11,
+        "subject": "综合",
+        "direction": "academic",
+        "revision": 1,
+        "sourceName": "工程夹具自编资料",
+        "sourceText": "现有材料只有标题，正文内容缺失，无法确定适配的视频内容。",
+        "outlines": [
+          {
+            "id": "scene-1",
+            "description": "补充资料后再判断"
+          }
+        ],
+        "scenes": [
+          {
+            "id": "scene-1",
+            "title": "参考资料待补充",
+            "type": "slide",
+            "content": {
+              "canvas": [
+                {
+                  "text": "补充资料后再判断"
+                }
+              ]
+            },
+            "actions": []
+          }
+        ],
+        "progress": {
+          "sceneIndex": 0
+        }
+      },
+      "sceneId": "scene-1",
+      "expectedStatus": "uncertain",
+      "expectedPurpose": null,
+      "basis": "现有材料只有标题，正文内容缺失，无法确定适配的视频内容。",
+      "labelProvenance": {
+        "kind": "agent-authored-engineering-expectation",
+        "status": "draft-engineering-reference",
+        "humanReviewed": false,
+        "purpose": "Check implementation behavior, not educational efficacy or teacher-rated accuracy.",
+        "source": "Approved implementation plan: teaching-task gate and source-grounded reflection contract"
+      }
+    }
+  ]
+}

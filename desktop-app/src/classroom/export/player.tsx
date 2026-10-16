@@ -11,6 +11,7 @@ import type { WhiteboardState } from '../types';
 import type { Slide } from '@educationagent/dsl';
 import katex from 'katex';
 import { playOfflineActions } from './playback';
+import SupplementaryLinks from './SupplementaryLinks';
 
 /** 单文件只播放已导出的资源；这里不导入 API、账号或在线 Agent。 */
 class PageBoundary extends Component<{ children: ReactNode }, { error: boolean }> {
@@ -137,6 +138,7 @@ function Player({ data }: { data: PlayerData }) {
         <div className="ep-caption" aria-live="polite">{caption || '可以阅读课件、动手练习，或查看完整讲稿。'}</div>
         <div className="ep-controls"><button onClick={() => void play()} disabled={!scene.actions?.length}>{!scene.actions?.length ? '本页无讲解动作' : playing ? '停止讲解' : cursor >= scene.actions.length ? '重新演示' : cursor > 0 ? '继续演示' : '开始演示讲解'}</button><label>语速 <select value={rate} onChange={event => { const value = Number(event.target.value); setRate(value); if (activeAudio.current) activeAudio.current.playbackRate = value; }}><option value={0.8}>0.8×</option><option value={1}>1×</option><option value={1.2}>1.2×</option></select></label><span /><button disabled={index === 0} onClick={() => navigate(index - 1)}>上一页</button><button disabled={index === course.scenes.length - 1} onClick={() => navigate(index + 1)}>下一页</button></div>
         {message && <p role="status" className="ep-feedback">{message}</p>}<details className="ep-transcript" open><summary>本页完整讲稿</summary>{(scene.actions || []).filter(action => action.type === 'speech' || action.type === 'discussion').map((action, i) => <p key={i}>{String(action.text || action.content || action.prompt || action.topic || '')}</p>)}</details>
+        <SupplementaryLinks course={course} sceneId={scene.id} />
         {playWarnings.length > 0 && <ul className="ep-feedback">{playWarnings.map(warning => <li key={warning}>{warning}</li>)}</ul>}
         {demoBoard?.isOpen && <section className="ep-transcript"><strong>当前演示板书</strong><div className="ep-board"><SlideCanvas slide={displayCanvas(demoBoard.canvas)} /></div></section>}
         {whiteboards.map((board, i) => <details className="ep-transcript" key={board.id || i}><summary>已保存课堂板书 {i + 1}</summary><div className="ep-board"><SlideCanvas slide={displayCanvas(board)} /></div></details>)}

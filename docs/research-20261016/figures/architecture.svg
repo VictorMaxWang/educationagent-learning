@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 1090" width="1440" height="1090" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif">
+  <rect width="1440" height="1090" fill="#FAF8F1"/>
+  <defs>
+    <marker id="arrow-default" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto" markerUnits="strokeWidth">
+      <polygon points="0 0, 8 4, 0 8" fill="#555555"/>
+    </marker>
+    <marker id="arrow-c0" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto" markerUnits="strokeWidth">
+      <polygon points="0 0, 8 4, 0 8" fill="#356753"/>
+    </marker>
+    <marker id="arrow-c1" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto" markerUnits="strokeWidth">
+      <polygon points="0 0, 8 4, 0 8" fill="#8C7546"/>
+    </marker>
+    <marker id="arrow-c2" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto" markerUnits="strokeWidth">
+      <polygon points="0 0, 8 4, 0 8" fill="#677D74"/>
+    </marker>
+  </defs>
+  <path d="M 720.0,222.5 L 720.0,287.5" stroke="#356753" stroke-width="2" fill="none" marker-end="url(#arrow-c0)"/>
+  <rect x="649.5" y="237.0" width="141.0" height="16" fill="#FFFFFF" rx="3" opacity="0.85"/>
+  <text x="720.0" y="249.0" font-size="19" fill="#777777" text-anchor="middle">课程请求与交互</text>
+  <path d="M 633.4,392.5 L 505.5,470.0" stroke="#356753" stroke-width="2" fill="none" marker-end="url(#arrow-c0)"/>
+  <rect x="508.4" y="413.2" width="122.0" height="16" fill="#FFFFFF" rx="3" opacity="0.85"/>
+  <text x="569.4" y="425.2" font-size="19" fill="#777777" text-anchor="middle">补充资源任务</text>
+  <path d="M 806.6,392.5 L 934.5,470.0" stroke="#8C7546" stroke-width="2" fill="none" marker-end="url(#arrow-c1)"/>
+  <rect x="809.6" y="413.2" width="122.0" height="16" fill="#FFFFFF" rx="3" opacity="0.85"/>
+  <text x="870.6" y="425.2" font-size="19" fill="#777777" text-anchor="middle">自主学习任务</text>
+  <path d="M 495.0,610.0 L 611.2,687.5" stroke="#356753" stroke-width="2" fill="none" marker-end="url(#arrow-c0)"/>
+  <rect x="482.6" y="630.8" width="141.0" height="16" fill="#FFFFFF" rx="3" opacity="0.85"/>
+  <text x="553.1" y="642.8" font-size="19" fill="#777777" text-anchor="middle">调用与状态记录</text>
+  <path d="M 945.0,610.0 L 828.8,687.5" stroke="#8C7546" stroke-width="2" fill="none" marker-end="url(#arrow-c1)"/>
+  <rect x="816.4" y="630.8" width="141.0" height="16" fill="#FFFFFF" rx="3" opacity="0.85"/>
+  <text x="886.9" y="642.8" font-size="19" fill="#777777" text-anchor="middle">调用与状态记录</text>
+  <rect x="120.0" y="117.5" width="1200.0" height="105.0" fill="#EDF3EA" stroke="#356753" stroke-width="2" rx="8"/>
+  <text x="720.0" y="165.4" font-size="24" fill="#254B3B" text-anchor="middle" font-weight="bold">React / TypeScript 课堂入口</text>
+  <text x="720.0" y="191.4" font-size="24" fill="#254B3B" text-anchor="middle" font-weight="bold">现有 Node 课件、动画、五题型、代码 runner 与 Cherry 朗读</text>
+  <rect x="120.0" y="287.5" width="1200.0" height="105.0" fill="#356753" stroke="#356753" stroke-width="2" rx="8"/>
+  <text x="720.0" y="335.4" font-size="24" fill="#FFFFFF" text-anchor="middle" font-weight="bold">Java 21 / Spring Boot 课堂业务层</text>
+  <text x="720.0" y="361.4" font-size="24" fill="#FFFFFF" text-anchor="middle" font-weight="bold">课程 / 章节上下文 · 共享 classroom 身份 · 后台优先级调度</text>
+  <rect x="120.0" y="470.0" width="540.0" height="140.0" fill="#EDF3EA" stroke="#356753" stroke-width="2" rx="8"/>
+  <text x="390.0" y="523.0" font-size="23" fill="#254B3B" text-anchor="middle" font-weight="bold">补充视频推荐</text>
+  <text x="390.0" y="548.0" font-size="23" fill="#254B3B" text-anchor="middle" font-weight="bold">规则与 NLP 分类 → Bilibili 核验</text>
+  <text x="390.0" y="573.0" font-size="23" fill="#254B3B" text-anchor="middle" font-weight="bold">向量特征 → 有限组合 → 独立校验</text>
+  <rect x="780.0" y="470.0" width="540.0" height="140.0" fill="#F4EEDD" stroke="#8C7546" stroke-width="2" rx="8"/>
+  <text x="1050.0" y="523.0" font-size="23" fill="#62502C" text-anchor="middle" font-weight="bold">可跳过的自主学习</text>
+  <text x="1050.0" y="548.0" font-size="23" fill="#62502C" text-anchor="middle" font-weight="bold">首次表述 → 当前资料与锚点核对</text>
+  <text x="1050.0" y="573.0" font-size="23" fill="#62502C" text-anchor="middle" font-weight="bold">分层提示 → 自检 → 本课程补充目标</text>
+  <rect x="120.0" y="687.5" width="1200.0" height="145.0" fill="#F1F3EE" stroke="#677D74" stroke-width="2" rx="8"/>
+  <text x="720.0" y="743.0" font-size="23" fill="#344F42" text-anchor="middle" font-weight="bold">共用支撑与可追溯记录</text>
+  <text x="720.0" y="768.0" font-size="23" fill="#344F42" text-anchor="middle" font-weight="bold">云端 Qwen 推理 · 现有 EmbeddingService · 统一截止时间与调用证据</text>
+  <text x="720.0" y="793.0" font-size="23" fill="#344F42" text-anchor="middle" font-weight="bold">MySQL 共享记录 · 内容指纹 / 模型版本 · 幂等、缓存与审计</text>
+  <rect x="120.0" y="922.5" width="390.0" height="85.0" fill="#FAF8F1" stroke="#C8D2C4" stroke-width="2" rx="8"/>
+  <text x="315.0" y="961.0" font-size="20" fill="#536653" text-anchor="middle" font-weight="bold">M001  方法适配</text>
+  <text x="315.0" y="983.0" font-size="20" fill="#536653" text-anchor="middle" font-weight="bold">独立验证 · 评分差额复用</text>
+  <rect x="525.0" y="922.5" width="390.0" height="85.0" fill="#FAF8F1" stroke="#C8D2C4" stroke-width="2" rx="8"/>
+  <text x="720.0" y="961.0" font-size="20" fill="#536653" text-anchor="middle" font-weight="bold">M002  方法适配</text>
+  <text x="720.0" y="983.0" font-size="20" fill="#536653" text-anchor="middle" font-weight="bold">共用标签 · 首次命中审计</text>
+  <rect x="930.0" y="922.5" width="390.0" height="85.0" fill="#FAF8F1" stroke="#C8D2C4" stroke-width="2" rx="8"/>
+  <text x="1125.0" y="961.0" font-size="20" fill="#536653" text-anchor="middle" font-weight="bold">M003  设计适配</text>
+  <text x="1125.0" y="983.0" font-size="20" fill="#536653" text-anchor="middle" font-weight="bold">先自主表述 · 再回源核对</text>
+  <text x="120.0" y="56.0" font-size="32" fill="#254B3B" text-anchor="start">晓陶学伴｜技术架构</text>
+  <text x="120.0" y="91.0" font-size="20" fill="#677D74" text-anchor="start">在现有课堂上增加真实资源推荐、来源约束反馈与工程证据</text>
+  <text x="720.0" y="875.0" font-size="19" fill="#677D74" text-anchor="middle">实线表示业务调用与依赖；结果沿对应接口返回。推荐故障不阻塞原课堂。</text>
+  <text x="120.0" y="917.0" font-size="18" fill="#677D74" text-anchor="start">团队成果的采用方式</text>
+  <text x="720.0" y="1052.0" font-size="18" fill="#677D74" text-anchor="middle">云端模型推理与工程方法适配；不表示训练新基础模型或完整复现专利算法。</text>
+</svg>

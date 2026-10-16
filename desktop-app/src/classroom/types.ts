@@ -73,6 +73,20 @@ export interface ClassroomMessage {
   updatedScene?: Scene;
   revision?: number;
 }
+/** 导出/导入中的补充资料是历史入口，不能继承线上推荐的 ready 或 verified 状态。 */
+export interface SupplementaryResource {
+  sceneId: string;
+  id: string;
+  title: string;
+  url: string;
+  author: string;
+  durationSeconds: number;
+  purpose: string;
+  goals: string[];
+  reason: string;
+  checkedAt?: string;
+  resourceStatus?: 'historical';
+}
 export interface Course {
   id: string;
   title: string;
@@ -93,6 +107,7 @@ export interface Course {
   sourceName?: string;
   sources?: { file?: string; source?: string }[];
   retrievalNote?: string;
+  supplementaryResources?: SupplementaryResource[];
   createdAt?: string;
   updatedAt?: string;
 }

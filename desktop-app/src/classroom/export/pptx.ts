@@ -2,6 +2,7 @@ import PptxGenJS from 'pptxgenjs';
 import type { PPTElement, PPTLatexElement, Slide } from '@educationagent/dsl';
 import { checkAbort, type ExportProgress, type PortableCourse, type PortableScene } from './contract';
 import { answerText, QUESTION_TYPE_LABELS } from './quiz';
+import { resourceDuration, supplementaryForScene } from './supplementary';
 
 const PAGE_WIDTH = 13.333333;
 const PAGE_HEIGHT = 7.5;
@@ -109,8 +110,11 @@ async function addCanvas(pptx: PptxGenJS, page: PptxSlide, canvas: Slide, warnin
   }
 }
 
-function notes(scene: PortableScene): string {
-  return (scene.actions || []).filter(action => action.type === 'speech' || action.type === 'discussion').map(action => String(action.text || action.content || action.prompt || action.topic || '')).filter(Boolean).join('\n\n');
+function notes(scene: PortableScene, course: PortableCourse): string {
+  const resources = supplementaryForScene(course, scene.id);
+  return [...(scene.actions || []).filter(action => action.type === 'speech' || action.type === 'discussion').map(action => String(action.text || action.content || action.prompt || action.topic || '')).filter(Boolean),
+    ...(resources.length ? ['补充视频资料（需联网）：以下为历史入口，未下载视频，当前可用情况以 Bilibili 为准。', ...resources.map(item => `${item.title}\n${item.author} · ${resourceDuration(item.durationSeconds)} · ${item.purpose}\n${item.reason}\n${item.url}`)] : []),
+  ].join('\n\n');
 }
 function heading(page: PptxSlide, title: string, subtitle?: string) {
   page.background = { color: 'F5F6EF' };
@@ -130,7 +134,7 @@ export async function buildPptx(course: PortableCourse, options: { signal?: Abor
     if (scene.type === 'slide' && scene.content.canvas) {
       const page = pptx.addSlide();
       await addCanvas(pptx, page, scene.content.canvas, warnings, options.signal);
-      page.addNotes(notes(scene));
+      page.addNotes(notes(scene, course));
     } else if (scene.type === 'quiz' && scene.content.questions?.length) {
       for (const [questionIndex, question] of scene.content.questions.entries()) {
         const page = pptx.addSlide();
@@ -138,13 +142,13 @@ export async function buildPptx(course: PortableCourse, options: { signal?: Abor
         page.addText(`【${QUESTION_TYPE_LABELS[question.type]}】${question.question}`, { x: 0.6, y: 1.45, w: 12.1, h: 1.3, fontFace: 'Microsoft YaHei', fontSize: 23, margin: 0, fit: 'shrink', color: '263D35' });
         page.addText((question.options || []).map(option => `${option.value}. ${option.label}`).join('\n\n') || (question.type === 'judge' ? '□ 正确    □ 错误' : question.type === 'fill' ? '请填写：____________________' : '请写下你的思路：\n\n____________________________\n\n____________________________'), { x: 0.7, y: 2.85, w: 11.9, h: 3.45, fontFace: 'Microsoft YaHei', fontSize: 19, margin: 0, fit: 'shrink', color: '33483E' });
         const answer = question.correctAnswer ?? question.answer;
-        page.addNotes([notes(scene), `参考答案：${answerText(answer) || '未附'}`, question.explanation || question.analysis || '', ...(question.gradingPoints || []), question.type === 'short_answer' ? '请结合参考答案和评分要点自查，离线不进行 AI 判分。' : ''].join('\n\n'));
+        page.addNotes([notes(scene, course), `参考答案：${answerText(answer) || '未附'}`, question.explanation || question.analysis || '', ...(question.gradingPoints || []), question.type === 'short_answer' ? '请结合参考答案和评分要点自查，离线不进行 AI 判分。' : ''].join('\n\n'));
       }
     } else {
       const page = pptx.addSlide();
       heading(page, scene.title, `${course.title} · 动手探索`);
       page.addText('这一页包含互动活动。\n\n请打开本课程的 HTML 文件，或解压课堂 ZIP 后打开 index.html 完成操作。\n\nPowerPoint 中保留本页主题和讲授备注，网页交互不会转换为可点击的幻灯片。', { x: 0.8, y: 1.7, w: 11.6, h: 3.8, fontFace: 'Microsoft YaHei', fontSize: 22, color: '33483E', margin: 0, breakLine: false, fit: 'shrink' });
-      page.addNotes(notes(scene));
+      page.addNotes(notes(scene, course));
       warnings.push('互动页在 PPTX 中为说明页；完整互动包含在 HTML/课堂 ZIP 中');
     }
     const boards = [...(scene.whiteboards || [])];
@@ -153,7 +157,7 @@ export async function buildPptx(course: PortableCourse, options: { signal?: Abor
     for (const board of boards) {
       const page = pptx.addSlide();
       await addCanvas(pptx, page, board, warnings, options.signal);
-      page.addNotes(`${scene.title} · 课堂板书\n\n${notes(scene)}`);
+      page.addNotes(`${scene.title} · 课堂板书\n\n${notes(scene, course)}`);
     }
   }
   checkAbort(options.signal);

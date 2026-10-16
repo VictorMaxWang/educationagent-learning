@@ -7,6 +7,10 @@ import com.demo.service.preprocessing.FileService;
 import com.demo.study.quiz.QuizService;
 import com.demo.edu.classroom.research.EvidenceSelector;
 import com.demo.edu.classroom.research.QuestionIntentSupport;
+import com.demo.edu.classroom.ai.ClassroomTeachingReview;
+import com.demo.edu.classroom.recommendation.ClassroomRecommendationService;
+import com.demo.edu.classroom.study.ClassroomStudyContext;
+import com.demo.edu.classroom.study.ClassroomStudyStore;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -16,6 +20,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.annotation.PreDestroy;
 import org.jsoup.Jsoup;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -51,6 +57,10 @@ public class ClassroomCourseService {
     private final ConcurrentMap<String, Object> locks = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, ClassroomCancellation> running = new ConcurrentHashMap<>();
     private ClassroomMediaService media;
+    private ClassroomTeachingReview teachingReview;
+    private ClassroomStudyStore studyStore;
+    private ObjectProvider<ClassroomRecommendationService> recommendations;
+    @Value("${classroom.teaching-review.enabled:true}") private boolean teachingReviewEnabled=true;
 
     public record CreateRequest(String topic, Integer grade, String subject, String domain, String sourceText, String sourceName, String direction) {
         public CreateRequest(String topic,Integer grade,String subject,String domain,String sourceText,String sourceName) {
@@ -68,6 +78,13 @@ public class ClassroomCourseService {
 
     @Autowired(required=false)
     public void setMediaService(ClassroomMediaService media) { this.media=media; }
+
+    @Autowired(required=false)
+    public void setTeachingReview(ClassroomTeachingReview review) { this.teachingReview=review; }
+    @Autowired(required=false)
+    public void setStudyStore(ClassroomStudyStore store) { this.studyStore=store; }
+    @Autowired
+    public void setRecommendationProvider(ObjectProvider<ClassroomRecommendationService> provider) { this.recommendations=provider; }
 
     @Autowired
     public ClassroomCourseService(ClassroomCourseMapper mapper, ObjectMapper json, ClassroomEngine engine,
@@ -102,6 +119,24 @@ public class ClassroomCourseService {
 
     public ObjectNode get(String id) {
         synchronized (lock(id)) { return publicCourse(load(id)); }
+    }
+
+    /** 仅供服务端教学分析读取完整资料；不注册为公开接口，不含运行配置或供应商凭据。 */
+    public ObjectNode studySnapshot(String id) {
+        synchronized (lock(id)) { return load(id).deepCopy(); }
+    }
+
+    /**
+     * 在课程锁内核对当前资料后执行短事务，阻止自检判分与课程编辑交错。
+     * 调用方必须在此方法内才开始事务；不能用 REPEATABLE READ 中第二次普通读取冒充最新状态。
+     * operation 只允许本地客观判分与数据库提交，模型、检索、文件网络读取都应提前在锁外完成。
+     */
+    public <T> T withCurrentStudyContent(String courseId,String sceneId,String fingerprint,Supplier<T> operation) {
+        synchronized(lock(courseId)) {
+            String current=ClassroomStudyContext.from(load(courseId),sceneId).fingerprint();
+            if(fingerprint==null||!fingerprint.equals(current))throw conflict("课堂资料已更新，请用新版资料重新核对后再提交");
+            return operation.get();
+        }
     }
 
     public ObjectNode create(CreateRequest request) {
@@ -309,12 +344,22 @@ public class ClassroomCourseService {
             for(JsonNode value:copy.path("scenes")) {
                 ObjectNode scene=(ObjectNode)value; ClassroomSlideSanitizer.cleanScene(scene);
                 scene.remove("_pendingMediaRepair");
+                publishTeachingReview(scene);
                 if("quiz".equals(scene.path("type").asText())) for(JsonNode raw:scene.path("content").path("questions")) {
                     ObjectNode question=(ObjectNode)raw;
                     if(question.has("answer")) question.set("correctAnswer",question.path("answer").deepCopy());
                     question.put("explanation",question.path("analysis").asText(""));
                 }
             }
+            ArrayNode links=json.createArrayNode();
+            if(recommendations!=null) {
+                // 导出只读取仍有效的已核验链接，不因导出另发模型/检索请求；完整审计与学习表述不出包。
+                try { links.addAll(recommendations.getObject().portableRecommendations(id)); }
+                catch(RuntimeException unavailable) { /* 已导入的历史资料仍能保留为历史入口。 */ }
+            }
+            for(JsonNode historical:copy.path("supplementaryResources"))if(links.size()<192)links.add(historical.deepCopy());
+            Map<String,String> sceneIds=new HashMap<>();copy.path("scenes").forEach(s->sceneIds.put(s.path("id").asText(),s.path("id").asText()));
+            copy.set("supplementaryResources",ClassroomSupplementaryResources.clean(links,sceneIds,json));
             ObjectNode envelope=json.createObjectNode().put("format","educationagent.classroom").put("version",1).put("containsAnswers",true);
             envelope.set("course",copy); return envelope;
         }
@@ -350,7 +395,7 @@ public class ClassroomCourseService {
             String oldId=ClassroomEditingSupport.requiredText(raw,"id",128);
             if(!originals.add(oldId)) throw bad("导入课件页面 ID 重复");
             String newId=UUID.randomUUID().toString(); sceneIds.put(oldId,newId);
-            ObjectNode scene=(ObjectNode)raw.deepCopy(); scene.remove(List.of("quizId","_pendingMediaRepair","validation","mediaRetryAvailable")); scene.put("id",newId);
+            ObjectNode scene=(ObjectNode)raw.deepCopy(); scene.remove(List.of("quizId","_pendingMediaRepair","validation","mediaRetryAvailable","_teachingReview","teachingReview")); scene.put("id",newId);
             ObjectNode outline=json.createObjectNode().put("id",newId).put("title",scene.path("title").asText())
                     .put("type",scene.path("type").asText()).put("description",scene.path("title").asText()).put("order",scenes.size());
             if("quiz".equals(scene.path("type").asText())) for(JsonNode q:scene.path("content").path("questions")) {
@@ -368,6 +413,7 @@ public class ClassroomCourseService {
             }
             scenes.add(ClassroomDocumentValidator.scene(scene,outline,id)); outlines.add(outline);
         }
+        course.set("supplementaryResources",ClassroomSupplementaryResources.clean(source.path("supplementaryResources"),sceneIds,json));
         ObjectNode runtime=(ObjectNode)course.path("runtime");
         for(Map.Entry<String,String> entry:sceneIds.entrySet()) {
             JsonNode sourceBoard=source.path("runtime").path(entry.getKey()).path("whiteboard");
@@ -455,7 +501,7 @@ public class ClassroomCourseService {
                 replaceScene(current,edited); invalidatePageRuntime(current,prior,edited);
                 ClassroomEditingSupport.bump(current);
                 ClassroomValidationEvidence.record(edited,ClassroomEditingSupport.revision(current),"edit");
-                result.set("updatedScene",edited.deepCopy());
+                result.set("updatedScene",publicScene(edited));
             }
             result.put("revision",ClassroomEditingSupport.revision(current));
             ArrayNode messages = (ArrayNode) current.path("messages");
@@ -661,10 +707,7 @@ public class ClassroomCourseService {
                             latest = load(id).deepCopy();
                             if (hasScene(latest, outline.path("id").asText())) continue;
                         }
-                        ObjectNode rendered=engine.scene(latest, outline, token);
-                        if(media!=null) rendered=media.enrichSlide(rendered,outline,token);
-                        ObjectNode generated = ClassroomDocumentValidator.scene(rendered, outline, id);
-                        tutor.unsafeReplacement(visibleText(generated), token).ifPresent(message -> { throw new ClassroomException(422, message); });
+                        ObjectNode generated = generateReviewedScene(latest,outline,id,token);
                         synchronized (lock(id)) {
                             checkCurrent(id, token);
                             transaction(() -> {
@@ -692,8 +735,65 @@ public class ClassroomCourseService {
                         save(c);
                     }
                 }
-            } finally { running.remove(id, token); }
+            } finally {
+                running.remove(id, token);
+                // 课程完成后才排补充推荐；排队失败不得把原课堂从 ready 改为 error。
+                if(!outlineOnly&&!token.isCancelled()&&recommendations!=null) {
+                    try {
+                        boolean ready;synchronized(lock(id)){ready="ready".equals(load(id).path("status").asText());}
+                        if(ready)recommendations.getObject().prepareIfAbsent(id);
+                    } catch(RuntimeException ignored) { /* 原课堂独立可用，首次打开时仍可按需重试补充服务。 */ }
+                }
+            }
         });
+    }
+
+    /**
+     * 先生成结构合法候选，再进行有界教学核对；外部超时保留同输入草稿，重试仅重新核对。
+     * M001/M002 的证据绑定和有效候选保留在此进入真实生成链，不以校验器自称通过代替运行验收。
+     */
+    private ObjectNode generateReviewedScene(ObjectNode course,JsonNode outline,String courseId,ClassroomCancellation token) {
+        ObjectNode basis=json.createObjectNode();
+        for(String key:List.of("topic","grade","subject","direction","domain","sourceText","generationContext","scenes"))basis.set(key,course.path(key));
+        basis.set("outline",outline);
+        String fingerprint=ClassroomStudyContext.hash(basis);
+        String entryId=ClassroomStudyContext.hash(json.valueToTree(List.of(courseId,outline.path("id").asText())));
+        ObjectNode previous=studyStore==null?null:studyStore.find("teaching_candidate",entryId).orElse(null);
+        ObjectNode rendered;
+        if(previous!=null&&fingerprint.equals(previous.path("inputFingerprint").asText())
+                &&previous.path("reuseAllowed").asBoolean()&&previous.path("candidate").isObject()) {
+            rendered=((ObjectNode)previous.path("candidate")).deepCopy();
+        } else {
+            ObjectNode generationInput=course;
+            if(previous!=null&&fingerprint.equals(previous.path("inputFingerprint").asText())
+                    &&"needs_revision".equals(previous.path("candidate").path("_teachingReview").path("status").asText())) {
+                generationInput=course.deepCopy();
+                generationInput.put("generationContext",course.path("generationContext").asText("")+"\n本页上一草稿待修正："
+                    +previous.path("candidate").path("_teachingReview").path("reason").asText("").substring(0,
+                    Math.min(1200,previous.path("candidate").path("_teachingReview").path("reason").asText("").length())));
+            }
+            rendered=engine.scene(generationInput,outline,token);
+            if(media!=null)rendered=media.enrichSlide(rendered,outline,token);
+        }
+        ObjectNode generated=ClassroomDocumentValidator.scene(rendered,outline,courseId);
+        tutor.unsafeReplacement(visibleText(generated),token).ifPresent(message->{throw new ClassroomException(422,message);});
+        if(teachingReview!=null&&teachingReviewEnabled) {
+            ObjectNode reviewed=teachingReview.review(course,generated,token);
+            String status=reviewed.path("_teachingReview").path("status").asText("unknown");
+            if(studyStore!=null) {
+                ObjectNode record=json.createObjectNode().put("courseId",courseId).put("sceneId",outline.path("id").asText())
+                    .put("inputFingerprint",fingerprint).put("reuseAllowed",status.equals("unknown")).put("checkedAt",now());
+                record.set("candidate",reviewed.deepCopy());
+                studyStore.save("teaching_candidate",entryId,courseId,record);
+                studyStore.create("teaching_review",UUID.randomUUID().toString(),courseId,record);
+            }
+            if(!Set.of("passed","revised").contains(status))
+                throw new ClassroomException(status.equals("needs_revision")?422:502,
+                    status.equals("needs_revision")?"本页内容需要修订，草稿与已完成页面已保留，请重试本页生成":"本页教学核对暂未完成，草稿与已完成页面已保留，请稍后重试");
+            generated=ClassroomDocumentValidator.scene(reviewed,outline,courseId);
+            tutor.unsafeReplacement(visibleText(generated),token).ifPresent(message->{throw new ClassroomException(422,message);});
+        }
+        return generated;
     }
 
     private void retrieveSources(ObjectNode input, ClassroomCancellation token) {
@@ -815,14 +915,25 @@ public class ClassroomCourseService {
         copy.remove(List.of("sourceText", "generationContext", "history", "submissions", "runtimeOperations"));
         for(JsonNode outline:copy.path("outlines")) if(outline.isObject()) ((ObjectNode)outline).remove("mediaGenerations");
         for (JsonNode scene : copy.path("scenes")) {
-            ((ObjectNode)scene).put("mediaRetryAvailable",scene.path("_pendingMediaRepair").isObject());
-            ((ObjectNode)scene).remove("_pendingMediaRepair");
-            ClassroomSlideSanitizer.cleanScene((ObjectNode) scene);
-            if ("quiz".equals(scene.path("type").asText())) {
-                for (JsonNode q : scene.path("content").path("questions")) ((ObjectNode) q).remove(List.of("answer", "analysis", "commentPrompt", "correctAnswer", "explanation", "gradingPoints"));
-            }
+            ObjectNode safe=publicScene((ObjectNode)scene);((ObjectNode)scene).removeAll();((ObjectNode)scene).setAll(safe);
         }
         return copy;
+    }
+    /** 普通GET与聊天返回的新场景共用公开投影，避免绕过私有核对证据和标准答案的清理。 */
+    static ObjectNode publicScene(ObjectNode internal) {
+        ObjectNode scene=internal.deepCopy();
+        scene.put("mediaRetryAvailable",scene.path("_pendingMediaRepair").isObject());scene.remove("_pendingMediaRepair");
+        publishTeachingReview(scene);ClassroomSlideSanitizer.cleanScene(scene);
+        if("quiz".equals(scene.path("type").asText()))for(JsonNode q:scene.path("content").path("questions"))
+            ((ObjectNode)q).remove(List.of("answer","analysis","commentPrompt","correctAnswer","explanation","gradingPoints"));
+        return scene;
+    }
+    private static void publishTeachingReview(ObjectNode scene) {
+        JsonNode internal=scene.remove("_teachingReview");
+        if(internal==null||!internal.isObject())return;
+        String status=internal.path("status").asText("unknown");
+        if(!Set.of("passed","revised","needs_revision","unknown").contains(status))status="unknown";
+        scene.putObject("teachingReview").put("status",status).put("scope","content-only").put("runtimeVerified",false);
     }
     static String visibleText(JsonNode node) {
         StringBuilder text = new StringBuilder(); collectVisible(node, text); return text.toString();

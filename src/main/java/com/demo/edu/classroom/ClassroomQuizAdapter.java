@@ -21,8 +21,11 @@ public class ClassroomQuizAdapter {
         this.mapper = mapper; this.quizService = quizService; this.json = json;
     }
 
-    /** 调用者必须与课程保存使用同一事务；已关联题库的页面不会重复建卷。 */
-    void attach(ObjectNode course, ObjectNode scene) {
+    /**
+     * 调用者必须与记录保存使用同一事务；已关联题库的页面不会重复建卷。
+     * 学习自检可传入独立内存场景并保存到学习尝试，不必修改原课程正文或播放位置。
+     */
+    public void attach(ObjectNode course, ObjectNode scene) {
         if (!"quiz".equals(scene.path("type").asText()) || scene.has("quizId")) return;
         JsonNode questions = scene.path("content").path("questions");
         ClassroomDocumentValidator.questions(questions);
@@ -87,7 +90,8 @@ public class ClassroomQuizAdapter {
         return String.join("", letters);
     }
 
-    QuizService.SubmitResult submit(ObjectNode scene, List<QuizService.AnswerSubmission> answers) {
+    /** 课程与独立自检共用五题型判分；调用者负责事务与提交ID去重，未知结果抛错回滚。 */
+    public QuizService.SubmitResult submit(ObjectNode scene, List<QuizService.AnswerSubmission> answers) {
         JsonNode questions = scene.path("content").path("questions");
         if (answers == null || answers.size() != questions.size()) throw new ClassroomException(400, "请提交本页所有题目，每题提交一次");
         Map<Integer, JsonNode> byNo = new HashMap<>();

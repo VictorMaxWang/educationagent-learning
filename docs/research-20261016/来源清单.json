@@ -1,0 +1,268 @@
+{
+  "schemaVersion": 1,
+  "edition": "20261016",
+  "codeCommit": null,
+  "availability": "全文和真实裁图保存在项目本地团队成果参考库/本轮算法深化_20261016；此目录仅提供便携定位清单。",
+  "sources": [
+    {
+      "sourceId": "M001",
+      "title": "Bounded-loss contract reuse in rolling microgrid procurement using a linear programming model",
+      "kind": "方法适配",
+      "family": "M001",
+      "originalSha256": "b69fcf6e463867a86dae735c63691d3076b7f4d2ffcce277841f8953c5050a05",
+      "renderPdfSha256": "0c410f783f197226ab88c6fa438ad038a745c3abf4d3ff2bfe2afebe031496c7",
+      "originalBytes": 1800212,
+      "locators": [
+        {
+          "key": "E01_gap",
+          "page": 2,
+          "anchor": "The domains matter",
+          "locator": "§2.2，式(3)—(4)，Proposition 1及证明",
+          "adoption": "当前完整候选池最优值与旧推荐组合差额；不能用旧组合自身结果充当全问题最优值。"
+        },
+        {
+          "key": "E02_verifier",
+          "page": 3,
+          "anchor": "An independent verifier recomputes the full recurrence",
+          "locator": "§2.3，证据验证段",
+          "adoption": "另写递归枚举和BigDecimal重算的验证器，不调用选择器evaluate/select自证。"
+        },
+        {
+          "key": "E03_retention",
+          "page": 4,
+          "anchor": "The smallest verified",
+          "locator": "§2.4，Staged refinement段",
+          "adoption": "保留已验证有效组合；新提案未验证通过时不覆盖旧有效结果。"
+        },
+        {
+          "key": "E04_unresolved",
+          "page": 5,
+          "anchor": "The outputs distinguish certified retention",
+          "locator": "§2.4续，三类结果与验证范围",
+          "adoption": "未知与不成立分开；差额只解释有限推荐评分模型。"
+        }
+      ]
+    },
+    {
+      "sourceId": "M002",
+      "title": "Certifying Expected Cost Differences Between Target Confirmation Policies via Joint First-Hit Compatibility",
+      "kind": "方法适配",
+      "family": "M002",
+      "originalSha256": "975491cbc41cca23c4904941f0eb22e79fd98560dc418b498232735adffea85c",
+      "renderPdfSha256": "975491cbc41cca23c4904941f0eb22e79fd98560dc418b498232735adffea85c",
+      "originalBytes": 4545107,
+      "locators": [
+        {
+          "key": "E01_unknown",
+          "page": 3,
+          "anchor": "supply no negative physical observation",
+          "locator": "§III-A，明确有效失败与通信失败",
+          "adoption": "检索失败不转成不相关；unknown标签与false分开。"
+        },
+        {
+          "key": "E02_fixed",
+          "page": 5,
+          "anchor": "Fix the initial public state",
+          "locator": "§IV-A，冻结状态、策略、预算与共同比较参考",
+          "adoption": "所有排序使用同查询、同候选、共享资源标签与固定配置。"
+        },
+        {
+          "key": "E03_joint",
+          "page": 6,
+          "anchor": "The joint test retains the common target",
+          "locator": "§IV-B，式(14)—(16)、Proposition 2及说明",
+          "adoption": "共享资源只允许一个标签；枚举最多12个未知标签的相容赋值，返回检查次数差上下界。"
+        },
+        {
+          "key": "E04_cutoff",
+          "page": 7,
+          "anchor": "A cutoff preserves unresolved mass",
+          "locator": "§IV-C，截止与复用绑定说明",
+          "adoption": "超未知数上限返回NOT_COMPUTED，不能输出零区间或把未知当失败。"
+        },
+        {
+          "key": "E05_denominator",
+          "page": 11,
+          "anchor": "The prespecified 95% interval in Eq. (23) was",
+          "locator": "§V，200个预指定worlds全分母与区间解释",
+          "adoption": "评测保留无结果与故障行；工程夹具指标不能伪装人评准确率。"
+        },
+        {
+          "key": "E06_net_cost",
+          "page": 15,
+          "anchor": "joint-specific net benefit",
+          "locator": "在线规划四臂开发筛查段",
+          "adoption": "分别报告模型/搜索/优化及端到端成本，不凭目标函数改善宣称在线净收益。"
+        },
+        {
+          "key": "E07_accounting",
+          "page": 11,
+          "anchor": "All 200 prespecified worlds entered the analysis",
+          "locator": "§VII-A，完整预指定分母与中断记录",
+          "adoption": "预指定评测样本保留无推荐、无结果和运行失败，不能只选成功行报告指标。"
+        }
+      ]
+    },
+    {
+      "sourceId": "M003",
+      "title": "AI summarising, monitoring-related study habits and reading achievement: Socioeconomic patterns in three PISA 2025 systems",
+      "kind": "设计借鉴",
+      "family": "M003",
+      "originalSha256": "58e5ab3853f7763d673d5ec88b4bb5cd2091e27e61b2d531eedd839e6ceb7faf",
+      "renderPdfSha256": "58e5ab3853f7763d673d5ec88b4bb5cd2091e27e61b2d531eedd839e6ceb7faf",
+      "originalBytes": 510650,
+      "locators": [
+        {
+          "key": "E01_measurement",
+          "page": 3,
+          "anchor": "What is not observed",
+          "locator": "Table 1：报告记录什么与未观察到什么",
+          "adoption": "AI使用频率、自述信心及跳过不等于实际理解；记录分开存储。"
+        },
+        {
+          "key": "E02_learner_first",
+          "page": 10,
+          "anchor": "learner-first summarising",
+          "locator": "§5.3完整两段",
+          "adoption": "保存首次独立表述→来源锚点核对→分层提示→自检，记录辅助使用。"
+        },
+        {
+          "key": "E03_limits",
+          "page": 10,
+          "anchor": "The two frequency reports",
+          "locator": "§6，测量范围和竞争解释",
+          "adoption": "不将横断面关联当成AI导致阅读表现改变的实证，不从乡村身份推断能力。"
+        }
+      ]
+    },
+    {
+      "sourceId": "P017",
+      "title": "一种基于改进鸽群算法的个性化学习资源推荐方法",
+      "kind": "方法适配",
+      "family": "CN119025756",
+      "originalSha256": "e2c63d2025507ae6d083ec2a70dbf17b68414557c18be4aba6d7da9269a37cb1",
+      "renderPdfSha256": "e2c63d2025507ae6d083ec2a70dbf17b68414557c18be4aba6d7da9269a37cb1",
+      "originalBytes": 1534136,
+      "locators": [
+        {
+          "key": "E01_objectives",
+          "page": 2,
+          "anchor": "设立5个次级适应度函数",
+          "locator": "印刷页111，§1.1，式(1)—(4)",
+          "adoption": "借鉴知识目标、难度、时间与覆盖的多维匹配；当前业务只奖励本课目标，时间作为硬约束。"
+        },
+        {
+          "key": "E02_definitions",
+          "page": 3,
+          "anchor": "为评估学习资源中知识点分布均衡性",
+          "locator": "印刷页112，式(5)—(6)及符号说明",
+          "adoption": "原目标最小化差异，业务最大化正向覆盖/相关/互补并惩罚重复；不迁移原种群更新式。"
+        }
+      ]
+    },
+    {
+      "sourceId": "CN119025756A",
+      "title": "一种基于改进鸽群算法的个性化学习资源推荐方法及系统",
+      "kind": "方法适配",
+      "family": "CN119025756",
+      "originalSha256": "7ebe3cff49dd78d71a281b2c00bd484d5b7b135b26380d95e89a72d673847587",
+      "renderPdfSha256": "7ebe3cff49dd78d71a281b2c00bd484d5b7b135b26380d95e89a72d673847587",
+      "originalBytes": 1456103,
+      "locators": [
+        {
+          "key": "E01_objectives",
+          "page": 15,
+          "anchor": "知识点与学生期望知识点间的差异",
+          "locator": "说明书9/21，[0122]—[0134]，式(1)—(6)",
+          "adoption": "把多维评价接入已核验真实视频候选；与P017互相对读，不重复宣称两项独立创新。"
+        }
+      ]
+    },
+    {
+      "sourceId": "CN119336991A",
+      "title": "一种基于改进萤火虫算法的在线个性化学习资源推荐方法及系统",
+      "kind": "方法适配",
+      "family": "CN119336991",
+      "originalSha256": "d33d919fd742372d81f58e230429fb3aaa1382dd6a61ee4d23346ee46a15877f",
+      "renderPdfSha256": "d33d919fd742372d81f58e230429fb3aaa1382dd6a61ee4d23346ee46a15877f",
+      "originalBytes": 1576532,
+      "locators": [
+        {
+          "key": "E01_types",
+          "page": 14,
+          "anchor": "媒介类型数量",
+          "locator": "说明书8/19，[0100]—[0110]，媒介/内容类型定义",
+          "adoption": "视频是媒介，诵读/观察/例题等是教学用途；二者分开，偏好由用户明确选择。"
+        },
+        {
+          "key": "E02_preferences",
+          "page": 15,
+          "anchor": "内容类型偏好与推荐资源内容类型之间差异",
+          "locator": "说明书9/19，[0111]—[0124]，式(1)—(7)",
+          "adoption": "用途偏好与互补性参与评分；未提供偏好时停用P并归一化正权重，不臆造画像。"
+        }
+      ]
+    },
+    {
+      "sourceId": "CN120296243A",
+      "title": "一种基于改进蜜獾种群算法的在线学习资源推荐方法及系统",
+      "kind": "设计借鉴",
+      "family": "CN120296243",
+      "originalSha256": "8084dd3118fd597dcb36487800b866d45705b2d06d58e78f808a74d29fed46ef",
+      "renderPdfSha256": "8084dd3118fd597dcb36487800b866d45705b2d06d58e78f808a74d29fed46ef",
+      "originalBytes": 1525320,
+      "locators": [
+        {
+          "key": "E01_formulation",
+          "page": 17,
+          "anchor": "构建多维匹配适应度函数",
+          "locator": "说明书10/21，[0111]—[0121]，构建/更新/终止流程",
+          "adoption": "分离候选构造、目标评价与接受决策；不迁移蜜獾种群/时序轨迹/混沌变异。"
+        },
+        {
+          "key": "E02_accept",
+          "page": 20,
+          "anchor": "否则保持原位置不变",
+          "locator": "说明书13/21，[0161]—[0162]，式(14)",
+          "adoption": "新候选先评价再替换；本项目使用最大化目标，符号方向与原最小化适应度不同。"
+        },
+        {
+          "key": "E03_best",
+          "page": 21,
+          "anchor": "判断历史最优个体的位置是否更新",
+          "locator": "说明书14/21，[0168]—[0172]，式(16)",
+          "adoption": "历史有效结果保留与新结果接受的分离；0.02差额复用来自本项目定义和M001适配，不是该专利定理。"
+        }
+      ]
+    }
+  ],
+  "relatedVersions": [
+    {
+      "sourceId": "CN120296243B",
+      "title": "一种基于改进蜜獾种群算法的在线学习资源推荐方法及系统",
+      "family": "CN120296243",
+      "role": "同族版本记录，不单列算法贡献",
+      "originalFormat": "HTML",
+      "originalSha256": "0513ccddddbe9872b236a7e72ab25ec71b5a24e8a3a8d032a4ded0c8f7447d2d",
+      "renderPdfSha256": "bd52c2248ab3093e7bae9f52b65510b33ad733a86e20986bf54347a2205188f6"
+    }
+  ],
+  "familyRelations": [
+    {
+      "family": "CN120296243",
+      "members": [
+        "CN120296243A",
+        "CN120296243B"
+      ],
+      "note": "A/B同族版本，B保留原HTML和打印PDF；本轮不重复计算贡献。"
+    },
+    {
+      "family": "CN119025756",
+      "members": [
+        "P017",
+        "CN119025756A"
+      ],
+      "note": "对应推荐思想论文和专利互证；不同文献，不按两项独立算法创新计算。"
+    }
+  ]
+}

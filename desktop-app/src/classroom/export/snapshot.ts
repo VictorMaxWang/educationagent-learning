@@ -101,7 +101,9 @@ export async function collectSnapshot(envelope: PortableEnvelope, options: Expor
   const snapshot: ExportSnapshot = { envelope: copy, assets: new Map(), narration: {}, warnings: [] };
   // 后端会删去这些字段；导出端再做一次最小化，防止未来接口扩展意外带出学生对话。
   const courseObject = copy.course as unknown as Record<string, unknown>;
-  for (const key of ['messages', 'sourceText', 'generationContext', 'runtimeOperations', 'submissions', 'history']) delete courseObject[key];
+  const portableFields = new Set(['id', 'title', 'topic', 'grade', 'subject', 'domain', 'direction', 'status', 'outlines', 'scenes', 'progress', 'revision', 'runtime', 'mediaEnabled', 'sourceName', 'sources', 'retrievalNote', 'createdAt', 'updatedAt', 'supplementaryResources']);
+  for (const key of Object.keys(courseObject)) if (!portableFields.has(key)) delete courseObject[key];
+  for (const key of Object.keys(copy)) if (!['format', 'version', 'course', 'containsAnswers'].includes(key)) delete (copy as unknown as Record<string, unknown>)[key];
   if (copy.course.runtime) copy.course.runtime = Object.fromEntries(Object.entries(copy.course.runtime).flatMap(([id, runtime]) => runtime?.whiteboard?.canvas ? [[id, { whiteboard: runtime.whiteboard }]] : []));
   copy.course.progress = { sceneIndex: 0, actionIndex: 0 };
   let totalBytes = 0;

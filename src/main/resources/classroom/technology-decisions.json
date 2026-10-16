@@ -1,0 +1,72 @@
+{
+  "version": "xiaotao-technology-v1",
+  "title": "技术与参考",
+  "summary": "围绕教学任务选择合适的工具，让推荐、解释和核对都能追溯到资料与代码。",
+  "architecture": ["课程目标与当前章节", "规则约束与语义分类", "真实资源检索与核验", "互补组合选择与独立校验", "自主表述与资料核对"],
+  "decisions": [
+    {
+      "id": "text-inference", "task": "教学任务识别与资料核对", "technology": "现有 Qwen 文本模型 · 结构化推理接口",
+      "rationale": "复用已接入的中文推理能力，适合识别教学用途、核对同义表达和生成分层提示；输出经结构与资料锚点校验后再使用。",
+      "alternative": "仅靠关键词规则难以处理同义表述；自建训练需要独立训练数据和训练产物，本轮没有宣称开展该训练。",
+      "failureBehavior": "超时、取消、缺少配置或响应无法核验时返回明确状态；不把未知当成错误或掌握情况。",
+      "sourceIds": ["M003", "childcare-smart"],
+      "codeAnchors": ["src/main/java/com/demo/edu/classroom/ai/ClassroomAiGateway.java", "src/main/java/com/demo/edu/classroom/recommendation/VideoTeachingClassifier.java", "src/main/java/com/demo/edu/classroom/study/feedback/LearningFeedbackService.java"]
+    },
+    {
+      "id": "semantic-relevance", "task": "课程主题与视频元数据相关性", "technology": "EmbeddingService · 向量语义表示",
+      "rationale": "复用当前向量模型，计算课程与候选元数据的语义接近程度；缓存同时绑定提供方、模型、维度和规范版本。",
+      "alternative": "词面匹配作为基线；播放量不代表教学质量，同维度的不同模型向量也不混用。",
+      "failureBehavior": "向量数量、维度或有限值不符合约定时不输出伪相似度，不逐条补发付费请求。",
+      "sourceIds": ["P017", "CN119025756A"],
+      "codeAnchors": ["src/main/java/com/demo/chroma/base/EmbeddingService.java", "src/main/java/com/demo/edu/classroom/recommendation/ResourceSemanticFeatures.java"]
+    },
+    {
+      "id": "combination", "task": "在有限时间内选择互补资料", "technology": "确定性多目标约束组合选择与独立校验",
+      "rationale": "最多20项候选、每次至多3项，有限组合可枚举。先检查年级、资源真实性及总时长，再比较目标覆盖、相关性、补充用途、明确偏好和重复程度。",
+      "alternative": "对照检索顺序、单项语义排序和贪心组合；没有把本实现描述为完整复现鸽群、萤火虫或蜜獾优化器。",
+      "failureBehavior": "无可行组合时隐藏推荐区。旧推荐须在当前同一候选和约束下重新校验，差额符合工程预算才复用。",
+      "sourceIds": ["M001", "P017", "CN119025756A", "CN119336991A", "CN120296243A"],
+      "codeAnchors": ["src/main/java/com/demo/edu/classroom/recommendation/RecommendationOptimizer.java", "src/main/java/com/demo/edu/classroom/recommendation/RecommendationVerifier.java"]
+    },
+    {
+      "id": "paired-audit", "task": "比较两种资源排序的首次命中成本", "technology": "离散共享标签相容枚举 · 离线审计",
+      "rationale": "同一资源在两种排序中使用同一标签；已知适合、不适合与未知分开，在有限未知标签下计算检查成本差的区间。",
+      "alternative": "只报告一个猜测标签下的平均值会掩盖不确定性；本适配没有复现原文连续几何积分器。",
+      "failureBehavior": "未知标签超过枚举范围时返回未计算；搜索故障不转换为不相关标签。",
+      "sourceIds": ["M002"], "codeAnchors": ["src/main/java/com/demo/edu/classroom/recommendation/FirstHitAudit.java"]
+    },
+    {
+      "id": "learning-loop", "task": "先表达、再核对、按需获得帮助", "technology": "版本化学习尝试、来源锚点与分层提示",
+      "rationale": "保留学生首次表述，通过资料中的真实句段解释遗漏或冲突；提示、外跳、自检与AI反馈分别记录。",
+      "alternative": "把点击或自述信心合成为掌握分缺少依据；流程可跳过，不阻挡继续学习。",
+      "failureBehavior": "无证据或资料版本变化时标为无法判断，不写入错题，不降低学生能力评价。",
+      "sourceIds": ["M003", "childcare-smart"],
+      "codeAnchors": ["src/main/java/com/demo/edu/classroom/study/feedback/LearningFeedbackPolicy.java", "src/main/java/com/demo/edu/classroom/study/feedback/LearningFeedbackService.java", "src/main/java/com/demo/edu/classroom/study/ClassroomStudyStore.java"]
+    },
+    {
+      "id": "support", "task": "课堂编排、互动展示与可靠调用", "technology": "Java / Spring · LangChain4j · Node 课程引擎 · React · MySQL",
+      "rationale": "沿用已有系统分工：业务层管理课程和记录，课程引擎生成内容，React承载互动；新增语义调用共享截止时间、结构校验和有界修订。",
+      "alternative": "不另建重复网站，不将新增推荐失败扩大为原课堂不可用；仅已知结构或语义约定失败才进入受限修订。",
+      "failureBehavior": "取消、限流、鉴权、超时与格式错误区分记录；网络结果未知时不自动重复调用。",
+      "sourceIds": ["childcare-smart"],
+      "codeAnchors": ["src/main/java/com/demo/edu/classroom/ai/ClassroomAiGateway.java", "src/main/java/com/demo/edu/classroom/ai/ClassroomTeachingReview.java", "src/main/java/com/demo/edu/classroom/ClassroomCourseService.java"]
+    }
+  ],
+  "boundaries": [
+    "采用云端深度模型推理与本项目的推荐、验证算法；没有宣称训练了新的基础模型。",
+    "组合最优及差额只针对当前有限候选池与评分模型，不能直接解释为学习效果提升。",
+    "PISA论文提供观察性证据与设计启发，不能据此推断AI使用导致成绩变化。",
+    "公开视频推荐默认核验元数据；没有完整视频或字幕证据时，不声称审阅过全部内容。",
+    "固定输入的工程评测与真实学生教学效果研究分别报告，配置状态也不等于在线成功。"
+  ],
+  "sources": [
+    { "id": "M001", "title": "Bounded-loss contract reuse in rolling microgrid procurement using a linear programming model", "adoption": "方法适配", "locator": "第2—5页：完整问题比较、独立验证与有界差额复用" },
+    { "id": "M002", "title": "Certifying Expected Cost Differences Between Target Confirmation Policies via Joint First-Hit Compatibility", "adoption": "方法适配", "locator": "第3、5—7、11、15页：共同输入、首次命中一致性及不确定性边界" },
+    { "id": "M003", "title": "AI summarising, monitoring-related study habits and reading achievement: Socioeconomic patterns in three PISA 2025 systems", "adoption": "设计借鉴", "locator": "第3、10页：测量边界、先重构再核对与来源回看" },
+    { "id": "P017", "title": "一种基于改进鸽群算法的个性化学习资源推荐方法", "adoption": "方法适配", "locator": "第2—3页，式(1)—(6)：多维评价思路" },
+    { "id": "CN119025756A", "title": "改进鸽群算法的个性化学习资源推荐方法及系统", "adoption": "方法适配", "locator": "第15页，[0122]—[0134]：多目标评价" },
+    { "id": "CN119336991A", "title": "改进萤火虫算法的在线个性化学习资源推荐方法及系统", "adoption": "方法适配", "locator": "第14—15页，[0100]—[0124]：媒介形式与教学用途" },
+    { "id": "CN120296243A", "title": "改进蜜獾种群算法的在线学习资源推荐方法及系统", "adoption": "设计借鉴", "locator": "第17—21页：目标函数与候选接受；A/B同族不重复计数" },
+    { "id": "childcare-smart", "title": "childcare-smart 参考项目", "adoption": "机制迁移与Java适配", "locator": "共用调用预算、生成检查修订、实际调用来源及任务关联反馈" }
+  ]
+}

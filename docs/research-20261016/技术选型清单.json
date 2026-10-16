@@ -1,0 +1,104 @@
+{
+  "edition": "20261016",
+  "runtimeResults": "PENDING",
+  "noTrainingClaim": true,
+  "choices": [
+    {
+      "task": "教学任务分类与资料语义核对",
+      "technology": "已配置的云端Qwen推理；ClassroomAiGateway",
+      "rationale": "复用中文NLP能力，以规则和真实锚点约束输出。",
+      "alternatives": [
+        "纯关键词",
+        "另训少样本分类器"
+      ],
+      "code": "src/main/java/com/demo/edu/classroom/ai/ClassroomAiGateway.java",
+      "metrics": [
+        "contractPassRate",
+        "sourceSupport",
+        "elapsedMs",
+        "actualTokenUsage"
+      ],
+      "failure": "unknown；不展示不可靠推荐、不写未知错题",
+      "actualModel": "以运行响应evidence.model为准"
+    },
+    {
+      "task": "资源语义相关",
+      "technology": "现有EmbeddingService",
+      "rationale": "支持同义表达；缓存绑定provider/model/dimension/normalization。",
+      "alternatives": [
+        "词面匹配",
+        "搜索原序"
+      ],
+      "code": "src/main/java/com/demo/edu/classroom/recommendation/ResourceSemanticFeatures.java",
+      "metrics": [
+        "dimensionValidity",
+        "semanticRankVsBaseline",
+        "embeddingElapsedMs"
+      ],
+      "failure": "拒绝无效/零向量与身份变化，不能将缺向量解释为零相关"
+    },
+    {
+      "task": "有限组合选择",
+      "technology": "确定性枚举+独立BigDecimal验证",
+      "rationale": "20选至多3最多1350组合，易重算并解释每条约束。",
+      "alternatives": [
+        "单项排序",
+        "贪心",
+        "随机群智能"
+      ],
+      "code": "src/main/java/com/demo/edu/classroom/recommendation/RecommendationOptimizer.java",
+      "metrics": [
+        "constraintViolations",
+        "objective",
+        "greedyGap",
+        "optimizerP95Ms"
+      ],
+      "failure": "无可行项返回空；结构坏输入拒绝"
+    },
+    {
+      "task": "业务接口和状态",
+      "technology": "Java21/SpringBoot/MyBatis/MySQL",
+      "rationale": "沿用原课堂共享身份与事务，内容指纹控制失效。",
+      "alternatives": [
+        "新增独立身份系统",
+        "另起网站"
+      ],
+      "code": "src/main/java/com/demo/edu/classroom/study/ClassroomStudyStore.java",
+      "metrics": [
+        "idempotency",
+        "rollback",
+        "crossCourseBinding"
+      ],
+      "failure": "原始课程和首次表述不原位覆盖"
+    },
+    {
+      "task": "既有资料检索",
+      "technology": "LangChain4j与现有EvidenceSelector",
+      "rationale": "保留资料检索职责，不与视频组合选择混用。",
+      "alternatives": [
+        "改造原片段选择器承担全部视频逻辑"
+      ],
+      "code": "src/main/java/com/demo/edu/classroom/research/EvidenceSelector.java",
+      "metrics": [
+        "legacyRegression"
+      ],
+      "failure": "推荐异常不重建旧知识库"
+    },
+    {
+      "task": "页面交互",
+      "technology": "React/TypeScript与Node课程引擎",
+      "rationale": "复用既有播放器、五题型、动画和手机布局。",
+      "alternatives": [
+        "另建演示站"
+      ],
+      "code": "desktop-app/src/classroom/SupplementaryVideos.tsx",
+      "metrics": [
+        "mobileLayout",
+        "keyboard",
+        "hiddenFailureState",
+        "progressPreservation"
+      ],
+      "failure": "非ready整体隐藏，学习保持可继续"
+    }
+  ]
+}

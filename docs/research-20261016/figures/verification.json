@@ -1,0 +1,25 @@
+{
+  "date": "2026-10-16",
+  "renderer": "FigureSpec v2 (installed skill)",
+  "rasterizer": "existing bundled sharp at 144 dpi",
+  "pdf": "NOT_GENERATED_NO_AVAILABLE_VECTOR_CONVERTER",
+  "checks": [
+    {
+      "name": "architecture",
+      "schema": "PASS",
+      "deterministic_regeneration": "PASS",
+      "svg_text_nodes": 29,
+      "visual_review": "PASS",
+      "preview": "architecture.png"
+    },
+    {
+      "name": "recommendation-flow",
+      "schema": "PASS",
+      "deterministic_regeneration": "PASS",
+      "svg_text_nodes": 51,
+      "visual_review": "PASS",
+      "preview": "recommendation-flow.png"
+    }
+  ],
+  "scope": "Diagram presentation and arrows only; not runtime test evidence"
+}

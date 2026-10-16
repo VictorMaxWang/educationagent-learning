@@ -1,0 +1,29 @@
+{
+  "title": "晓陶学伴：补充推荐与自主学习技术架构",
+  "canvas": {"width": 1440, "height": 1090},
+  "style": {"font_family": "Microsoft YaHei, Noto Sans CJK SC, sans-serif", "font_size": 22, "bg_color": "#FAF8F1", "palette": ["#356753", "#8C7546", "#677D74"]},
+  "nodes": [
+    {"id":"interface","label":"React / TypeScript 课堂入口\n现有 Node 课件、动画、五题型、代码 runner 与 Cherry 朗读","x":720,"y":170,"width":1200,"height":105,"fill":"#EDF3EA","stroke":"#356753","text_color":"#254B3B","font_size":24},
+    {"id":"business","label":"Java 21 / Spring Boot 课堂业务层\n课程 / 章节上下文 · 共享 classroom 身份 · 后台优先级调度","x":720,"y":340,"width":1200,"height":105,"fill":"#356753","stroke":"#356753","text_color":"#FFFFFF","font_size":24},
+    {"id":"recommendation","label":"补充视频推荐\n规则与 NLP 分类 → Bilibili 核验\n向量特征 → 有限组合 → 独立校验","x":390,"y":540,"width":540,"height":140,"fill":"#EDF3EA","stroke":"#356753","text_color":"#254B3B","font_size":23},
+    {"id":"reflection","label":"可跳过的自主学习\n首次表述 → 当前资料与锚点核对\n分层提示 → 自检 → 本课程补充目标","x":1050,"y":540,"width":540,"height":140,"fill":"#F4EEDD","stroke":"#8C7546","text_color":"#62502C","font_size":23},
+    {"id":"foundation","label":"共用支撑与可追溯记录\n云端 Qwen 推理 · 现有 EmbeddingService · 统一截止时间与调用证据\nMySQL 共享记录 · 内容指纹 / 模型版本 · 幂等、缓存与审计","x":720,"y":760,"width":1200,"height":145,"fill":"#F1F3EE","stroke":"#677D74","text_color":"#344F42","font_size":23},
+    {"id":"m001","label":"M001  方法适配\n独立验证 · 评分差额复用","x":315,"y":965,"width":390,"height":85,"fill":"#FAF8F1","stroke":"#C8D2C4","text_color":"#536653","font_size":20},
+    {"id":"m002","label":"M002  方法适配\n共用标签 · 首次命中审计","x":720,"y":965,"width":390,"height":85,"fill":"#FAF8F1","stroke":"#C8D2C4","text_color":"#536653","font_size":20},
+    {"id":"m003","label":"M003  设计适配\n先自主表述 · 再回源核对","x":1125,"y":965,"width":390,"height":85,"fill":"#FAF8F1","stroke":"#C8D2C4","text_color":"#536653","font_size":20}
+  ],
+  "edges": [
+    {"from":"interface","to":"business","label":"课程请求与交互","color":"#356753"},
+    {"from":"business","to":"recommendation","label":"补充资源任务","color":"#356753"},
+    {"from":"business","to":"reflection","label":"自主学习任务","color":"#8C7546"},
+    {"from":"recommendation","to":"foundation","label":"调用与状态记录","color":"#356753"},
+    {"from":"reflection","to":"foundation","label":"调用与状态记录","color":"#8C7546"}
+  ],
+  "labels": [
+    {"text":"晓陶学伴｜技术架构","x":120,"y":56,"font_size":32,"color":"#254B3B","anchor":"start"},
+    {"text":"在现有课堂上增加真实资源推荐、来源约束反馈与工程证据","x":120,"y":91,"font_size":20,"color":"#677D74","anchor":"start"},
+    {"text":"实线表示业务调用与依赖；结果沿对应接口返回。推荐故障不阻塞原课堂。","x":720,"y":875,"font_size":19,"color":"#677D74","anchor":"middle"},
+    {"text":"团队成果的采用方式","x":120,"y":917,"font_size":18,"color":"#677D74","anchor":"start"},
+    {"text":"云端模型推理与工程方法适配；不表示训练新基础模型或完整复现专利算法。","x":720,"y":1052,"font_size":18,"color":"#677D74","anchor":"middle"}
+  ]
+}

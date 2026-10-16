@@ -4,6 +4,7 @@ import { fetchExportSnapshot, inlineSnapshotAssets } from './snapshot';
 import { buildOfflineHtml, escapeHtml, offlineCsp, readPlayerAssets } from './html';
 import { buildStoredZip, type StoredZipEntry } from './storedZip';
 import { answerText, QUESTION_TYPE_LABELS } from './quiz';
+import { markdownResourceLabel, resourceDuration, supplementaryForScene } from './supplementary';
 
 export type { ExportOptions, ExportProgress, ExportResult } from './contract';
 export { importCourseFile, readPortableFile } from './importCourse';
@@ -29,6 +30,11 @@ export function courseToMarkdown(course: PortableCourse): string {
     }
     if (scene.type === 'interactive') lines.push('互动操作见 index.html 或 interactive 文件夹。', '');
     lines.push('### 讲稿', '', ...(scene.actions || []).filter(action => action.type === 'speech' || action.type === 'discussion').flatMap(action => [String(action.text || action.content || action.prompt || action.topic || ''), '']));
+    const resources = supplementaryForScene(course, scene.id);
+    if (resources.length) lines.push('### 补充视频资料（需联网）', '', '以下为导出时保留的历史资料入口，未下载视频；链接当前是否可用以 Bilibili 为准。', '', ...resources.flatMap(item => [
+      `- [${markdownResourceLabel(item.title)}](${item.url}) · ${markdownResourceLabel(item.author)} · ${resourceDuration(item.durationSeconds)}`,
+      `  ${markdownResourceLabel([item.purpose, item.reason].filter(Boolean).join('：'))}`, '',
+    ]));
   }
   return lines.join('\n');
 }
@@ -55,7 +61,7 @@ export async function exportCourse(course: Course, options: ExportOptions): Prom
     { path: 'course.json', data: JSON.stringify(snapshot.envelope, null, 2) },
     { path: 'index.html', data: html },
     { path: '讲稿.md', data: courseToMarkdown(snapshot.envelope.course) },
-    { path: 'README.txt', data: '晓陶学伴 · 离线课堂\n\n请先完整解压，再打开 index.html；不要移动 assets 文件夹。\n课程内容、互动和已打包配音可以离线使用；AI 问答、录音识别和成绩同步需要回到在线课堂。\n在在线课堂使用“导入课程”选择本 ZIP，可复制成一节新课程，不覆盖原来的课程和学习记录。\ncourse.json 含标准答案供离线练习，简答请结合参考答案与评分要点自查，离线不进行 AI 判分。\n' },
+    { path: 'README.txt', data: '晓陶学伴 · 离线课堂\n\n请先完整解压，再打开 index.html；不要移动 assets 文件夹。\n课程内容、互动和已打包配音可以离线使用；AI 问答、录音识别和成绩同步需要回到在线课堂。\n补充视频仅保留历史链接，访问 Bilibili 需要联网，课包不包含视频文件。\n在在线课堂使用“导入课程”选择本 ZIP，可复制成一节新课程，不覆盖原来的课程和学习记录。\ncourse.json 含标准答案供离线练习，简答请结合参考答案与评分要点自查，离线不进行 AI 判分。\n' },
     ...[...snapshot.assets].map(([path, data]) => ({ path, data })),
   ];
   for (const [index, scene] of snapshot.envelope.course.scenes.entries()) {

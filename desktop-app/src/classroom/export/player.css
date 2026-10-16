@@ -2,3 +2,4 @@
 
 /* 文字作答与选择控件同样保留完整可读区域。 */
 .ep-quiz textarea,.ep-quiz input[type=text]{display:block;width:100%;box-sizing:border-box;padding:12px;border:1px solid #b4c5b9;border-radius:10px;background:#fffef8;color:#263d35;font:inherit}.ep-quiz textarea{resize:vertical;min-height:110px}
+.ep-supplementary{margin-top:20px;border:1px solid #d8dfd0;background:#fffef7;border-radius:12px;padding:18px 20px}.ep-supplementary h3{font-size:17px;margin:0 0 8px}.ep-supplementary ul{list-style:none;margin:0;padding:0}.ep-supplementary li{border-top:1px solid #e1e6d8;padding:15px 0}.ep-supplementary li:last-child{padding-bottom:0}.ep-supplementary a{color:#326a4d;font-weight:600;text-decoration-thickness:1px;text-underline-offset:4px;overflow-wrap:anywhere}.ep-supplementary a:focus-visible{outline:2px solid #326a4d;outline-offset:4px}.ep-supplementary p{line-height:1.7;margin:5px 0;font-size:14px}

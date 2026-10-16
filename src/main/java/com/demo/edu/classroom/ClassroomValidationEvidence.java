@@ -29,6 +29,8 @@ final class ClassroomValidationEvidence {
         if (scene == null || revision < 0 || origin == null || !ORIGINS.contains(origin)) {
             throw new IllegalArgumentException("校验记录需要课件、非负修订号与已知来源");
         }
+        // 内容编辑/导入/补图都改变核对对象，不能继承原页面的语义通过标记。
+        if(!"generate".equals(origin))scene.remove(List.of("_teachingReview","teachingReview"));
         ObjectNode evidence = JsonNodeFactory.instance.objectNode();
         evidence.put("schema", SCHEMA);
         evidence.put("revision", revision);

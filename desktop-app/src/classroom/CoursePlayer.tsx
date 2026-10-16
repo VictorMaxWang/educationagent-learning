@@ -19,6 +19,8 @@ import RepairMediaButton from './RepairMediaButton';
 import { sceneContentRevision } from './reflectionIdentity';
 import { useAudioFocus } from './useAudioFocus';
 import { companionIdentityText } from './branding';
+import SupplementaryVideos, { readStudyBudget, VideoBudgetControl } from './SupplementaryVideos';
+import type { StudyBudget } from './study-types';
 
 class SceneBoundary extends Component<{ children: ReactNode }, { error: boolean }> {
   state = { error: false };
@@ -53,6 +55,11 @@ export default function CoursePlayer({ course, onProgress, onCourseChange, onEdi
   const [effects, setEffects] = useState<SlideEffects>({});
   const [discussion, setDiscussion] = useState('');
   const [rate, setRate] = useState(1);
+  const [studyBudget, setStudyBudget] = useState<{ courseId: string; sceneId?: string; value: StudyBudget; pendingOverride: boolean }>(() => ({ courseId: course.id, value: readStudyBudget(course.id), pendingOverride: false }));
+  const videoBudget = studyBudget.courseId === course.id ? studyBudget.value : readStudyBudget(course.id);
+  const [studyTargets, setStudyTargets] = useState<Record<string, string>>({});
+  const [studyPreparing, setStudyPreparing] = useState<{ sceneId: string; revision: number; preparing: boolean } | null>(null);
+  const [manualStudyRefresh, setManualStudyRefresh] = useState<{ sceneId: string; revision: number; id: string } | null>(null);
   const [voice, setVoice] = useState({ ttsAvailable: false, asrAvailable: false });
   const [recordingBusy, setRecordingBusy] = useState(false);
   const audioFocus = useAudioFocus();
@@ -82,6 +89,7 @@ export default function CoursePlayer({ course, onProgress, onCourseChange, onEdi
   const readingResponse = useRef(false);
   const scene = course.scenes[clampIndex(index, course.scenes.length)];
   const reflectionRevision = useMemo(() => sceneContentRevision(scene?.content), [scene?.content]);
+  useEffect(() => { setManualStudyRefresh(previous => previous && (previous.sceneId !== scene?.id || previous.revision !== reflectionRevision) ? null : previous); }, [scene?.id, reflectionRevision]);
   const live = useRef({ course, scene, onCourseChange, editing, boardEditing, recordingBusy });
   const latestCourse = live.current.course.id === course.id && (live.current.course.revision ?? 0) > (course.revision ?? 0) ? live.current.course : course;
   live.current = { course: latestCourse, scene, onCourseChange, editing, boardEditing, recordingBusy };
@@ -343,9 +351,11 @@ export default function CoursePlayer({ course, onProgress, onCourseChange, onEdi
   return <div className="cr-player">
     <div className="cr-mobile-panels"><button aria-pressed={mobilePanel === 'lesson'} onClick={() => setMobilePanel('lesson')}>学习内容</button><button aria-pressed={mobilePanel === 'conversation'} onClick={() => setMobilePanel('conversation')}>老师与学伴</button></div>
     <div className={`cr-lesson-column ${mobilePanel === 'lesson' ? 'mobile-active' : ''}`}>
+      <SupplementaryVideos courseId={course.id} sceneId={scene.id} contentRevision={reflectionRevision} learningRevision={studyTargets[scene.id] || ''} manualRefreshId={manualStudyRefresh?.sceneId === scene.id && manualStudyRefresh.revision === reflectionRevision ? manualStudyRefresh.id : ''} onPreparingChange={preparing => setStudyPreparing(previous => previous?.sceneId === scene.id && previous.revision === reflectionRevision && previous.preparing === preparing ? previous : { sceneId: scene.id, revision: reflectionRevision, preparing })} budgetMinutes={videoBudget} budgetOverride={studyBudget.pendingOverride && studyBudget.sceneId === scene.id} onBudgetResolved={value => setStudyBudget(previous => previous.courseId === course.id && previous.sceneId === scene.id && previous.value === value && !previous.pendingOverride ? previous : { courseId: course.id, sceneId: scene.id, value, pendingOverride: false })} />
       <div className="cr-step-heading"><div><span className="cr-eyebrow">第 {index + 1} / {course.outlines.length || course.scenes.length} 步 · {TYPE_LABELS[scene.type]}</span><h2>{scene.title}</h2></div><span className="cr-pill">慢慢来，也能学会</span></div>
       <div className="ce-classroom-tools"><div><button className={picking ? 'active' : ''} disabled={editing || boardEditing || interactiveDirty || mutationBusy} onClick={() => { queue.current?.stop(); setPicking(previous => !previous); }}>{picking ? '取消对象选择' : '点选对象提问'}</button>{scene.type === 'slide' && <button disabled={editing || boardEditing || mutationBusy || recordingBusy} onClick={() => { queue.current?.stop(); editRevision.current = live.current.course.revision ?? 0; setEditing(true); setPicking(false); }}>编辑课件</button>}<button disabled={mutationBusy || recordingBusy || editing || boardEditing || interactiveDirty} onClick={() => void openBoard()}>{board?.isOpen ? '白板已打开' : '打开课堂白板'}</button></div><small>{picking ? '点一下画布里的文字、图形或互动对象，问题会带上它的引用。' : '课件可直接编辑，老师操作会在这里实际执行。'}</small></div>
       {!editing && !boardEditing && !interactiveDirty && <RepairMediaButton course={course} scene={scene} onCourseChange={applyCourse} />}
+      <div className="cr-study-settings"><VideoBudgetControl value={videoBudget} preparing={studyPreparing?.sceneId === scene.id && studyPreparing.revision === reflectionRevision && studyPreparing.preparing} onRefresh={() => { setStudyPreparing({ sceneId: scene.id, revision: reflectionRevision, preparing: true }); setManualStudyRefresh({ sceneId: scene.id, revision: reflectionRevision, id: newLocalId() }); }} onChange={value => { setStudyBudget({ courseId: course.id, sceneId: scene.id, value, pendingOverride: true }); try { localStorage.setItem(`educationagent.study-budget.v1:${course.id}`, String(value)); } catch { /* 当前课堂仍使用新选择。 */ } }} /></div>
       {editing && scene.content.canvas ? <SlideEditor key={scene.id} canvas={scene.content.canvas} saving={mutationBusy} onSave={saveCanvas} onCancel={() => { setEditing(false); setEditorDirty(false); }} onDirtyChange={setEditorDirty} /> : <SceneBoundary key={scene.id}><div className={`cr-stage cr-stage-${scene.type}`}>
         {scene.type === 'slide' && scene.content.canvas && <SlideCanvas slide={resolveSlideAssets(scene.content.canvas)} effects={{ ...effects, ...(selection?.reference.kind === 'slide_element' ? { highlight: { elementId: selection.reference.elementId, color: '#c49b42', opacity: .12, borderWidth: 2 } } : {}) }} onElementClick={element => pickElement(element, 'slide_element')} />}
         {scene.type === 'quiz' && <QuizScene key={scene.id} courseId={course.id} scene={scene} />}
@@ -359,7 +369,7 @@ export default function CoursePlayer({ course, onProgress, onCourseChange, onEdi
       {!voice.ttsAvailable && <p className="cr-muted">语音讲解暂不可用，你可以阅读完整讲解文字并继续练习。</p>}
       {playback === 'done' && <p className="cr-muted" role="status">这一页讲完了。可以提问、完成练习，再选择下一步。</p>}
       {discussion && <div className="cr-discussion-card"><strong>停下来，一起想一想</strong><p>{discussion}</p><button className="cr-link" onClick={() => setMobilePanel('conversation')}>去问问学伴 →</button><span>讨论后再点“开始听课”继续讲解。</span></div>}
-      <StudyReflectionCard courseId={course.id} sceneId={scene.id} revision={reflectionRevision} sceneTitle={scene.title} onAskTeacher={text => { setPrefill({ id: newLocalId(), text: text.slice(0, 2000) }); setMobilePanel('conversation'); }} />
+      <StudyReflectionCard courseId={course.id} sceneId={scene.id} revision={reflectionRevision} sceneTitle={scene.title} onStudyUpdate={goals => { const identity = JSON.stringify([...new Set(goals)].sort()); setStudyTargets(previous => previous[scene.id] === identity ? previous : { ...previous, [scene.id]: identity }); }} onAskTeacher={text => { setPrefill({ id: newLocalId(), text: text.slice(0, 2000) }); setMobilePanel('conversation'); }} />
       {receipts.length > 0 && <details className="ce-action-receipts" open><summary>老师操作记录</summary>{receipts.map(receipt => <div key={receipt.actionId} className={receipt.running ? 'pending' : receipt.success ? 'success' : receipt.status === 'unconfirmed' ? 'pending' : 'failed'}><strong>{receipt.running ? '正在执行' : receipt.success ? '已确认执行并保存' : receipt.status === 'unconfirmed' ? '尚未取得执行确认' : '操作被明确拒绝'}</strong><span>{ACTION_LABELS[findAction(receipt.actionId)?.type || ''] || '课堂操作'}</span>{receipt.error && <p>{receipt.error}</p>}{!receipt.success && !receipt.running && findAction(receipt.actionId) && <button disabled={recordingBusy || editing || boardEditing || mutationBusy} onClick={() => { readingResponse.current = true; void getCourse(course.id).then(fresh => { applyCourse(fresh); if (mounted.current && live.current.scene?.id === scene.id) void queue.current?.playActions([findAction(receipt.actionId)!]); }).catch(problem => setError(problem instanceof Error ? problem.message : '暂未取得最新状态')); }}>核对后重试</button>}</div>)}</details>}
       <details className="cr-transcript"><summary>查看本页完整讲解</summary>{speech.map((action, i) => <p key={i}>{companionIdentityText(String(action.text || action.prompt || action.topic || ''))}</p>)}</details>
       <nav className="cr-timeline" aria-label="课堂目录">{course.outlines.map((outline, i) => { const available = course.scenes.some(item => item.id === outline.id); return <button key={outline.id} className={i === index ? 'active' : ''} disabled={!available} onClick={() => go(course.scenes.findIndex(item => item.id === outline.id))}><span>{String(i + 1).padStart(2, '0')}</span><div><strong>{outline.title}</strong><small>{available ? TYPE_LABELS[outline.type] : '准备中'}</small></div></button>; })}</nav>

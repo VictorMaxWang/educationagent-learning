@@ -1,0 +1,103 @@
+{
+  "asOf": "2026-10-16",
+  "core": {
+    "status": "PASS",
+    "tests": 24,
+    "failed": 0,
+    "evidence": "target/recommendation-core-check/test-results.log",
+    "scope": "纯推荐/独立验证/首次命中核心算法；不是正式站验收"
+  },
+  "citationEvidence": {
+    "status": "PASS",
+    "sources": 7,
+    "pages": 20,
+    "excerpts": 22,
+    "check": "scripts/validate-research-evidence-20261016.py"
+  },
+  "classification72": {
+    "status": "ENGINEERING_AGREEMENT_72_OF_72",
+    "cases": 72,
+    "completed": 72,
+    "matchesEngineeringExpectation": 72,
+    "modelCalledCases": 48,
+    "rulesOnlyCases": 24,
+    "humanReviewed": false,
+    "evidence": "docs/research-20261016/工程评测结果.json"
+  },
+  "realQueries30": {
+    "status": "LIVE_PARTIAL_READY23_HIDDEN6_ERROR1",
+    "queries": 30,
+    "searchSuccess": 30,
+    "candidateOccurrences": 240,
+    "uniqueVideos": 238,
+    "metadataVerified": 240,
+    "comparableInputs": 24,
+    "validEmptyIncluded": 1,
+    "nonComparableRetained": 6,
+    "businessReady": 23,
+    "businessHidden": 6,
+    "businessError": 1,
+    "scope": "元数据核验，不是完整视频内容审阅；过度阻断与契约失败仍保留",
+    "evidence": "docs/research-20261016/工程评测结果.json"
+  },
+  "sourceChecks40": {
+    "status": "REGRESSION_38_CONFIRMED_2_UNKNOWN_OF_40",
+    "initial": {
+      "cases": 40,
+      "completed": 40,
+      "agreement": 35,
+      "ambiguousMismatches": 5
+    },
+    "regression": {
+      "cases": 40,
+      "completed": 38,
+      "agreement": 38,
+      "failedOrUnknown": 2,
+      "purpose": "contract-repair-regression"
+    },
+    "humanReviewed": false,
+    "independentGeneralizationClaim": false,
+    "evidence": "docs/research-20261016/工程评测结果.json"
+  },
+  "frontend": {
+    "status": "PASS",
+    "files": 19,
+    "tests": 178,
+    "typecheck": "PASS",
+    "build": "PASS",
+    "evidence": "target/research-upgrade-20261016/frontend-tests-release.log"
+  },
+  "fullBackend": {
+    "status": "FAILED_LOCAL_DATABASE_AUTHENTICATION",
+    "tests": 752,
+    "failures": 0,
+    "errors": 14,
+    "skipped": 1,
+    "cause": "既有本机MySQL root@localhost认证失败",
+    "evidence": "target/research-upgrade-20261016/backend-full-final.log"
+  },
+  "online": "PENDING",
+  "release": "PENDING",
+  "labelBoundary": "工程夹具及代理标签不声称教师评审或真实学生教学效果",
+  "updateInstruction": "主任务完成后用真实日志更新本文件，再运行索引校验脚本生成总览。",
+  "engine": {
+    "status": "PASS",
+    "tests": 27,
+    "build": "PASS",
+    "evidence": "target/research-upgrade-20261016/engine-test-final.log"
+  },
+  "postPatchTargeted": "PENDING_ROOT_FINAL_COUNTS",
+  "fixedInputAlgorithms": {
+    "status": "24_VERIFIED_OPTIMA_NO_GREEDY_ADVANTAGE",
+    "comparable": 24,
+    "independentVerifierAgreements": 24,
+    "sameAsGreedy": 24,
+    "semanticAblationSelectionChanges": 11,
+    "coverageAblationSelectionChanges": 0,
+    "redundancyAblationSelectionChanges": 0,
+    "controlledFeedbackSelectionChanges": 0,
+    "firstHitIntervalsContainingZero": 24,
+    "serverP95": "PENDING_SERVER_RUN",
+    "evidence": "docs/research-20261016/工程评测结果.json"
+  }
+}

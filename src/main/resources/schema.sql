@@ -550,3 +550,16 @@ CREATE TABLE IF NOT EXISTS edu_growth_conversation (
     created_at  DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     PRIMARY KEY (group_id, grade)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='成长课堂公共问答历史';
+
+-- 本轮推荐、首次表述与核对结果只增量写入此表，不重写 edu_learning_course 或历史 quiz_*。
+CREATE TABLE IF NOT EXISTS edu_classroom_study_state (
+    kind        VARCHAR(40) NOT NULL,
+    entry_id    VARCHAR(160) COLLATE utf8mb4_bin NOT NULL,
+    course_id   VARCHAR(64) NOT NULL,
+    scene_id    VARCHAR(80) NOT NULL DEFAULT '',
+    document    LONGTEXT NOT NULL,
+    created_at  DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    updated_at  DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    PRIMARY KEY (kind, entry_id),
+    KEY idx_study_course_kind_updated (course_id, kind, scene_id, updated_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='共享课堂推荐与可追溯学习反馈';
