@@ -26,3 +26,7 @@ config/local-secrets.properties
 .codex/
 .agents/
 .claude/
+# Office 打开文档时生成的锁文件（如 ~$xxx.docx）与系统垃圾文件
+~$*
+Thumbs.db
+Desktop.ini

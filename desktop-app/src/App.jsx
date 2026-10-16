@@ -28,6 +28,7 @@ import MetricsView from './ops/MetricsView';
 import MemoryMapView from './ops/MemoryMapView';
 import ClassroomView from './classroom/ClassroomView';
 import VoiceOrb from './components/VoiceOrb';
+import OnboardingGuide from './components/OnboardingGuide';
 import LocalMusicPanel from './components/LocalMusicPanel';
 import BrowserCodePlayground from './components/BrowserCodePlayground';
 import TeamResearchLabs from './research/TeamResearchLabs';
@@ -638,6 +639,8 @@ function App() {
       {/* 课堂使用自己的授课音频，其他工具页保留原音乐播放器。 */}
       {!PUBLIC_CLASSROOM && (activeView !== 'classroom' || originalMusicRequested) && <div ref={attachMusic}><KittyMusicPlayer /></div>}
       <VoiceOrb suspended={toolsOpen || musicOpen || settingsOpen} />
+      {/* 首次进入播放分步引导，走完后缩成右上角小问号随时重放；只用 localStorage 记标记。 */}
+      <OnboardingGuide />
     </div>
   );
 }
