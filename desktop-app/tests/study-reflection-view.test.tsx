@@ -3,6 +3,8 @@ import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { LearningAttempt } from '../src/classroom/study-types';
+import { readFileSync } from 'node:fs';
+const reflectionCss = readFileSync('src/classroom/study-reflection.css', 'utf8');
 const api = vi.hoisted(() => ({ history: vi.fn(), save: vi.fn(), check: vi.fn(), hint: vi.fn(), prepare: vi.fn(), submit: vi.fn() }));
 vi.mock('../src/classroom/study-api', () => ({ getLearningAttempts: api.history, saveLearningAttempt: api.save, checkLearningAttempt: api.check, getLearningHint: api.hint, prepareSelfCheck: api.prepare, submitSelfCheck: api.submit }));
 import StudyReflectionCard, { reflectionKey } from '../src/classroom/StudyReflectionCard';
@@ -87,6 +89,28 @@ describe('从自述到核对的可跳过流程', () => {
 });
 
 describe('自检与自述分别记录', () => {
+  it('长自述历史与自检选项可收缩换行，不把反馈网格撑进问答栏', async () => {
+    const style = document.createElement('style'); style.textContent = reflectionCss; document.head.append(style);
+    const longText = '长方体面积和通分比较的完整思路'.repeat(60);
+    const longOption = 'https://example.invalid/' + 'unbrokenResourceReference'.repeat(25);
+    const record = checked({ understanding: longText, selfCheck: { id: 'long-check', type: 'single', question: longText, hasAnswer: false, options: [{ value: 'A', label: longOption }, { value: 'B', label: '先确认整体，再比较部分。' }] } });
+    localStorage.setItem(reflectionKey('course', 'scene', 1), JSON.stringify({ understanding: longText, checkPoint: record.checkPoint }));
+    api.history.mockResolvedValue({ contentFingerprint: 'content', attempts: [record] });
+    try {
+      await act(async () => render()); await act(async () => button('先用自己的话').click());
+      const computed = (selector: string) => getComputedStyle(host.querySelector(selector)!);
+      // jsdom不计算真实网格尺寸；检查匹配真实DOM的约束规则，像素验收由浏览器完成。
+      const gridRule = Array.from(style.sheet!.cssRules).find(rule => rule instanceof CSSStyleRule && rule.selectorText.includes('.cr-reflection-body') && rule.style.getPropertyValue('grid-template-columns')) as CSSStyleRule;
+      expect(gridRule.style.getPropertyValue('grid-template-columns')).toMatch(/minmax\(0,\s*1fr\)/);
+      expect(computed('.cr-reflection-history>button>span').minWidth).toBe('0px');
+      expect(computed('.cr-reflection-options label>span').minWidth).toBe('0px');
+      expect(computed('.cr-reflection-options label>span').overflowWrap).toBe('anywhere');
+      expect(computed('.cr-reflection-options label').flexDirection).toBe('row');
+      expect(computed('.cr-reflection-self-check legend').maxWidth).toBe('100%');
+      expect(computed('.cr-reflection-actions>.cr-button').whiteSpace).toBe('normal');
+      expect(host.querySelector('.cr-reflection-options label>span')?.textContent).toBe(longOption);
+    } finally { style.remove(); }
+  });
   it('准备一题、填写并真实提交，未知评阅保留同ID重试且确定后锁定', async () => {
     draft(); api.history.mockResolvedValue({ contentFingerprint: 'content', attempts: [checked()] });
     const withQuestion = checked({ selfCheck: { id: 'self-1', type: 'short_answer', question: '每层十二个，共三层，怎样算总数？', hasAnswer: false } });
