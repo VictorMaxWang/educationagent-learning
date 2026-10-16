@@ -19,3 +19,5 @@
 .cr-reflection-history>button>span{min-width:0}
 .cr-reflection-section-heading,.cr-reflection-bottom{min-width:0;max-width:100%;flex-wrap:wrap}
 .cr-reflection-section-heading>.cr-button,.cr-reflection-bottom>.cr-link{min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere}
+/* 手机页脚改为纵向排列后，桌面的flex-basis不再表示宽度，必须恢复自动高度。 */
+@media(max-width:650px){.cr-reflection-footer>small,.cr-reflection-actions{flex:0 1 auto}.cr-reflection-actions{width:100%}}
