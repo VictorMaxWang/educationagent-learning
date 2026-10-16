@@ -40,6 +40,17 @@ class ClassroomNodeEngineTest {
         verify(tutor,times(1)).complete(any());
     }
 
+    @Test void actualBridgePreservesDirectionAndQuizReviewOptions()throws Exception {
+        Path script=script("""
+            const rl=require('node:readline').createInterface({input:process.stdin});
+            rl.on('line',line=>{const m=JSON.parse(line);if(m.type==='job')process.stdout.write(JSON.stringify({type:'result',id:m.id,value:m.input})+'\\n');});
+            """);
+        var bridge=new ClassroomNodeEngine(json,mock(ClassroomTutorModel.class),"node",script.toString(),5000);
+        ObjectNode course=input().put("direction","exploration");course.putObject("quizReview").put("enabled",true).put("maxRegenerationsPerQuestion",2);
+        var actual=bridge.outline(course,new ClassroomCancellation());assertEquals("exploration",actual.path("direction").asText());
+        assertEquals(2,actual.path("quizReview").path("maxRegenerationsPerQuestion").asInt());
+    }
+
     @Test void invalidJsonAndWrongJobIdFailClosed() throws Exception {
         Path malformed=script("process.stdin.once('data',()=>process.stdout.write('not json\\n')); process.stdin.resume();");
         var bridge=new ClassroomNodeEngine(json,mock(ClassroomTutorModel.class),"node",malformed.toString(),5000);
@@ -62,6 +73,67 @@ class ClassroomNodeEngineTest {
         var bridge=new ClassroomNodeEngine(json,tutor,"node",script.toString(),5000);
         String error=bridge.outline(input(),new ClassroomCancellation()).path("error").asText();
         assertEquals("模型请求未完成，请重试",error); assertFalse(error.contains("secret"));
+    }
+
+    @Test void reviewPurposeIsValidatedAndForwardedWhilePlainRequestsKeepTheSingleArgumentCall() throws Exception {
+        Path script=script("""
+            const rl=require('node:readline').createInterface({input:process.stdin}); let job;
+            rl.on('line',line=>{const m=JSON.parse(line);
+              if(m.type==='job'){job=m.id;
+                process.stdout.write(JSON.stringify({type:'llm.request',id:'a',messages:[{role:'user',content:'出题'}]})+'\\n');
+                process.stdout.write(JSON.stringify({type:'llm.request',id:'b',purpose:'quiz-review',messages:[{role:'user',content:'复核'}]})+'\\n');
+              } else process.stdout.write(JSON.stringify({type:'result',id:job,value:[{title:m.text}]})+'\\n');
+            });
+            """);
+        var tutor=mock(ClassroomTutorModel.class);
+        when(tutor.complete(any())).thenReturn("生成模型");
+        when(tutor.complete(any(),eq("quiz-review"))).thenReturn("复核模型");
+        var bridge=new ClassroomNodeEngine(json,tutor,"node",script.toString(),5000);
+        bridge.outline(input(),new ClassroomCancellation());
+        // 不带用途仍走单参方法，既有替身与调用点不受影响。
+        verify(tutor).complete(any());
+        // 带用途必须转发到 Java，由它路由到 0 温度复核模型。
+        verify(tutor).complete(any(),eq("quiz-review"));
+    }
+
+    @Test void unknownReviewPurposeFailsClosed() throws Exception {
+        Path script=script("""
+            const rl=require('node:readline').createInterface({input:process.stdin});
+            rl.on('line',()=>process.stdout.write(JSON.stringify({type:'llm.request',id:'x',purpose:'admin-debug',messages:[{role:'user',content:'x'}]})+'\\n'));
+            """);
+        var bridge=new ClassroomNodeEngine(json,mock(ClassroomTutorModel.class),"node",script.toString(),5000);
+        ClassroomException error=assertThrows(ClassroomException.class,()->bridge.outline(input(),new ClassroomCancellation()));
+        assertEquals(502,error.status());
+        assertTrue(error.getMessage().contains("用途"));
+    }
+
+    @Test void severalModelRequestsInOneJobStayWithinTheGuard() throws Exception {
+        Path script=script("""
+            const rl=require('node:readline').createInterface({input:process.stdin}); let job; let seen=0;
+            rl.on('line',line=>{const m=JSON.parse(line);
+              if(m.type==='job'){job=m.id; for(const id of ['a','b','c','d']) process.stdout.write(JSON.stringify({type:'llm.request',id,messages:[{role:'user',content:id}]})+'\\n');}
+              else {seen++; if(seen===4) process.stdout.write(JSON.stringify({type:'result',id:job,value:[{title:m.text}]})+'\\n');}
+            });
+            """);
+        var tutor=mock(ClassroomTutorModel.class); when(tutor.complete(any())).thenReturn("ok");
+        var bridge=new ClassroomNodeEngine(json,tutor,"node",script.toString(),5000);
+        assertEquals("ok",bridge.outline(input(),new ClassroomCancellation()).get(0).path("title").asText());
+        // 出题、复核、重生成、重生成后复核合计最多 4 次，远低于 20 次上限：不需要放宽协议守卫。
+        verify(tutor,times(4)).complete(any());
+    }
+
+    @Test void quizReviewOptionsReachTheGeneratorJob() throws Exception {
+        Path script=script("""
+            const rl=require('node:readline').createInterface({input:process.stdin}); let job;
+            rl.on('line',line=>{const m=JSON.parse(line);
+              if(m.type==='job'){job=m.id;process.stdout.write(JSON.stringify({type:'result',id:job,value:[{title:JSON.stringify(m.input.quizReview)}]})+'\\n');}
+            });
+            """);
+        var bridge=new ClassroomNodeEngine(json,mock(ClassroomTutorModel.class),"node",script.toString(),5000);
+        ObjectNode withReview=input(); withReview.putObject("quizReview").put("enabled",true).put("maxRegenerationsPerQuestion",2);
+        String value=bridge.outline(withReview,new ClassroomCancellation()).get(0).path("title").asText();
+        // 开关握在 Java 手里，关掉复核不需要重新构建生成器。
+        assertTrue(value.contains("maxRegenerationsPerQuestion"),value);
     }
 
     @Test void timeoutEndsOnlyOwnedProcess() throws Exception {

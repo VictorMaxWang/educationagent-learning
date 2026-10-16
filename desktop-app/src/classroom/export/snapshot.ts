@@ -141,6 +141,9 @@ export async function collectSnapshot(envelope: PortableEnvelope, options: Expor
   for (let sceneIndex = 0; sceneIndex < copy.course.scenes.length; sceneIndex++) {
     const scene = copy.course.scenes[sceneIndex];
     checkAbort(options.signal);
+    // 审核结论只对原次生成成立；思考题仅导出题干，不能把尚有争议的答案带成参考答案。
+    for (const question of scene.content.questions || []) delete (question as unknown as Record<string, unknown>).review;
+    if (scene.content.thinking) scene.content.thinking = scene.content.thinking.map(item => ({ id: item.id, question: item.question }));
     // 仅整理导出深副本中的学伴身份。题干、教材、用户原话不参与替换，也不回写原课程。
     for (const action of scene.actions || []) if (action.type === 'speech' || action.type === 'discussion') {
       for (const field of ['text', 'content', 'prompt', 'topic'] as const) {

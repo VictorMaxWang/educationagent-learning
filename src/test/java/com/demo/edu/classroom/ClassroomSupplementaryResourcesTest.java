@@ -28,7 +28,7 @@ class ClassroomSupplementaryResourcesTest {
     @Test void knownDurationAndSceneAreRequiredAndDuplicatePartsCollapse() {
         assertThrows(ClassroomException.class,()->ClassroomSupplementaryResources.clean(json.createArrayNode().add(item().put("durationSeconds",0)),Map.of("old-scene","new-scene"),json));
         assertThrows(ClassroomException.class,()->ClassroomSupplementaryResources.clean(json.createArrayNode().add(item()),Map.of("other","new-scene"),json));
-        ArrayNode values=json.createArrayNode().add(item()).add(item().put("url","https://bilibili.com/video/BV1r3411q7mV"));
+        ArrayNode values=json.createArrayNode().add(item()).add(item().put("url","https://bilibili.com/video/BV1r3411q7mV?p=1"));
         assertEquals(1,ClassroomSupplementaryResources.clean(values,Map.of("old-scene","new-scene"),json).size());
     }
     @Test void realPortableImportPreservesLinksButRebuildsSceneIdentity() {
@@ -40,4 +40,11 @@ class ClassroomSupplementaryResourcesTest {
         assertEquals("historical",link.path("resourceStatus").asText());
         assertEquals(1,fixture.service.portable(imported.path("id").asText()).path("course").path("supplementaryResources").size());
     }
+    @Test void wholeSearchResourceRoundTripNeverAssignsTotalDurationToPartOne(){var raw=item().put("url","https://www.bilibili.com/video/BV1r3411q7mV/")
+            .put("durationSeconds",166).put("part",0).put("durationScope","whole-video").put("sourceKind","bilibili-search-metadata").put("verificationScope","search-metadata");
+        var cleaned=ClassroomSupplementaryResources.clean(json.createArrayNode().add(raw),Map.of("old-scene","new-scene"),json).get(0);
+        assertEquals("BV1r3411q7mV:whole",cleaned.path("id").asText());assertEquals("https://www.bilibili.com/video/BV1r3411q7mV/",cleaned.path("url").asText());
+        assertEquals("whole-video",cleaned.path("durationScope").asText());assertEquals(0,cleaned.path("part").asInt());assertEquals(166,cleaned.path("durationSeconds").asInt());
+        assertEquals("bilibili-search-metadata",cleaned.path("sourceKind").asText());assertEquals("historical",cleaned.path("resourceStatus").asText());
+        assertThrows(ClassroomException.class,()->ClassroomSupplementaryResources.clean(json.createArrayNode().add(raw.put("url","https://www.bilibili.com/video/BV1r3411q7mV/?p=1")),Map.of("old-scene","new-scene"),json));}
 }

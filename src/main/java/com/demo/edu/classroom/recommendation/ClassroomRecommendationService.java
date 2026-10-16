@@ -25,6 +25,7 @@ import java.util.concurrent.*;
  */
 @Service
 public class ClassroomRecommendationService implements AutoCloseable {
+    static final String MATCHING_VERSION="video-matching-compact-v1";
     static final String SETTINGS="recommendation_settings",CACHE="recommendation_cache",DECISION="recommendation_decision";
     static final Duration CACHE_AGE=Duration.ofHours(24);
     private final ClassroomCourseService courses;private final ClassroomStudyStore store;private final ObjectMapper json;
@@ -70,10 +71,10 @@ public class ClassroomRecommendationService implements AutoCloseable {
             if(!"ready".equals(current.path("status").asText())||!fresh(current))continue;
             for(JsonNode item:current.path("items")) {
                 String url=item.path("url").asText();
-                if(!url.matches("https://www\\.bilibili\\.com/video/BV[0-9A-Za-z]{10}/\\?p=[1-9][0-9]{0,4}"))continue;
+                if(!url.matches("https://www\\.bilibili\\.com/video/BV[0-9A-Za-z]{10}/(?:\\?p=[1-9][0-9]{0,4})?"))continue;
                 try{if(Instant.parse(item.path("checkedAt").asText()).plus(CACHE_AGE).isBefore(Instant.now()))continue;}catch(RuntimeException invalid){continue;}
                 ObjectNode exported=result.addObject().put("sceneId",sceneId);
-                for(String key:List.of("id","title","url","author","durationSeconds","purpose","goals","reason","checkedAt","sourceKind","sourceLabel"))if(item.has(key))exported.set(key,item.get(key).deepCopy());
+                for(String key:List.of("id","title","url","author","durationSeconds","purpose","goals","reason","checkedAt","sourceKind","sourceLabel","part","durationScope","verificationScope"))if(item.has(key))exported.set(key,item.get(key).deepCopy());
             }
         }
         return result;
@@ -119,7 +120,8 @@ public class ClassroomRecommendationService implements AutoCloseable {
         if(persist)store.save(SETTINGS,settingKey,courseId,json.createObjectNode().put("budgetMinutes",budget).put("preference",preference));
         List<String> targets=verifiedFeedbackTargets(context);
         ObjectNode basis=json.createObjectNode().put("courseId",courseId).put("sceneId",context.sceneId()).put("fingerprint",context.fingerprint())
-                .put("minutes",budget).put("preference",preference).put("algorithm",RecommendationOptimizer.ALGORITHM_VERSION).put("classifier",VideoTeachingClassifier.VERSION);
+                .put("minutes",budget).put("preference",preference).put("algorithm",RecommendationOptimizer.ALGORITHM_VERSION).put("classifier",VideoTeachingClassifier.VERSION)
+                .put("catalog",BilibiliVideoCatalog.VERSION).put("matchingVersion",MATCHING_VERSION);
         basis.set("feedbackTargets",json.valueToTree(targets));basis.set("embedding",semantic.identity());
         return new Request(context,new Settings(budget,preference),targets,ClassroomStudyContext.hash(basis),settingKey);
     }
@@ -203,10 +205,11 @@ public class ClassroomRecommendationService implements AutoCloseable {
             Matched match=matches.stream().filter(m->m.video().id().equals(id)).findFirst().orElseThrow();BilibiliVideoCatalog.Video video=match.video();
             ObjectNode item=items.addObject().put("id",id).put("url",video.url()).put("title",video.part()>1?video.title()+" · "+video.partTitle():video.title())
                     .put("author",video.author()).put("durationSeconds",video.durationSeconds()).put("reason",match.reason()).put("purpose",match.purpose())
-                    .put("verificationScope","metadata").put("checkedAt",video.checkedAt());item.set("goals",json.valueToTree(match.goals()));
+                    .put("verificationScope",video.part()==0?"search-metadata":"metadata").put("part",video.part())
+                    .put("durationScope",video.part()==0?"whole-video":"part").put("checkedAt",video.checkedAt());item.set("goals",json.valueToTree(match.goals()));
             boolean fromCache="verified-metadata-cache".equals(video.metadataSources().path("source").asText());
-            item.put("sourceKind",fromCache?"verified-metadata-cache":"bilibili-public-api")
-                    .put("sourceLabel",fromCache?"已核验资料缓存":"已核验视频资料");
+            item.put("sourceKind",video.part()==0?"bilibili-search-metadata":fromCache?"verified-metadata-cache":"bilibili-public-api")
+                    .put("sourceLabel",video.part()==0?"B站搜索资料":fromCache?"已核验资料缓存":"已核验视频资料");
         }
         if(!items.isEmpty())record.put("status","ready");deadline.check();finish(job,record,start);
     }
@@ -217,16 +220,25 @@ public class ClassroomRecommendationService implements AutoCloseable {
                 .put("purpose",classification.purpose()).put("explicitPreference",preference);
         input.set("contextGoals",json.valueToTree(classification.goals()));input.set("targetGoals",json.valueToTree(targets));
         ObjectNode background=context.toJson(json);background.remove("visibleText"); // anchors 已保留正文，无须重复整段文本。
-        input.set("classroomContext",background);input.set("existingPurposes",json.valueToTree(context.existingPurposes()));input.set("videos",json.valueToTree(videos));
+        input.set("classroomContext",background);input.set("existingPurposes",json.valueToTree(context.existingPurposes()));
+        // 模型只看教学匹配所需字段。完整原始metadata仍在audit.metadata，避免重复URL/查询追踪吞占45秒预算。
+        ArrayNode projected=input.putArray("videos");
+        for(BilibiliVideoCatalog.Video video:videos)projected.addObject().put("id",video.id()).put("title",video.title()).put("partTitle",video.partTitle())
+                .put("description",video.description()).put("author",video.author()).put("part",video.part()).put("durationSeconds",video.durationSeconds())
+                .put("durationScope",video.part()==0?"whole-video":"part");
+        audit.put("matchingVersion",MATCHING_VERSION).put("matchingInputCandidateCount",videos.size()).put("matchingInputChars",input.toString().length());
         ClassroomAiGateway.Result result=ai.structured("video-metadata-matching","""
             只根据已核验的视频元数据判断它是否适合当前学生及本节目标，不假装观看了视频。必须明确适龄且具体目标有支持才eligible。
+            part=0是当前搜索返回的整视频资料，时长覆盖整个视频条目；不能据此假设分P、已读取详情或已验证播放可用性。
             contextGoals/classroomContext是完整课堂背景，targetGoals是本次优先补充的目标；只覆盖背景而不覆盖本次目标的视频不合格。
             本次目标可能来自已经按课程资料核对的遗漏或冲突，不据此推断学生能力，不降级年级或题目难度。
             泛讲整套课程、标题相近但内容不符、广告引流、危险操作、无法确定适龄返回eligible:false。
-            返回JSON {candidates:[{id:输入视频id,eligible:boolean,gradeCompatibility:'compatible'|'incompatible'|'unknown',
-            goals:仅输入targetGoals中的目标数组,purpose:'recitation'|'pronunciation'|'listening'|'observation'|'procedure'|'concept'|'worked_example',
-            reason:给学生看的简短补充理由,metadataQuote:视频标题/分P标题/简介的连续原文,preferenceMatch:boolean}]}。
-            每个输入视频恰好一项。不可引用视频外信息。eligible项必须goals非空、gradeCompatibility=compatible、有真实metadataQuote。
+            返回JSON {candidates:[...]}，每个输入视频恰好一项，必须完整覆盖全部输入id，不能省略不合格项。
+            不合格或无法确定适龄的条目只返回{id:输入视频id,eligible:false}，不输出理由、引文或其他字段。
+            合格条目返回{id:输入视频id,eligible:true,gradeCompatibility:'compatible',goals:仅输入targetGoals中的目标数组,
+            purpose:'recitation'|'pronunciation'|'listening'|'observation'|'procedure'|'concept'|'worked_example',
+            reason:一句简短补充理由(不超过80字),metadataQuote:标题/分P标题/简介中最短且足以支持匹配的连续原文(不超过120字),preferenceMatch:boolean}。
+            不复述整段简介，不引用视频外信息。合格项必须goals非空、明确适龄、有真实metadataQuote；不得为缩短输出放宽合格标准。
             preferenceMatch只表示是否符合用户explicitPreference；没有偏好时false。不提供置信度或推断用户能力。
             """,input.toString(),budget,value->validateMatches(value,targets,videos));
         audit.set("matchingCall",result.evidence());audit.set("matching",result.value());List<Matched> matches=new ArrayList<>();

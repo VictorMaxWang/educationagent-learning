@@ -3,8 +3,9 @@ export type StudyBudget = 5 | 10 | 20;
 export type VideoFeedback = 'helpful' | 'not_helpful' | 'too_long' | 'tried' | 'opened';
 export interface SupplementaryVideo {
   id: string; url: string; title: string; author: string; durationSeconds: number;
-  reason: string; goals: string[]; purpose: string; verificationScope: 'metadata'; checkedAt: string;
-  sourceKind?: 'bilibili-public-api' | 'verified-metadata-cache'; sourceLabel?: string;
+  reason: string; goals: string[]; purpose: string; verificationScope: 'metadata' | 'search-metadata'; checkedAt: string;
+  sourceKind?: 'bilibili-public-api' | 'verified-metadata-cache' | 'bilibili-search-metadata'; sourceLabel?: string;
+  durationScope?: 'part' | 'whole-video'; part?: number;
 }
 export interface RecommendationResponse {
   status: 'idle' | 'queued' | 'running' | 'ready' | 'hidden' | 'error';

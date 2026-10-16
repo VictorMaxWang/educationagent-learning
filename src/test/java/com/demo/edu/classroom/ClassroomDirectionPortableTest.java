@@ -85,21 +85,35 @@ class ClassroomDirectionPortableTest {
         JsonNode envelope=json.readTree("""
           {"format":"educationagent.classroom","version":1,"course":{"title":"混合题","topic":"面积","grade":5,"subject":"数学","domain":"general","direction":"academic","scenes":[
           {"id":"qscene","title":"练习","type":"quiz","content":{"type":"quiz","questions":[
-          {"id":"q1","type":"single","question":"单选","options":[{"label":"甲","value":"A"},{"label":"乙","value":"B"}],"correctAnswer":"B"},
+          {"id":"q1","type":"single","question":"单选","options":[{"label":"甲","value":"A"},{"label":"乙","value":"B"}],"correctAnswer":"B","review":{"verdict":"PASS","method":"model","reason":"独立求解与标答一致"}},
           {"id":"q2","type":"multiple","question":"多选","options":[{"label":"甲","value":"A"},{"label":"乙","value":"B"},{"label":"丙","value":"C"}],"correctAnswer":"CA"},
           {"id":"q3","type":"judge","question":"判断","correctAnswer":false},
           {"id":"q4","type":"fill","question":"差为多少","correctAnswer":0},
-          {"id":"q5","type":"short_answer","question":"为何统一整体","correctAnswer":"基准相同","gradingPoints":["整体一样大"],"explanation":"比较基准必须一致"}]},"actions":[]}]}}
+          {"id":"q5","type":"short_answer","question":"为何统一整体","correctAnswer":"基准相同","gradingPoints":["整体一样大"],"explanation":"比较基准必须一致"}],
+          "thinking":[{"id":"t1","question":"想一想：为什么先统一整体？","review":{"verdict":"RISKY_THINK","method":"model","reason":"独立求解得到 480，标答为 B"}}]},"actions":[]}]}}
           """);
         var imported=service.importPortable(envelope);String id=imported.path("id").asText();
         for(JsonNode question:imported.path("scenes").get(0).path("content").path("questions")) {
             assertFalse(question.has("answer"));assertFalse(question.has("gradingPoints"));assertFalse(question.has("analysis"));
+            // 审核结论只对某一次生成成立，随文件流转会冒充"已被核验"。
+            assertFalse(question.has("review"));
         }
+        // 思考题保留题干供学生思考，但复核理由里含模型算出的答案，必须剥掉。
+        var importedThinking=imported.path("scenes").get(0).path("content").path("thinking").get(0);
+        assertTrue(importedThinking.path("question").isTextual());
+        assertFalse(importedThinking.has("review"));
         var portable=service.portable(id);var questions=portable.path("course").path("scenes").get(0).path("content").path("questions");
         assertEquals(List.of("B"),json.convertValue(questions.get(0).path("answer"),List.class));
         assertEquals(List.of("A","C"),json.convertValue(questions.get(1).path("answer"),List.class));
         assertEquals("错",questions.get(2).path("answer").asText());assertTrue(questions.get(3).path("answer").isNumber());assertEquals(0,questions.get(3).path("answer").asInt());
         assertEquals("基准相同",questions.get(4).path("answer").asText());assertEquals("整体一样大",questions.get(4).path("gradingPoints").get(0).asText());
+        // 导出文件里不能留任何复核痕迹：缘由文字本身就可能写出正确答案。
+        // 注意**只比对短语，不比数字**：信封里有 documentSha256 与逐题重铸的 UUID，
+        // 里面随机出现 "480" 是约 0.8% 的事 —— 用数字子串判断会让断言随机挂掉。
+        assertFalse(portable.toString().contains("独立求解得到"), "复核理由文本不得随导出文件外流");
+        assertFalse(portable.toString().contains("RISKY_THINK"), "复核结论不得随导出文件外流");
+        assertFalse(portable.path("course").path("scenes").get(0).path("content").path("questions").get(0).has("review"));
+        assertFalse(portable.path("course").path("scenes").get(0).path("content").path("thinking").get(0).has("review"));
         String secondId=service.importPortable(portable).path("id").asText();assertNotEquals(id,secondId);
         assertEquals(questions.get(3).path("answer"),service.portable(secondId).path("course").path("scenes").get(0).path("content").path("questions").get(3).path("answer"));
         verifyNoInteractions(engine);verify(tutor,never()).complete(any());

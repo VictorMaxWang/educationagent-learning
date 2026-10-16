@@ -95,6 +95,68 @@ class ClassroomValidationEvidenceTest {
         assertThrows(IllegalArgumentException.class, () -> ClassroomValidationEvidence.record(scene, 2, "claimed-browser-pass"));
     }
 
+    @Test void quizReviewOutcomeTakesTheWorstCaseAndStaysNotRunWhenDisabled() throws Exception {
+        ObjectNode scene = quizScene();
+        // 复核未启用时题目不带 review：如实记 NOT_RUN，而不是伪装成已通过。
+        ClassroomValidationEvidence.record(scene, 1, "generate");
+        assertEquals("NOT_RUN", reviewCheck(scene));
+
+        ObjectNode question = (ObjectNode) scene.path("content").path("questions").get(0);
+        verdict(question, "PASS");
+        ClassroomValidationEvidence.record(scene, 2, "generate");
+        assertEquals("PASS", reviewCheck(scene));
+
+        // 复核没跑出结论（超时/报错）与"不通过"是两回事，记为 WARN。
+        verdict(question, "UNVERIFIED");
+        ClassroomValidationEvidence.record(scene, 3, "generate");
+        assertEquals("WARN", reviewCheck(scene));
+
+        verdict(question, "RISKY_THINK");
+        ClassroomValidationEvidence.record(scene, 4, "generate");
+        assertEquals("FAILED", reviewCheck(scene));
+
+        // 非练习页不参与习题审核。
+        ObjectNode slide = (ObjectNode) json.readTree("""
+                {"id":"s","title":"讲解","type":"slide","content":{"type":"slide"},"actions":[]}
+                """);
+        ClassroomValidationEvidence.record(slide, 1, "generate");
+        assertEquals("NOT_RUN", reviewCheck(slide));
+    }
+
+    @Test void ruleDroppedAndAllThinkingScenesFailTheReviewOutcome() throws Exception {
+        ObjectNode scene = quizScene();
+        verdict((ObjectNode) scene.path("content").path("questions").get(0), "PASS");
+        // 确定性规则丢题说明确实有题不合格，即使剩下的都通过也要记 FAILED。
+        ((ObjectNode) scene.path("content")).putObject("review").put("ruleDropped", 1);
+        ClassroomValidationEvidence.record(scene, 1, "generate");
+        assertEquals("FAILED", reviewCheck(scene));
+
+        // 整页降级：计分题为空、只留思考题。
+        ObjectNode allThinking = quizScene();
+        ObjectNode content = (ObjectNode) allThinking.path("content");
+        ((ArrayNode) content.path("questions")).removeAll();
+        content.putArray("thinking").addObject().put("id", "t1").put("question", "想一想");
+        ClassroomValidationEvidence.record(allThinking, 1, "generate");
+        assertEquals("FAILED", reviewCheck(allThinking));
+    }
+
+    private static String reviewCheck(ObjectNode scene) {
+        return scene.path("validation").path("checks").path("quizReview").asText();
+    }
+
+    private static void verdict(ObjectNode question, String value) {
+        question.putObject("review").put("verdict", value).put("method", "model").put("reason", "复核结论");
+    }
+
+    private ObjectNode quizScene() throws Exception {
+        return (ObjectNode) json.readTree("""
+                {"id":"q","title":"练一练","type":"quiz","content":{"type":"quiz","questions":[
+                 {"id":"q1","no":1,"type":"single","question":"单选","options":[{"label":"甲","value":"A"}],
+                  "answer":["A"],"analysis":"解析","hasAnswer":true}]},
+                 "actions":[]}
+                """);
+    }
+
     private ObjectNode scene() throws Exception {
         return (ObjectNode) json.readTree("""
                 {"id":"s","title":"实验","type":"interactive",

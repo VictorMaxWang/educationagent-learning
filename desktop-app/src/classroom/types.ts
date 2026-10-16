@@ -39,6 +39,11 @@ export interface Question {
   options: { label: string; value: string }[];
   hasAnswer?: boolean;
 }
+/** 未通过独立复核且无法修好的题会降级到这里：只有题干，不计分、不判分、不进错题本。 */
+export interface ThinkingItem {
+  id: string;
+  question: string;
+}
 export interface TeachingAction {
   id?: string;
   type: 'speech' | 'discussion' | 'spotlight' | 'laser'
@@ -60,7 +65,7 @@ export interface Scene {
   quizId?: string;
   mediaRetryAvailable?: boolean;
   mediaWarnings?: string[];
-  content: { type: SceneType; canvas?: Slide; questions?: Question[]; html?: string; widgetType?: string; [key: string]: unknown };
+  content: { type: SceneType; canvas?: Slide; questions?: Question[]; thinking?: ThinkingItem[]; html?: string; widgetType?: string; [key: string]: unknown };
   actions: TeachingAction[];
 }
 export interface ClassroomMessage {
@@ -85,6 +90,11 @@ export interface SupplementaryResource {
   goals: string[];
   reason: string;
   checkedAt?: string;
+  sourceKind?: 'bilibili-public-api' | 'verified-metadata-cache' | 'bilibili-search-metadata';
+  sourceLabel?: string;
+  verificationScope?: 'metadata' | 'search-metadata';
+  durationScope?: 'part' | 'whole-video';
+  part?: number;
   resourceStatus?: 'historical';
 }
 export interface Course {

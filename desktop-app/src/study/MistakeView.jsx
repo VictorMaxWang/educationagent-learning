@@ -2,6 +2,8 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { getMistakes, redoMistake, removeMistake } from '../api/chatApi';
 
 const TYPE_LABEL = { single: '单选题', multi: '多选题', judge: '判断题', fill: '填空题', short: '简答题' };
+const revisionHref = revision => typeof revision?.newCourseId === 'string' && /^[A-Za-z0-9_-]{1,80}$/.test(revision.newCourseId)
+  ? `#/classroom/${encodeURIComponent(revision.newCourseId)}` : null;
 
 function parseOption(opt) {
   const m = String(opt).match(/^([A-Za-z])[.、．)\s]*\s*(.*)$/);
@@ -73,6 +75,7 @@ function MistakeView({ userId, embedded }) {
   };
 
   const toggleRedo = (m) => {
+    if (m.revision) return;
     if (redoId === m.questionId) {
       setRedoId(null);
       setFeedback(null);
@@ -99,6 +102,7 @@ function MistakeView({ userId, embedded }) {
   };
 
   const submitRedo = async (m) => {
+    if (m.revision) return;
     const answer = answerOf(m);
     if (!answer) return;
     setLoading(true);
@@ -184,12 +188,13 @@ function MistakeView({ userId, embedded }) {
             {!collapsed[label] && (
             <div className="quiz-result-list">
               {list.map(m => (
-                <div key={m.questionId} className="quiz-r-item wrong">
+                <div key={m.questionId} className={`quiz-r-item ${m.revision ? 'info' : 'wrong'}`}>
               <div className="quiz-r-head">
                 <span>{m.paperTitle || '未命名试卷'} · 第 {m.no} 题 · {TYPE_LABEL[m.type] || m.type}</span>
                 <span>{m.knowledgePoint ? `🏷 ${m.knowledgePoint}` : ''}</span>
               </div>
               <div className="quiz-r-line"><b>题目：</b>{m.stem}</div>
+              {m.revision && <div className="quiz-feedback info" role="status"><strong>历史题目已修订</strong><p>{m.revision.reason || '原练习存在题面或答案问题。'}这条记录保留当时的作答，不用它判断现在是否掌握。</p>{revisionHref(m.revision) && <a className="quiz-btn" href={revisionHref(m.revision)}>打开修订版课堂</a>}</div>}
               {m.options?.length > 0 && (
                 <div className="quiz-r-line">
                   {m.options.map((o, idx) => {
@@ -198,10 +203,10 @@ function MistakeView({ userId, embedded }) {
                   })}
                 </div>
               )}
-              <div className="quiz-r-line" style={{ color: '#DC2626' }}><b>我的答案：</b>{answerText(m) || '（未作答）'}</div>
+              <div className="quiz-r-line" style={m.revision ? undefined : { color: '#DC2626' }}><b>{m.revision ? '当时的作答：' : '我的答案：'}</b>{answerText(m) || '（未作答）'}</div>
 
               {/* 重做区域 */}
-              {redoId === m.questionId && (
+              {!m.revision && redoId === m.questionId && (
                 <div className="mistake-redo">
                   {m.type === 'judge' ? (
                     ['对', '错'].map(v => (
@@ -228,7 +233,7 @@ function MistakeView({ userId, embedded }) {
                   )}
 
                   <div className="quiz-actions" style={{ marginTop: 10 }}>
-                    <button className="quiz-btn" onClick={toggleRedo}>取消</button>
+                    <button className="quiz-btn" onClick={() => toggleRedo(m)}>取消</button>
                     <button className="quiz-btn primary" onClick={() => submitRedo(m)} disabled={loading || !answerOf(m)}>
                       {loading ? '⏳ 判分中...' : '📝 提交重做'}
                     </button>
@@ -247,7 +252,7 @@ function MistakeView({ userId, embedded }) {
               )}
 
               <div className="quiz-actions" style={{ marginTop: 10 }}>
-                {redoId !== m.questionId && (
+                {!m.revision && redoId !== m.questionId && (
                   <button className="quiz-btn" onClick={() => toggleRedo(m)}>🔁 重做</button>
                 )}
                 <button className="quiz-btn" onClick={() => handleRemove(m)}>🗑 移除</button>

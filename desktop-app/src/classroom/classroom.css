@@ -11,3 +11,10 @@
 /* 学习方向决定是否出现学科；非学科方向拉开两列宽度，避免留一个无意义的空位。 */
 .cr-create-fields.cr-non-academic{grid-template-columns:minmax(0,1fr) minmax(0,2fr)}.cr-create-fields>.premium-select:last-child .ps-list{left:auto;right:0}.cr-welcome .cr-project-title{font-size:12px!important;line-height:1.85!important;color:#87947c!important;max-width:600px;margin-bottom:11px!important}.cr-root .cr-text-answer{display:block;width:100%;max-width:100%;background:#fafcf4;border:1px solid #d6e0cc;border-radius:11px;padding:13px 14px;line-height:1.85;font-size:14px;transition:border-color .15s,box-shadow .15s}.cr-root input.cr-text-answer{min-height:48px}.cr-root textarea.cr-text-answer{min-height:125px;resize:vertical}.cr-root .cr-text-answer::placeholder{color:#a4ad99;font-size:12px}.cr-root .cr-text-answer:focus{outline:none;border-color:#a7bd94;box-shadow:0 0 0 3px #b8cba520}
 @media(max-width:760px){.cr-create-fields>.premium-select:last-child:not(:nth-child(2)){grid-column:1/-1}.cr-create-fields>.premium-select:nth-child(2) .ps-list{left:auto;right:0}.cr-create-fields.cr-non-academic{grid-template-columns:minmax(0,1fr) minmax(0,1.5fr)}.cr-welcome .cr-project-title{font-size:10px!important;max-width:100%}.cr-root .cr-text-answer{font-size:15px;min-height:48px}.cr-root textarea.cr-text-answer{min-height:135px}}
+
+/* 降级出来的不计分思考题：只有题干，不判分、不进错题本，所以用中性提示卡而不是答题控件。 */
+.cr-thinking{margin-top:26px;padding-top:20px;border-top:1px dashed var(--cr-line)}
+.cr-thinking-item{border:1px solid var(--cr-line);background:#fbfcf6;border-radius:11px;padding:15px;margin-bottom:11px}
+.cr-thinking-item p{font-size:14px;line-height:1.85;margin:0;overflow-wrap:anywhere}
+.cr-thinking-item .cr-muted{font-size:11px;margin:8px 0 0}
+@media(max-width:760px){.cr-thinking-item{padding:13px}.cr-thinking-item p{font-size:13px}}

@@ -77,7 +77,9 @@ async function addCanvas(pptx: PptxGenJS, page: PptxSlide, canvas: Slide, warnin
         page.addShape(native[nativeName], { ...rect, rotate, fill: { color: color(element.fill, 'FFFFFF'), transparency: element.opacity === undefined ? 0 : 100 - element.opacity * 100 }, line: { color: color(element.outline?.color || element.fill), width: (element.outline?.width || 0) * scale * 72 } });
       } else {
         const view = element.viewBox || [element.width, element.height];
-        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${element.width}" height="${element.height}" viewBox="0 0 ${view[0]} ${view[1]}"><path d="${xml(element.path)}" fill="#${color(element.fill, 'FFFFFF')}" stroke="#${color(element.outline?.color || element.fill)}" stroke-width="${element.outline?.width || 0}"/></svg>`;
+        // 自由笔迹是开放路径；透明填充必须保留，不能在导出时给折线围出的区域补白色。
+        const fill = ['transparent', 'none'].includes(element.fill || '') ? 'none' : `#${color(element.fill, 'FFFFFF')}`;
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${element.width}" height="${element.height}" viewBox="0 0 ${view[0]} ${view[1]}"><path d="${xml(element.path)}" fill="${fill}" stroke="#${color(element.outline?.color || element.fill)}" stroke-width="${element.outline?.width || 0}" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
         page.addImage({ ...rect, rotate, data: svgData(svg) });
       }
       if (element.text?.content) page.addText(plainText(element.text.content), { ...rect, rotate, margin: 3, valign: 'middle', fit: 'shrink', fontFace: element.text.defaultFontName || 'Microsoft YaHei', color: color(element.text.defaultColor), fontSize: Math.max(10, 24 * scale * 72) });
@@ -135,14 +137,21 @@ export async function buildPptx(course: PortableCourse, options: { signal?: Abor
       const page = pptx.addSlide();
       await addCanvas(pptx, page, scene.content.canvas, warnings, options.signal);
       page.addNotes(notes(scene, course));
-    } else if (scene.type === 'quiz' && scene.content.questions?.length) {
-      for (const [questionIndex, question] of scene.content.questions.entries()) {
+    } else if (scene.type === 'quiz') {
+      for (const [questionIndex, question] of (scene.content.questions || []).entries()) {
         const page = pptx.addSlide();
         heading(page, `${scene.title} · ${questionIndex + 1}`, `${course.title} · 离线练习`);
         page.addText(`【${QUESTION_TYPE_LABELS[question.type]}】${question.question}`, { x: 0.6, y: 1.45, w: 12.1, h: 1.3, fontFace: 'Microsoft YaHei', fontSize: 23, margin: 0, fit: 'shrink', color: '263D35' });
         page.addText((question.options || []).map(option => `${option.value}. ${option.label}`).join('\n\n') || (question.type === 'judge' ? '□ 正确    □ 错误' : question.type === 'fill' ? '请填写：____________________' : '请写下你的思路：\n\n____________________________\n\n____________________________'), { x: 0.7, y: 2.85, w: 11.9, h: 3.45, fontFace: 'Microsoft YaHei', fontSize: 19, margin: 0, fit: 'shrink', color: '33483E' });
         const answer = question.correctAnswer ?? question.answer;
         page.addNotes([notes(scene, course), `参考答案：${answerText(answer) || '未附'}`, question.explanation || question.analysis || '', ...(question.gradingPoints || []), question.type === 'short_answer' ? '请结合参考答案和评分要点自查，离线不进行 AI 判分。' : ''].join('\n\n'));
+      }
+      for (const [thinkingIndex, item] of (scene.content.thinking || []).entries()) {
+        const page = pptx.addSlide();
+        heading(page, `${scene.title} · 思考 ${thinkingIndex + 1}`, `${course.title} · 思考题（不计分）`);
+        page.addText(item.question, { x: 0.6, y: 1.5, w: 12.1, h: 2.5, fontFace: 'Microsoft YaHei', fontSize: 23, margin: 0, fit: 'shrink', color: '263D35' });
+        page.addText('先自己说说思路，不用提交。', { x: 0.7, y: 4.5, w: 11.9, h: 0.8, fontFace: 'Microsoft YaHei', fontSize: 19, margin: 0, color: '33483E' });
+        page.addNotes(notes(scene, course));
       }
     } else {
       const page = pptx.addSlide();

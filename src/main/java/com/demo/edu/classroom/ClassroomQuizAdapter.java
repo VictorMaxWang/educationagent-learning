@@ -28,6 +28,9 @@ public class ClassroomQuizAdapter {
     public void attach(ObjectNode course, ObjectNode scene) {
         if (!"quiz".equals(scene.path("type").asText()) || scene.has("quizId")) return;
         JsonNode questions = scene.path("content").path("questions");
+        // 整页都是不计分思考题时不建卷、也不写 quizId：没有计分题就没有判分入口
+        //（submit() 还要求提交数等于题目数），建一张 0 题试卷只会走进无意义的边缘路径。
+        if (!questions.isArray() || questions.isEmpty()) return;
         ClassroomDocumentValidator.questions(questions);
         QuizPaperEntity paper = new QuizPaperEntity();
         paper.setUserId(ClassroomCourseService.LEARNER_ID);

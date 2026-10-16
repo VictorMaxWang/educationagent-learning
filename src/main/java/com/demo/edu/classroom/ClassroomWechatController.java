@@ -15,8 +15,9 @@ public class ClassroomWechatController {
     public Map<String, Object> status() { return bridge.status(); }
 
     @PostMapping("/pairing")
-    public ResponseEntity<?> pairing(@RequestBody Map<String, String> body) {
-        try { return ResponseEntity.ok(bridge.createPairing(body.get("baseUrl"))); }
+    public ResponseEntity<?> pairing(@RequestBody(required = false) Map<String, String> body) {
+        // 公网入口由服务端配置；客户端baseUrl仅在无配置的本机LAN模式作为待验证提示。
+        try { return ResponseEntity.ok(bridge.createPairing(body == null ? null : body.get("baseUrl"))); }
         catch (IllegalArgumentException e) { return ResponseEntity.badRequest().body(Map.of("error", e.getMessage())); }
     }
 }

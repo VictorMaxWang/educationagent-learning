@@ -4,7 +4,7 @@ import type { SupplementaryResource } from '../types';
 export function canonicalVideoUrl(value: unknown): string | null {
   if (typeof value !== 'string') return null;
   const match = /^https:\/\/(?:www\.)?bilibili\.com\/video\/(BV[0-9A-Za-z]{10})\/?(?:\?p=([1-9][0-9]{0,4}))?$/.exec(value);
-  return match ? `https://www.bilibili.com/video/${match[1]}/?p=${match[2] || '1'}` : null;
+  return match ? `https://www.bilibili.com/video/${match[1]}/${match[2] ? `?p=${match[2]}` : ''}` : null;
 }
 
 function text(value: unknown, limit: number, required = false): string {
@@ -28,7 +28,15 @@ export function portableSupplementaryResources(value: unknown, sceneIds: Readonl
     if (!Number.isSafeInteger(row.durationSeconds) || Number(row.durationSeconds) <= 0 || Number(row.durationSeconds) > 86400) throw new Error('补充资料时长无效');
     if (row.goals !== undefined && (!Array.isArray(row.goals) || row.goals.length > 16)) throw new Error('补充资料目标无效');
     const parsed = new URL(url);
-    const id = `${parsed.pathname.split('/')[2]}:${parsed.searchParams.get('p')}`;
+    const part = parsed.searchParams.get('p'), whole = part === null;
+    const scope = text(row.durationScope, 30), sourceKind = text(row.sourceKind, 50), verification = text(row.verificationScope, 30);
+    if (scope && !['part', 'whole-video'].includes(scope) || sourceKind && !['bilibili-public-api', 'verified-metadata-cache', 'bilibili-search-metadata'].includes(sourceKind)
+      || verification && !['metadata', 'search-metadata'].includes(verification)) throw new Error('补充资料来源或范围无效');
+    if (whole && scope === 'part' || !whole && (scope === 'whole-video' || sourceKind === 'bilibili-search-metadata' || verification === 'search-metadata')
+      || verification === 'search-metadata' && sourceKind !== 'bilibili-search-metadata'
+      || sourceKind === 'bilibili-search-metadata' && verification && verification !== 'search-metadata') throw new Error('整条时长不能对应某个分P地址');
+    if (row.part !== undefined && (!Number.isSafeInteger(row.part) || Number(row.part) !== (whole ? 0 : Number(part)))) throw new Error('补充资料分P与地址不一致');
+    const id = `${parsed.pathname.split('/')[2]}:${whole ? 'whole' : part}`;
     const key = `${sceneId}:${id}`;
     if (seen.has(key)) continue;
     seen.add(key);
@@ -38,6 +46,12 @@ export function portableSupplementaryResources(value: unknown, sceneIds: Readonl
       goals: (row.goals as unknown[] | undefined || []).map(goal => text(goal, 300, true)),
       reason: text(row.reason, 1000), resourceStatus: 'historical',
     };
+    if (whole || row.durationScope !== undefined || row.part !== undefined) { cleaned.durationScope = whole ? 'whole-video' : 'part'; cleaned.part = whole ? 0 : Number(part); }
+    if (sourceKind) {
+      cleaned.sourceKind = sourceKind as SupplementaryResource['sourceKind'];
+      cleaned.sourceLabel = sourceKind === 'bilibili-search-metadata' ? 'B站搜索资料' : sourceKind === 'verified-metadata-cache' ? '已核验资料缓存' : '已核验视频资料';
+    }
+    if (verification) cleaned.verificationScope = verification as SupplementaryResource['verificationScope'];
     // 核验时间仅保留为历史元数据；导入的状态一律不参与线上缓存有效性判断。
     if (typeof row.checkedAt === 'string' && row.checkedAt.length <= 40
       && /^\d{4}-\d{2}-\d{2}T[0-9:.]+(?:Z|[+-]\d{2}:\d{2})$/.test(row.checkedAt) && Number.isFinite(Date.parse(row.checkedAt))) cleaned.checkedAt = row.checkedAt;

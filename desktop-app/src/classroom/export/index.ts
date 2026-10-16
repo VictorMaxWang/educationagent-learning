@@ -28,6 +28,7 @@ export function courseToMarkdown(course: PortableCourse): string {
       const answer = question.correctAnswer ?? question.answer;
       lines.push('', `参考答案：${answerText(answer) || '未附'}`, question.explanation || question.analysis || '', ...(question.gradingPoints || []).map(point => `- ${point}`), question.type === 'short_answer' ? '简答请结合参考答案与要点自查，离线不进行 AI 判分。' : '', '');
     }
+    for (const item of scene.content.thinking || []) lines.push(`思考题（不计分）：${item.question}`, '先自己说说思路，不用提交。', '');
     if (scene.type === 'interactive') lines.push('互动操作见 index.html 或 interactive 文件夹。', '');
     lines.push('### 讲稿', '', ...(scene.actions || []).filter(action => action.type === 'speech' || action.type === 'discussion').flatMap(action => [String(action.text || action.content || action.prompt || action.topic || ''), '']));
     const resources = supplementaryForScene(course, scene.id);

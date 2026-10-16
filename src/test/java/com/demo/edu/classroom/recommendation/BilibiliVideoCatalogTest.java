@@ -38,4 +38,12 @@ class BilibiliVideoCatalogTest {
         long start=System.nanoTime();var result=catalog.search("沁园春长沙 朗诵示范",600,java.time.Duration.ofMillis(150));
         assertTrue(result.videos().isEmpty());assertTrue(java.time.Duration.ofNanos(System.nanoTime()-start).toMillis()<800);
         assertEquals("SEARCH_UNAVAILABLE",result.evidence().path("fallbackFailure").asText());verify(web,times(1)).search(anyString(),eq(10));}
+    @Test void malformedViewSuccessCodeAndFractionalDurationCannotBecomeVerifiedParts(){
+        var catalog=new BilibiliVideoCatalog(json,null,(url,deadline)->json.createObjectNode());
+        for(var code:List.of(json.getNodeFactory().booleanNode(false),json.getNodeFactory().textNode("0"),json.getNodeFactory().numberNode(0.5))){
+            var response=view();response.set("code",code);assertTrue(catalog.parseView(bv,response,600,20,new ArrayList<>()).isEmpty());
+        }
+        var fractional=view();((ObjectNode)fractional.path("data").path("pages").get(0)).put("duration",103.9);
+        assertTrue(catalog.parseView(bv,fractional,600,20,new ArrayList<>()).isEmpty());
+    }
 }

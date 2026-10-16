@@ -27,7 +27,7 @@ class VerifiedVideoMetadataCacheTest {
             .put("durationSeconds",103).put("metadataVerified",true).put("viewHttpStatus",200).put("viewApiCode",0).put("source","bilibili-public-api").put("verifiedOn","local")
             .put("verifiedAt",Instant.now().minusSeconds(120).toString());row.putArray("pages").addObject().put("page",1).put("title","诵读示范").put("durationSeconds",103);return row;}
     ObjectNode search(String...ids){var response=json.createObjectNode().put("code",0);var rows=response.putObject("data").putArray("result").addObject().put("result_type","video").putArray("data");
-        for(String id:ids)rows.addObject().put("bvid",id).put("title","<em>沁园春</em>长沙朗诵").put("author","朗诵课堂");return response;}
+        for(String id:ids)rows.addObject().put("bvid",id).put("type","video").put("is_pay",0).put("is_charge_video",0).put("title","<em>沁园春</em>长沙朗诵").put("author","朗诵课堂");return response;}
     @Test void freshMatchingCacheKeepsOriginalTimeAndSupportsNfkcAndHtmlNormalization(){var row=seed(bv);row.put("title","Ａ　Ｂ").put("author","讲师　甲");saved.put(bv,row);var cache=cache();
         var result=cache.findFreshMatching(bv,"<em>A</em> B","讲师 甲").orElseThrow();assertEquals(row.path("verifiedAt"),result.path("verifiedAt"));
         assertEquals("local",result.path("verifiedOn").asText());verify(store,never()).save(anyString(),anyString(),anyString(),any());}

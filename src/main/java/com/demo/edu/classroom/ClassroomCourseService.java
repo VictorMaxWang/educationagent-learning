@@ -1,8 +1,14 @@
 package com.demo.edu.classroom;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.demo.chroma.doc.DocKnowledgeAssistant;
 import com.demo.chroma.doc.DocKnowledgeRegistry;
 import com.demo.edu.mapper.ClassroomCourseMapper;
+import com.demo.entity.QuizQuestionEntity;
+import com.demo.mapper.QuizQuestionMapper;
+import com.demo.mapper.QuizAnswerMapper;
+import com.demo.entity.QuizAnswerEntity;
+import com.demo.study.quiz.QuizMutationGuard;
 import com.demo.service.preprocessing.FileService;
 import com.demo.study.quiz.QuizService;
 import com.demo.edu.classroom.research.EvidenceSelector;
@@ -16,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.annotation.PreDestroy;
 import org.jsoup.Jsoup;
@@ -61,6 +68,10 @@ public class ClassroomCourseService {
     private ClassroomStudyStore studyStore;
     private ObjectProvider<ClassroomRecommendationService> recommendations;
     @Value("${classroom.teaching-review.enabled:true}") private boolean teachingReviewEnabled=true;
+    private ClassroomQuizReviewProperties quizReview;
+    private QuizQuestionMapper quizQuestionMapper;
+    private QuizAnswerMapper quizAnswerMapper;
+    @Autowired(required=false) private ClassroomQuizRevisionRegistry quizRevisions;
 
     public record CreateRequest(String topic, Integer grade, String subject, String domain, String sourceText, String sourceName, String direction) {
         public CreateRequest(String topic,Integer grade,String subject,String domain,String sourceText,String sourceName) {
@@ -85,6 +96,20 @@ public class ClassroomCourseService {
     public void setStudyStore(ClassroomStudyStore store) { this.studyStore=store; }
     @Autowired
     public void setRecommendationProvider(ObjectProvider<ClassroomRecommendationService> provider) { this.recommendations=provider; }
+
+    /** 与 media 同样的可选注入：缺失时生成器仍用自身默认值，测试构造不受影响。 */
+    @Autowired(required=false)
+    public void setQuizReviewProperties(ClassroomQuizReviewProperties quizReview) { this.quizReview=quizReview; }
+
+    /**
+     * 修题要同步题库行，用同样的可选注入避免改动两个构造函数。
+     * 注意：应用修复时若它缺失会**直接失败**而不是静默只改一半（见 {@link #applyQuizRepairs}）。
+     */
+    @Autowired(required=false)
+    public void setQuizQuestionMapper(QuizQuestionMapper quizQuestionMapper) { this.quizQuestionMapper=quizQuestionMapper; }
+
+    @Autowired(required=false)
+    public void setQuizAnswerMapper(QuizAnswerMapper quizAnswerMapper) { this.quizAnswerMapper=quizAnswerMapper; }
 
     @Autowired
     public ClassroomCourseService(ClassroomCourseMapper mapper, ObjectMapper json, ClassroomEngine engine,
@@ -235,7 +260,12 @@ public class ClassroomCourseService {
         String submission = required(request.submissionId(), "提交标识", 80);
         if (!submission.matches("[A-Za-z0-9_-]+")) throw bad("提交标识格式无效");
         synchronized (lock(id)) {
-            return transaction(() -> {
+            ObjectNode preRead=findScene(load(id),request.sceneId());
+            if(!"quiz".equals(preRead.path("type").asText())||preRead.path("quizId").asLong()<=0)throw bad("当前页没有可提交的练习");
+            // 先锁试卷再开启事务，避免课程load先建立MySQL RR快照，等修订登记提交后仍读到旧指针。
+            return QuizMutationGuard.withPaper(preRead.path("quizId").asLong(),()-> {
+                if(quizRevisions!=null)quizRevisions.assertScorable(preRead.path("quizId").asLong());
+                return transaction(() -> {
                 ObjectNode c = load(id);
                 ObjectNode scene = findScene(c, request.sceneId());
                 if (!"quiz".equals(scene.path("type").asText()) || !scene.has("quizId")) throw bad("当前页没有可提交的练习");
@@ -250,6 +280,7 @@ public class ClassroomCourseService {
                 QuizService.SubmitResult result = quizzes.submit(scene, request.answers());
                 ObjectNode entry = submissions.putObject(submission); entry.put("request", fingerprint); entry.set("result", json.valueToTree(result));
                 save(c); return result;
+                });
             });
         }
     }
@@ -345,10 +376,15 @@ public class ClassroomCourseService {
                 ObjectNode scene=(ObjectNode)value; ClassroomSlideSanitizer.cleanScene(scene);
                 scene.remove("_pendingMediaRepair");
                 publishTeachingReview(scene);
-                if("quiz".equals(scene.path("type").asText())) for(JsonNode raw:scene.path("content").path("questions")) {
-                    ObjectNode question=(ObjectNode)raw;
-                    if(question.has("answer")) question.set("correctAnswer",question.path("answer").deepCopy());
-                    question.put("explanation",question.path("analysis").asText(""));
+                if("quiz".equals(scene.path("type").asText())) {
+                    for(JsonNode raw:scene.path("content").path("questions")) {
+                        ObjectNode question=(ObjectNode)raw;
+                        if(question.has("answer")) question.set("correctAnswer",question.path("answer").deepCopy());
+                        question.put("explanation",question.path("analysis").asText(""));
+                        // 审核结论只对"这一次生成"成立；随文件流转到别处会冒充已被核验。
+                        question.remove("review");
+                    }
+                    for(JsonNode raw:scene.path("content").path("thinking")) if(raw.isObject()) ((ObjectNode)raw).remove("review");
                 }
             }
             ArrayNode links=json.createArrayNode();
@@ -409,7 +445,13 @@ public class ClassroomCourseService {
                     } else question.set("answer",answer.deepCopy());
                 }
                 if(!question.has("analysis")) question.put("analysis",question.path("explanation").asText(""));
-                question.remove(List.of("correctAnswer","explanation"));
+                question.remove(List.of("correctAnswer","explanation","review"));
+            }
+            // 导入是新的生成归属：换新 ID，并且不继承旧课程的审核结论——
+            // 旧结论针对的是另一份内容，带过来就是伪造的"已核验"标记。
+            if("quiz".equals(scene.path("type").asText())) for(JsonNode t:scene.path("content").path("thinking")) {
+                if(!t.isObject()) throw bad("思考题格式无效"); ObjectNode item=(ObjectNode)t;
+                item.put("id",UUID.randomUUID().toString()); item.remove("review");
             }
             scenes.add(ClassroomDocumentValidator.scene(scene,outline,id)); outlines.add(outline);
         }
@@ -707,6 +749,11 @@ public class ClassroomCourseService {
                             latest = load(id).deepCopy();
                             if (hasScene(latest, outline.path("id").asText())) continue;
                         }
+                        // latest 是 load(id).deepCopy()，注入只作用于本次调用，不会写回文档。
+                        // 开关握在 Java 手里，避免"关掉复核要重新构建生成器"。
+                        if(quizReview!=null) latest.putObject("quizReview")
+                                .put("enabled",quizReview.isEnabled())
+                                .put("maxRegenerationsPerQuestion",quizReview.getMaxRegenerationsPerQuestion());
                         ObjectNode generated = generateReviewedScene(latest,outline,id,token);
                         synchronized (lock(id)) {
                             checkCurrent(id, token);
@@ -848,6 +895,170 @@ public class ClassroomCourseService {
         if (id == null || !id.matches("[a-fA-F0-9-]{36}")) throw bad("课程 ID 无效");
         return locks.computeIfAbsent(id, ignored -> new Object());
     }
+    /**
+     * 只读补审用：列出全部课程文档（**未脱敏**，含标答与解析）。
+     * 与 {@link #list()} 的区别是返回内部文档而非公开视图，且不做任何写入。
+     */
+    List<ObjectNode> internalDocuments() {
+        List<ObjectNode> documents = new ArrayList<>();
+        for (String stored : mapper.list()) {
+            ObjectNode course = parse(stored);
+            ClassroomEditingSupport.initialize(course);
+            documents.add(course);
+        }
+        return documents;
+    }
+
+    /**
+     * 只读补审用：单份未脱敏文档。
+     * 刻意不走 {@link #load(String)} —— 它会把"上次生成被中断"的课程改写成 error 并落库，
+     * 那是个写副作用，只读工具不该触发。
+     */
+    ObjectNode internalDocument(String id) {
+        String stored = mapper.find(id);
+        if (stored == null) throw new ClassroomException(404, "课程不存在");
+        ObjectNode course = parse(stored);
+        ClassroomEditingSupport.initialize(course);
+        return course;
+    }
+
+    /** 固定修题依据；进度、聊天、普通运行态不使已审阅方案失效，也不能在落库时被旧快照覆盖。 */
+    static String quizRepairFingerprint(ObjectNode course) {
+        ObjectNode basis=course.objectNode();
+        for(String field:List.of("id","title","topic","grade","subject","direction","domain","sourceText","sourceName","outlines","scenes"))
+            basis.set(field,course.path(field));
+        return ClassroomStudyContext.hash(basis);
+    }
+
+    static ObjectNode quizRepairQuestionSnapshot(JsonNode question) {
+        ObjectNode snapshot=JsonNodeFactory.instance.objectNode();
+        for(String field:List.of("type","question","analysis"))snapshot.put(field,question.path(field).asText(""));
+        snapshot.set("options",question.path("options").isArray()?question.path("options").deepCopy():snapshot.arrayNode());
+        for(String field:List.of("answer","gradingPoints"))if(question.hasNonNull(field))snapshot.set(field,question.path(field).deepCopy());
+        return snapshot;
+    }
+
+    /**
+     * 仅应用已审阅的固定方案。任何已有作答（含未知判分）都拒绝原位改题，避免错题本将旧答案拼到新题干。
+     * 当前单实例的锁顺序固定为课程锁→试卷锁→数据库事务；真实提交完成后才释放，不能与首次作答交错。
+     */
+    ObjectNode applyQuizRepairs(String courseId,String expectedFingerprint,Map<String,JsonNode> changesByScene) {
+        if(quizQuestionMapper==null||quizAnswerMapper==null)throw new IllegalStateException("题库及历史记录检查器未注入，拒绝修题");
+        if(changesByScene==null||changesByScene.size()>64)throw bad("修题方案格式无效");
+        synchronized(lock(courseId)) {
+            if(running.containsKey(courseId))throw conflict("课程正在生成，暂不能应用修题方案");
+            ObjectNode current=internalDocument(courseId);
+            List<Long> papers=new ArrayList<>();
+            for(String sceneId:changesByScene.keySet()) {
+                ObjectNode scene=findScene(current,sceneId);
+                if(!"quiz".equals(scene.path("type").asText())||scene.path("quizId").asLong()<=0)throw conflict("修题页面未关联有效题库");
+                papers.add(scene.path("quizId").asLong());
+            }
+            return QuizMutationGuard.withPapers(papers,()->transaction(()-> {
+                ObjectNode course=internalDocument(courseId);
+                if(expectedFingerprint==null||!expectedFingerprint.equals(quizRepairFingerprint(course)))
+                    throw conflict("课程内容已变化，请重新生成并审阅修题方案");
+                List<PreparedQuizRepair> prepared=new ArrayList<>();
+                Set<String> changedScenes=new HashSet<>();
+                for(Map.Entry<String,JsonNode> group:changesByScene.entrySet()) {
+                    ObjectNode scene=findScene(course,group.getKey());JsonNode changes=group.getValue();
+                    if(!changes.isArray()||changes.size()>10)throw bad("单页修题方案格式无效");
+                    ArrayNode questions=(ArrayNode)scene.path("content").path("questions");Set<Integer> seen=new HashSet<>();
+                    for(JsonNode change:changes) {
+                        if("none".equals(change.path("action").asText()))continue;
+                        if(!"regenerate".equals(change.path("action").asText())||!change.path("after").isObject()
+                                ||!"agree".equals(change.path("verification").path("blindSolve").asText())
+                                ||!"consistent".equals(change.path("verification").path("explanation").asText()))throw bad("修题方案缺少完整复核结论");
+                        int index=change.path("no").asInt()-1;
+                        if(!change.path("no").isIntegralNumber()||index<0||index>=questions.size()||!seen.add(index))throw bad("修题题号无效或重复");
+                        ObjectNode original=(ObjectNode)questions.get(index);
+                        if(original.path("no").asInt()!=index+1||!original.path("id").asText().equals(change.path("id").asText())
+                                ||!quizRepairQuestionSnapshot(original).equals(change.path("before")))throw conflict("题目已变化或方案不属于当前题目");
+                        ObjectNode replacement=checkedRepairQuestion(original,change.path("after"));
+                        long paperId=scene.path("quizId").asLong();
+                        QuizQuestionEntity row=quizQuestionMapper.selectOne(new LambdaQueryWrapper<QuizQuestionEntity>()
+                                .eq(QuizQuestionEntity::getPaperId,paperId).eq(QuizQuestionEntity::getQuestionNo,index+1).last("FOR UPDATE"));
+                        if(row==null||row.getId()==null)throw conflict("题库关联记录缺失，未应用任何修复");
+                        if(!Objects.equals(row.getStem(),original.path("question").asText())||!Objects.equals(row.getAnswer(),dbAnswer(original)))
+                            throw conflict("课件与题库现有内容不一致，请先核对原记录");
+                        Long answered=quizAnswerMapper.selectCount(new LambdaQueryWrapper<QuizAnswerEntity>().eq(QuizAnswerEntity::getQuestionId,row.getId()));
+                        if(answered==null||answered>0)throw conflict("该题已有作答，保留原题与历史记录；请建立课程修订版");
+                        prepared.add(new PreparedQuizRepair(row,replacement));questions.set(index,replacement);changedScenes.add(group.getKey());
+                    }
+                    ClassroomDocumentValidator.questions(questions);
+                }
+                for(PreparedQuizRepair item:prepared)syncQuizQuestion(item.row(),item.question());
+                if(!prepared.isEmpty()) {
+                    long revision=ClassroomEditingSupport.bump(course);
+                    for(String sceneId:changedScenes)ClassroomValidationEvidence.record(findScene(course,sceneId),revision,"edit");
+                    save(course);
+                }
+                return json.createObjectNode().put("courseId",courseId).put("applied",prepared.size());
+            }));
+        }
+    }
+
+    private record PreparedQuizRepair(QuizQuestionEntity row,ObjectNode question) {}
+
+    /** 宿主再次校验同题型完整题目，再同步规范化选项键，不能只相信模型的“复核一致”标记。 */
+    private static ObjectNode checkedRepairQuestion(ObjectNode original,JsonNode after) {
+        if(!original.path("type").asText().equals(after.path("type").asText())||!after.path("analysis").isTextual()
+                ||after.path("analysis").asText().isBlank()||after.path("analysis").asText().length()>4000)throw bad("修题必须保留题型并提供完整解析");
+        ObjectNode candidate=original.deepCopy();
+        for(String field:List.of("question","options","answer","analysis","gradingPoints")) {
+            if(after.hasNonNull(field))candidate.set(field,after.path(field).deepCopy());else candidate.remove(field);
+        }
+        candidate.remove(List.of("review","correctAnswer","explanation","commentPrompt"));
+        ClassroomDocumentValidator.questions(candidate.arrayNode().add(candidate));
+        String type=candidate.path("type").asText();
+        if(Set.of("single","multiple").contains(type)) {
+            Map<String,String> mapping=new LinkedHashMap<>();ArrayNode options=candidate.arrayNode();int index=0;
+            for(JsonNode option:candidate.path("options")) {
+                String key=Character.toString('A'+index++);mapping.put(option.path("value").asText(),key);
+                options.addObject().put("label",option.path("label").asText()).put("value",key);
+            }
+            String normalized=ClassroomQuizAdapter.normalizeAnswerValues(candidate.path("answer"),mapping);
+            candidate.set("options",options);ArrayNode answer=candidate.putArray("answer");normalized.chars().forEach(c->answer.add(Character.toString(c)));
+        }else if(type.equals("judge")&&candidate.path("answer").isBoolean())candidate.put("answer",candidate.path("answer").asBoolean()?"对":"错");
+        candidate.put("hasAnswer",candidate.hasNonNull("answer")&&!candidate.path("answer").asText().isBlank()||candidate.path("answer").isArray()&&!candidate.path("answer").isEmpty());
+        return candidate;
+    }
+
+    private void syncQuizQuestion(QuizQuestionEntity row,ObjectNode question) {
+        String type=question.path("type").asText();row.setStem(question.path("question").asText());
+        row.setQType(switch(type){case "multiple"->"multi";case "short_answer"->"short";default->type;});
+        row.setOptions(dbOptionLabels(question));String answer=dbAnswer(question);row.setAnswer(answer);
+        String explanation=question.path("analysis").asText();
+        if(question.path("gradingPoints").isArray()&&!question.path("gradingPoints").isEmpty()) {
+            List<String> points=new ArrayList<>();question.path("gradingPoints").forEach(point->points.add(point.asText()));
+            explanation+="\n评分要点："+String.join("；",points);
+        }
+        row.setExplanation(explanation);row.setHasAnswer(answer.isBlank()?0:1);
+        if(quizQuestionMapper.updateById(row)!=1)throw conflict("题库更新未确认，整组修题已回滚");
+    }
+
+    /** 题库 options 的既有格式是逐行 "A. 正文"，与 ClassroomQuizAdapter.attach 保持一致。 */
+    private static String dbOptionLabels(ObjectNode question) {
+        ArrayNode labels = JsonNodeFactory.instance.arrayNode();
+        int index = 0;
+        for (JsonNode option : question.path("options")) {
+            labels.add(String.valueOf((char) ('A' + index++)) + ". " + option.path("label").asText());
+        }
+        return labels.toString();
+    }
+
+    /** 题库 answer 是纯文本：选择题拼字母、判断为对/错、填空简答取原文。 */
+    private static String dbAnswer(ObjectNode question) {
+        String type = question.path("type").asText();
+        JsonNode answer = question.path("answer");
+        if (type.equals("single") || type.equals("multiple")) {
+            SortedSet<String> letters = new TreeSet<>();
+            if (answer.isArray()) for (JsonNode item : answer) letters.add(item.asText());
+            return String.join("", letters);
+        }
+        return answer.isMissingNode() || answer.isNull() ? "" : answer.asText();
+    }
+
     private ObjectNode load(String id) {
         String stored = mapper.find(id);
         if (stored == null) throw new ClassroomException(404, "课程不存在");
@@ -924,8 +1135,14 @@ public class ClassroomCourseService {
         ObjectNode scene=internal.deepCopy();
         scene.put("mediaRetryAvailable",scene.path("_pendingMediaRepair").isObject());scene.remove("_pendingMediaRepair");
         publishTeachingReview(scene);ClassroomSlideSanitizer.cleanScene(scene);
-        if("quiz".equals(scene.path("type").asText()))for(JsonNode q:scene.path("content").path("questions"))
-            ((ObjectNode)q).remove(List.of("answer","analysis","commentPrompt","correctAnswer","explanation","gradingPoints"));
+        if("quiz".equals(scene.path("type").asText())&&scene.path("content").isObject()) {
+            ObjectNode content=(ObjectNode)scene.path("content");
+            for(JsonNode q:content.path("questions"))
+                ((ObjectNode)q).remove(List.of("answer","analysis","commentPrompt","correctAnswer","explanation","gradingPoints","review"));
+            // 思考题仅公开题干；复核证据可能包含答案，所有返回路径统一剥离。
+            for(JsonNode item:content.path("thinking"))
+                ((ObjectNode)item).remove(List.of("review","answer","analysis","options","gradingPoints"));
+        }
         return scene;
     }
     private static void publishTeachingReview(ObjectNode scene) {

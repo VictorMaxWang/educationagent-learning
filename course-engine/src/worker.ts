@@ -1,7 +1,7 @@
 import { createInterface } from 'node:readline';
 import { randomUUID } from 'node:crypto';
-import type { AICallFn, SceneOutline } from '@educationagent/generation';
-import { generateOutline, generateScene, type CourseInput } from './engine.js';
+import type { SceneOutline } from '@educationagent/generation';
+import { auditQuiz, generateOutline, generateScene, planQuizRepair, type CourseInput, type RawCall } from './engine.js';
 
 // 启动检查实际加载共享包；只验证依赖，不调用模型或等待 stdin。
 if (process.argv.includes('--check')) {
@@ -24,12 +24,15 @@ function emit(message: object, done?: () => void): void {
   process.stdout.write(line, done);
 }
 
-const aiCall: AICallFn = (system, user) => new Promise((resolve, reject) => {
+// purpose 让 Java 侧把复核请求路由到 temperature 0 的模型；不传时协议行与改动前逐字节一致。
+const aiCall: RawCall = (system, user, purpose) => new Promise((resolve, reject) => {
   if (closed) { reject(new Error('父进程已关闭任务')); return; }
   const id = randomUUID();
   const timer = setTimeout(() => { pending.delete(id); reject(new Error('模型响应超时')); }, MODEL_TIMEOUT_MS);
   pending.set(id, { resolve, reject, timer });
-  emit({ type: 'llm.request', id, messages: [{ role: 'system', content: system }, { role: 'user', content: user }] });
+  const request: Record<string, unknown> = { type: 'llm.request', id, messages: [{ role: 'system', content: system }, { role: 'user', content: user }] };
+  if (purpose) request.purpose = purpose;
+  emit(request);
 });
 
 const reader = createInterface({ input: process.stdin, crlfDelay: Infinity, terminal: false });
@@ -52,7 +55,12 @@ reader.on('line', (line: string) => {
   active = true;
   const input = (message.input || {}) as CourseInput;
   const operation = message.operation;
-  const task = operation === 'outline' ? generateOutline(input, aiCall) : operation === 'scene' ? generateScene(input, message.outline as SceneOutline, aiCall) : Promise.reject(new Error('不支持的生成操作'));
+  // review 只读补审；repair 只出修复方案（两者都不写任何东西，落库一律由 Java 决定）。
+  const task = operation === 'outline' ? generateOutline(input, aiCall)
+    : operation === 'review' ? auditQuiz(input, aiCall)
+    : operation === 'repair' ? planQuizRepair(input, aiCall)
+    : operation === 'scene' ? generateScene(input, message.outline as SceneOutline, aiCall)
+    : Promise.reject(new Error('不支持的生成操作'));
   void task.then((value) => emit({ type: 'result', id: message.id, value }, () => process.exit(0))).catch((error: unknown) => emit({ type: 'error', id: message.id, message: error instanceof Error ? error.message : String(error), code: 'generation-failed' }, () => process.exit(1)));
 });
 

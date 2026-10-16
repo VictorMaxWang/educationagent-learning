@@ -65,7 +65,7 @@ class ClassroomRecommendationServiceTest {
         ObjectNode decision=saved.get(ClassroomRecommendationService.DECISION+":"+result.path("decisionId").asText());assertTrue(decision.path("audit").path("verification").path("optimal").asBoolean());
         assertFalse(result.has("audit"));assertFalse(result.toString().contains("actual-model"));verify(catalog,times(1)).search(anyString(),anyInt(),any());
         var portable=service.portableRecommendations("course");assertEquals(1,portable.size());assertEquals("scene",portable.get(0).path("sceneId").asText());
-        assertFalse(portable.toString().contains("actual-model"));assertFalse(portable.get(0).has("verificationScope"));
+        assertFalse(portable.toString().contains("actual-model"));assertEquals("metadata",portable.get(0).path("verificationScope").asText());
         service.refresh("course",new ClassroomRecommendationService.RefreshRequest("scene",10,null));service.tick();verify(catalog,times(1)).search(anyString(),anyInt(),any());
         String original=java.time.Instant.now().minusSeconds(120).toString();
         var cachedVideo=new BilibiliVideoCatalog.Video(id,video.bvid(),1,video.url(),video.title(),video.description(),video.partTitle(),video.author(),103,original,
@@ -73,7 +73,15 @@ class ClassroomRecommendationServiceTest {
         when(catalog.search(anyString(),anyInt(),any())).thenReturn(new BilibiliVideoCatalog.Search(List.of(cachedVideo),List.of(),json.createObjectNode()));
         service.refresh("course",new ClassroomRecommendationService.RefreshRequest("scene",10,null,true));service.tick();var cachedCard=service.get("course","scene").path("items").get(0);
         assertEquals("verified-metadata-cache",cachedCard.path("sourceKind").asText());assertEquals("已核验资料缓存",cachedCard.path("sourceLabel").asText());
-        assertEquals(original,cachedCard.path("checkedAt").asText());assertFalse(cachedCard.has("detailFailure"));}
+        assertEquals(original,cachedCard.path("checkedAt").asText());assertFalse(cachedCard.has("detailFailure"));
+        String wholeId=video.bvid()+":whole";var whole=new BilibiliVideoCatalog.Video(wholeId,video.bvid(),0,"https://www.bilibili.com/video/"+video.bvid()+"/",video.title(),video.description(),"",video.author(),166,original,
+                json.createObjectNode().put("source","bilibili-search-metadata").put("durationScope","whole-video"));
+        when(catalog.search(anyString(),anyInt(),any())).thenReturn(new BilibiliVideoCatalog.Search(List.of(whole),List.of(),json.createObjectNode()));
+        item.put("id",wholeId);when(semantic.compute(anyString(),anyString(),anyList(),any())).thenReturn(new ResourceSemanticFeatures.Features(Map.of(wholeId,.9),Map.of(),json.createObjectNode()));
+        service.refresh("course",new ClassroomRecommendationService.RefreshRequest("scene",10,null,true));service.tick();var wholeCard=service.get("course","scene").path("items").get(0);
+        assertEquals(wholeId,wholeCard.path("id").asText());assertEquals("search-metadata",wholeCard.path("verificationScope").asText());assertEquals("B站搜索资料",wholeCard.path("sourceLabel").asText());
+        assertEquals("whole-video",wholeCard.path("durationScope").asText());assertEquals(0,wholeCard.path("part").asInt());assertFalse(wholeCard.path("url").asText().contains("?p="));
+        assertEquals("whole-video",service.portableRecommendations("course").get(0).path("durationScope").asText());}
     @Test void verifiedMissingGoalChangesOptimizerTargetsButInventedSourceCannot(){
         course.put("sourceText","朗诵要把握节奏，并表达豪迈情感。");
         var context=ClassroomStudyContext.from(course,"scene");
@@ -134,4 +142,45 @@ class ClassroomRecommendationServiceTest {
             var queued=service.refresh("course",new ClassroomRecommendationService.RefreshRequest("scene",10,null,true));assertEquals("queued",queued.path("status").asText());assertNotEquals(oldId,queued.path("decisionId").asText());
             assertEquals(queued.path("decisionId"),service.refresh("course",new ClassroomRecommendationService.RefreshRequest("scene",10,null,true)).path("decisionId"));service.tick();
         }}
+    @Test void matchingInputKeepsAllCandidatesAndClassroomButExcludesRawTransportMetadata(){
+        course.put("sourceText","本课完整资料：体会朗诵节奏，并对照停顿表达情感。");
+        List<BilibiliVideoCatalog.Video> videos=new ArrayList<>();
+        for(int index=0;index<3;index++){
+            String bvid=List.of("BV1r3411q7mV","BV1NE411o7P1","BV1Fb7h6iEeD").get(index);
+            videos.add(new BilibiliVideoCatalog.Video(bvid+":whole",bvid,0,"https://www.bilibili.com/video/"+bvid+"/",index==0?"沁园春长沙朗诵":"其他内容"+index,
+                    index==0?"观察朗诵节奏":"无关主题","","课程作者",103,java.time.Instant.now().toString(),json.createObjectNode().put("rawTrace","RAW_METADATA_SENTINEL").put("url","https://transport.invalid/internal")));
+        }
+        when(classifier.classify(any(),any())).thenReturn(new VideoTeachingClassifier.Classification("eligible","recitation","补充朗诵示范",List.of("朗诵节奏"),"沁园春长沙",json.createObjectNode(),json.createObjectNode()));
+        when(catalog.search(anyString(),anyInt(),any())).thenReturn(new BilibiliVideoCatalog.Search(videos,List.of(),json.createObjectNode()));
+        List<ObjectNode> received=new ArrayList<>();
+        when(ai.structured(anyString(),anyString(),anyString(),any(),any())).thenAnswer(call->{
+            ObjectNode input=(ObjectNode)json.readTree((String)call.getArgument(2));received.add(input);
+            java.time.Duration budget=call.getArgument(3);assertTrue(budget.compareTo(java.time.Duration.ofSeconds(45))<=0);
+            ObjectNode answer=json.createObjectNode();var candidates=answer.putArray("candidates");
+            var allowed=candidates.addObject().put("id",videos.getFirst().id()).put("eligible",true).put("gradeCompatibility","compatible").put("purpose","recitation")
+                    .put("reason","体会停顿与节奏").put("metadataQuote","观察朗诵节奏").put("preferenceMatch",false);allowed.putArray("goals").add("朗诵节奏");
+            for(int i=1;i<videos.size();i++)candidates.addObject().put("id",videos.get(i).id()).put("eligible",false);
+            java.util.function.Consumer<JsonNode> validator=call.getArgument(4);validator.accept(answer);
+            return new ClassroomAiGateway.Result(answer,json.createObjectNode());
+        });
+        when(semantic.compute(anyString(),anyString(),anyList(),any())).thenReturn(new ResourceSemanticFeatures.Features(Map.of(videos.getFirst().id(),.9),Map.of(),json.createObjectNode()));
+        String decisionId=service.refresh("course",new ClassroomRecommendationService.RefreshRequest("scene",10,null)).path("decisionId").asText();service.tick();
+        assertEquals("ready",service.get("course","scene").path("status").asText());assertEquals(1,received.size());var input=received.getFirst();
+        assertEquals(3,input.path("videos").size());assertTrue(input.path("classroomContext").path("anchors").toString().contains("本课完整资料"));assertEquals(json.valueToTree(List.of("朗诵节奏")),input.path("targetGoals"));
+        Set<String> fields=Set.of("id","title","partTitle","description","author","part","durationSeconds","durationScope");
+        for(JsonNode video:input.path("videos")){Set<String> actual=new HashSet<>();video.fieldNames().forEachRemaining(actual::add);assertEquals(fields,actual);assertEquals("whole-video",video.path("durationScope").asText());}
+        assertFalse(input.toString().contains("RAW_METADATA_SENTINEL"));assertFalse(input.path("videos").toString().contains("checkedAt"));assertFalse(input.path("videos").toString().contains("https://"));
+        assertTrue(saved.get(ClassroomRecommendationService.DECISION+":"+decisionId).path("audit").path("metadata").toString().contains("RAW_METADATA_SENTINEL"));
+    }
+    @Test void compactRejectionsStillRequireCompleteCoverageAndStrictEligibleEvidence(){
+        var first=new BilibiliVideoCatalog.Video("one","BV1r3411q7mV",0,"url","朗诵节奏","观察停顿","","老师",103,"now",json.createObjectNode());
+        var second=new BilibiliVideoCatalog.Video("two","BV1NE411o7P1",0,"url","其他内容","其他主题","","老师",120,"now",json.createObjectNode());
+        var output=json.createObjectNode();var items=output.putArray("candidates");var good=items.addObject().put("id","one").put("eligible",true).put("gradeCompatibility","compatible")
+                .put("purpose","recitation").put("reason","观察停顿").put("metadataQuote","观察停顿").put("preferenceMatch",false);good.putArray("goals").add("朗诵节奏");items.addObject().put("id","two").put("eligible",false);
+        assertDoesNotThrow(()->ClassroomRecommendationService.validateMatches(output,Set.of("朗诵节奏"),List.of(first,second)));
+        good.put("gradeCompatibility","unknown");assertThrows(IllegalArgumentException.class,()->ClassroomRecommendationService.validateMatches(output,Set.of("朗诵节奏"),List.of(first,second)));
+        good.put("gradeCompatibility","compatible").put("metadataQuote","资料中没有这句话");assertThrows(IllegalArgumentException.class,()->ClassroomRecommendationService.validateMatches(output,Set.of("朗诵节奏"),List.of(first,second)));
+        good.put("metadataQuote","观察停顿").putArray("goals").add("不属于本课的知识点");assertThrows(IllegalArgumentException.class,()->ClassroomRecommendationService.validateMatches(output,Set.of("朗诵节奏"),List.of(first,second)));
+        good.putArray("goals").add("朗诵节奏");items.remove(1);assertThrows(IllegalArgumentException.class,()->ClassroomRecommendationService.validateMatches(output,Set.of("朗诵节奏"),List.of(first,second)));
+    }
 }

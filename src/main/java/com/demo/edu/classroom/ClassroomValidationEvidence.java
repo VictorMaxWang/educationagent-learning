@@ -44,8 +44,38 @@ final class ClassroomValidationEvidence {
         checks.put("mediaReferences", hasWarnings ? "WARN" : "PASS");
         // 导入的 PASS 和生成器自报的运行结果不可信；本记录器没有启动浏览器。
         checks.put("browserRuntime", "NOT_RUN");
+        checks.put("quizReview", reviewOutcome(scene));
         evidence.put("checkedAt", Instant.now().toString());
         scene.set("validation", evidence);
+    }
+
+    /**
+     * 习题审核结论，按最坏情况取值：非练习页 NOT_RUN；有题目被降级为思考题或规则丢题为 FAILED；
+     * 复核没跑出结论为 WARN；其余为 PASS。
+     *
+     * <p>与 browserRuntime 同样只声明"检查到了哪一步"，<b>不宣称答案正确</b>：
+     * PASS 仅表示第二次独立求解也同意；UNVERIFIED 是与 FAILED 同级的独立结论，绝不能当成通过。
+     * 复核未启用（题目没有 review 字段）时记 NOT_RUN，而不是伪装成已通过。</p>
+     */
+    private static String reviewOutcome(ObjectNode scene) {
+        if (!"quiz".equals(scene.path("type").asText())) return "NOT_RUN";
+        JsonNode content = scene.path("content");
+        if (!content.isObject()) return "NOT_RUN";
+        JsonNode thinking = content.path("thinking");
+        boolean sawVerdict = false;
+        boolean unverified = false;
+        for (JsonNode question : content.path("questions")) {
+            String verdict = question.path("review").path("verdict").asText("");
+            if (verdict.isBlank()) continue;
+            sawVerdict = true;
+            if ("RISKY_THINK".equals(verdict)) return "FAILED";
+            if ("UNVERIFIED".equals(verdict)) unverified = true;
+        }
+        // 复核未启用时题目不带 review 字段，也不应有降级题：如实记 NOT_RUN。
+        if (!sawVerdict && thinking.isEmpty()) return "NOT_RUN";
+        if (content.path("review").path("ruleDropped").asInt(0) > 0) return "FAILED";
+        if (thinking.isArray() && !thinking.isEmpty()) return "FAILED";
+        return unverified ? "WARN" : "PASS";
     }
 
     /** 仅判断记录是否仍绑定同一份文档；不验证记录签名，也不重新执行结构/媒体/浏览器检查。 */

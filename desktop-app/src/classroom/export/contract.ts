@@ -1,4 +1,4 @@
-import type { Course, Question, Scene } from '../types';
+import type { Course, Question, Scene, ThinkingItem } from '../types';
 import { portableSupplementaryResources } from './supplementary';
 
 /** 离线练习明确携带标准答案；在线课堂的普通 Course 响应不包含这些字段。 */
@@ -10,7 +10,7 @@ export interface PortableQuestion extends Question {
   gradingPoints?: string[];
 }
 export type PortableScene = Omit<Scene, 'content'> & {
-  content: { type: Scene['type']; canvas?: import('@educationagent/dsl').Slide; questions?: PortableQuestion[]; html?: string; [key: string]: unknown };
+  content: { type: Scene['type']; canvas?: import('@educationagent/dsl').Slide; questions?: PortableQuestion[]; thinking?: ThinkingItem[]; html?: string; [key: string]: unknown };
   whiteboards?: import('@educationagent/dsl').Slide[];
 };
 export type PortableCourse = Omit<Course, 'scenes' | 'runtime'> & {

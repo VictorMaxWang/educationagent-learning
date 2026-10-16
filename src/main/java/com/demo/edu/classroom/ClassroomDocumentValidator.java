@@ -48,7 +48,7 @@ final class ClassroomDocumentValidator {
                 throw invalid("互动类型无效");
             ((ObjectNode)content).put("html",ClassroomSlideSanitizer.cleanInteractiveHtml(html));
         }
-        if (type.equals("quiz")) questions(content.path("questions"));
+        if (type.equals("quiz")) { questions(content.path("questions"), content.path("thinking")); thinking(content.path("thinking")); }
         if(scene.has("whiteboards")) {
             if(!scene.path("whiteboards").isArray()||scene.path("whiteboards").size()>20) throw invalid("课件白板数量无效");
             ArrayNode checked=scene.arrayNode();
@@ -59,8 +59,18 @@ final class ClassroomDocumentValidator {
         return ClassroomSlideSanitizer.cleanScene(scene);
     }
 
-    static void questions(JsonNode questions) {
-        if (!questions.isArray() || questions.isEmpty() || questions.size() > 10) throw invalid("随堂练习必须包含 1–10 道题");
+    /** 建卷路径专用：只处理计分题，因此仍要求非空。 */
+    static void questions(JsonNode questions) { questions(questions, null); }
+
+    /**
+     * @param thinking 与本页配套的不计分思考题数组；计分题可以为空，但两者不能同时为空。
+     *                 允许「整页都是思考题」是刻意的：题目被独立复核判定答案有错且重生成失败时，
+     *                 宁可整页只留思考题，也不把一个已知错误的标答当计分题下发。
+     */
+    static void questions(JsonNode questions, JsonNode thinking) {
+        boolean hasThinking = thinking != null && thinking.isArray() && !thinking.isEmpty();
+        if (!questions.isArray() || questions.size() > 10 || (questions.isEmpty() && !hasThinking))
+            throw invalid("随堂练习必须包含 1–10 道题");
         Set<String> ids = new HashSet<>();
         for (JsonNode q : questions) {
             text(q, "id", 80); text(q, "question", 4000);
@@ -100,6 +110,27 @@ final class ClassroomDocumentValidator {
             for (JsonNode a : answer) {
                 if (!a.isTextual() || !keys.contains(a.asText()) || !selected.add(a.asText())) throw invalid("标准答案引用了无效或重复选项");
             }
+        }
+    }
+
+    /**
+     * 降级出来的不计分思考题：**只有题干**。
+     *
+     * 这里显式拒绝 options/answer/gradingPoints —— 思考题的整个意义是「不拿没核验的答案判学生」，
+     * 一旦带了标答就退化回计分题，等于绕过了降级。review 字段（含复核结论）允许存在，
+     * 由 ClassroomCourseService.publicCourse() 与导出逻辑负责剥离。
+     */
+    static void thinking(JsonNode thinking) {
+        if (thinking == null || thinking.isMissingNode() || thinking.isNull()) return;
+        if (!thinking.isArray() || thinking.size() > 10) throw invalid("思考题必须是不超过 10 条的数组");
+        Set<String> ids = new HashSet<>();
+        for (JsonNode item : thinking) {
+            if (!item.isObject()) throw invalid("思考题格式无效");
+            text(item, "id", 80);
+            text(item, "question", 4000);
+            if (!ids.add(item.path("id").asText())) throw invalid("思考题 ID 重复");
+            if (item.has("options") || item.has("answer") || item.has("gradingPoints"))
+                throw invalid("思考题不得携带选项或标准答案");
         }
     }
 

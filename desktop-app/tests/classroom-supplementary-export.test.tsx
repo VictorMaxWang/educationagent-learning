@@ -31,6 +31,14 @@ function envelope(): PortableEnvelope {
 afterEach(() => { vi.unstubAllGlobals(); vi.clearAllMocks(); });
 
 describe('补充资料导出边界', () => {
+  it('整视频搜索资料往返保留scope与无p链接，拒绝总时长错配分P', () => {
+    const whole = { ...video, id: 'BV1xx411c7mD:whole', url: 'https://www.bilibili.com/video/BV1xx411c7mD/', durationSeconds: 166,
+      durationScope: 'whole-video', part: 0, sourceKind: 'bilibili-search-metadata', verificationScope: 'search-metadata' };
+    const result = portableSupplementaryResources([whole], new Set(['s1']))[0];
+    expect(result.url).toBe(whole.url); expect(result.id).toBe(whole.id); expect(result.durationSeconds).toBe(166); expect(result.durationScope).toBe('whole-video');
+    expect(result.sourceKind).toBe('bilibili-search-metadata'); expect(result.resourceStatus).toBe('historical');
+    expect(() => portableSupplementaryResources([{ ...whole, url: `${whole.url}?p=1` }], new Set(['s1']))).toThrow();
+  });
   it.each([
     'javascript:alert(1)', 'data:text/html,hello', 'https://www.bilibili.com.evil.test/video/BV1xx411c7mD/',
     'https://www.bilibili.com@evil.test/video/BV1xx411c7mD/', 'https://evil.test@www.bilibili.com/video/BV1xx411c7mD/',
@@ -55,7 +63,7 @@ describe('补充资料导出边界', () => {
     const serialized = JSON.stringify(snapshot.envelope);
     expect(serialized).not.toContain('private-'); expect(serialized).not.toContain('secret-prompt'); expect(serialized).not.toContain('verified');
     expect(JSON.stringify(source)).toContain('private-sentinel');
-    expect(canonicalVideoUrl('https://bilibili.com/video/BV1xx411c7mD')).toBe('https://www.bilibili.com/video/BV1xx411c7mD/?p=1');
+    expect(canonicalVideoUrl('https://bilibili.com/video/BV1xx411c7mD')).toBe('https://www.bilibili.com/video/BV1xx411c7mD/');
   });
 
   it('同页重复链接去重；缺失页面、未知时长和过大列表被拒绝', () => {

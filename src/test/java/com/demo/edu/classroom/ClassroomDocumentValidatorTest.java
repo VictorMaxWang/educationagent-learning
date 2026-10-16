@@ -19,6 +19,44 @@ class ClassroomDocumentValidatorTest {
         ((com.fasterxml.jackson.databind.node.ObjectNode)questions.get(1)).set("answer",json.createArrayNode().add("A"));
         assertThrows(ClassroomException.class,()->ClassroomDocumentValidator.questions(questions));
     }
+    @Test void thinkingItemsCarryOnlyStemsAndAQuizMayBeAllThinkingItems() throws Exception {
+        var json=new ObjectMapper();
+        var empty=json.createArrayNode();
+        var thinking=json.createArrayNode();
+        thinking.addObject().put("id","t1").put("question","想一想：为什么先统一整体？");
+        // 全页都是思考题是合法的：宁可只留思考题，也不把已知错误的标答当计分题下发。
+        assertDoesNotThrow(()->ClassroomDocumentValidator.questions(empty,thinking));
+        assertThrows(ClassroomException.class,()->ClassroomDocumentValidator.questions(empty,null));
+        assertThrows(ClassroomException.class,()->ClassroomDocumentValidator.questions(empty,json.createArrayNode()));
+        assertDoesNotThrow(()->ClassroomDocumentValidator.thinking(json.createArrayNode()));
+        assertDoesNotThrow(()->ClassroomDocumentValidator.thinking(null));
+        // 思考题不得携带选项或标答，否则等于把没核验的答案继续下发。
+        var items=json.createArrayNode();
+        var item=items.addObject().put("id","t1").put("question","想一想");
+        item.putArray("answer").add("A");
+        assertThrows(ClassroomException.class,()->ClassroomDocumentValidator.thinking(items));
+        item.remove("answer");item.putArray("options");
+        assertThrows(ClassroomException.class,()->ClassroomDocumentValidator.thinking(items));
+        item.remove("options");
+        assertDoesNotThrow(()->ClassroomDocumentValidator.thinking(items));
+    }
+
+    @Test void quizSceneAcceptsPerQuestionReviewAndUnknownFieldsDoNotFailValidation() throws Exception {
+        var json=new ObjectMapper();
+        var outline=json.createObjectNode().put("id","scene-1").put("type","quiz").put("order",0);
+        var scene=json.createObjectNode().put("title","练一练").put("type","quiz");
+        var questions=scene.putObject("content").put("type","quiz").putArray("questions");
+        var question=questions.addObject().put("id","q1").put("type","single").put("question","单选")
+                .put("analysis","解析").put("hasAnswer",true);
+        var options=question.putArray("options");
+        options.addObject().put("label","甲").put("value","A");
+        options.addObject().put("label","乙").put("value","B");
+        question.putArray("answer").add("A");
+        question.putObject("review").put("verdict","PASS").put("method","model").put("reason","独立求解与标答一致");
+        scene.putArray("actions");
+        assertDoesNotThrow(()->ClassroomDocumentValidator.scene(scene,outline,"course-1"));
+    }
+
     @Test
     void mathematicalInteractiveMayContainLocalFontsButRemainsBounded() {
         var json = new ObjectMapper();

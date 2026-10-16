@@ -31,6 +31,8 @@ export const cancelCourse = (id: string) => post<Course>(`/courses/${encodeURICo
 export const retrySceneMedia = (id: string, sceneId: string, expectedRevision: number) => post<Course>(`/courses/${encodeURIComponent(id)}/scenes/${encodeURIComponent(sceneId)}/retry-media`, { expectedRevision });
 export const saveProgress = (id: string, sceneIndex: number, actionIndex: number) => classroomRequest<unknown>(`/courses/${encodeURIComponent(id)}/progress`, { method: 'PUT', body: JSON.stringify({ sceneIndex, actionIndex }) });
 export const submitAnswers = (id: string, sceneId: string, submissionId: string, answers: { no: number; answer: string }[]) => post<QuizResult>(`/courses/${encodeURIComponent(id)}/answer`, { sceneId, submissionId, answers });
+export interface QuizRevision { sceneId: string; newCourseId: string; newSceneId: string; reason: string; createdAt: string }
+export const getQuizRevisions = (id: string, signal?: AbortSignal) => classroomRequest<{ courseId: string; revisions: QuizRevision[] }>(`/courses/${encodeURIComponent(id)}/quiz-revisions`, { signal });
 export interface ClassroomQuestionOptions { elementReference?: ElementReference; interactiveState?: Record<string, unknown>; intent?: 'question' | 'edit' }
 export const askClassroom = (id: string, sceneId: string, text: string, speaker: Speaker, signal?: AbortSignal, extra?: ClassroomQuestionOptions) => post<ClassroomMessage>(`/courses/${encodeURIComponent(id)}/chat`, { sceneId, text, speaker, ...extra }, signal);
 /** 只保存指定页面的编辑结果，不能回写整份课程覆盖练习成绩与对话。 */

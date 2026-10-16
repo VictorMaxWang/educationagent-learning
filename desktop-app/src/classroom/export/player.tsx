@@ -42,7 +42,9 @@ function OfflineQuiz({ scene }: { scene: PortableScene }) {
         : choices.map(option => <label key={option.value}><input type={question.type === 'multiple' ? 'checkbox' : 'radio'} name={`question-${question.id}`} checked={(answers[question.id] || []).includes(option.value)} onChange={() => choose(question, option.value)} /><span><strong>{option.value}.</strong> {option.label}</span></label>)}
       {checked && <div className={question.type !== 'short_answer' && correct && actual === correct ? 'ep-correct' : 'ep-feedback'}>{question.type === 'short_answer' ? '请对照参考答案和评分要点自查；离线未进行 AI 判分。' : !correct ? '本题未附标准答案，请对照讲稿复习。' : actual === correct ? '答对了。' : '再想一想。'}<p>参考答案：{answerText(reference) || '未附'}</p><p>{question.explanation || question.analysis || ''}</p>{!!question.gradingPoints?.length && <ul>{question.gradingPoints.map((point, i) => <li key={i}>{point}</li>)}</ul>}</div>}
     </fieldset>;
-  })}<button onClick={() => setChecked(true)}>检查这一页</button><p className="ep-muted">离线练习仅在此页面核对答案，不会上传或写入在线成绩。</p></div>;
+  })}{(scene.content.thinking || []).map(item => <section key={item.id} aria-label="思考题"><h3>思考题（不计分）</h3><p>{item.question}</p><p className="ep-muted">先自己说说思路，不用提交。</p></section>)}
+    {questions.length > 0 && <><button onClick={() => setChecked(true)}>检查这一页</button><p className="ep-muted">离线练习仅在此页面核对答案，不会上传或写入在线成绩。</p></>}
+  </div>;
 }
 
 function displayCanvas(canvas: Slide): Slide {

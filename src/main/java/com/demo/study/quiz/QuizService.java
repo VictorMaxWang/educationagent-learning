@@ -16,6 +16,8 @@ import com.demo.mapper.QuizPaperMapper;
 import com.demo.mapper.QuizPassageMapper;
 import com.demo.mapper.QuizQuestionFavMapper;
 import com.demo.mapper.QuizQuestionMapper;
+import com.demo.edu.classroom.ClassroomQuizRevisionRegistry;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.demo.service.preprocessing.FileService;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
@@ -82,6 +84,9 @@ public class QuizService {
     @Resource
     private OpenAiChatModel deepseekChatModel;
 
+    @Resource
+    private ClassroomQuizRevisionRegistry quizRevisions;
+
     // ============ DTO = Data Transfer Object = 数据传输对象 ============
 
     /** 返回给前端的题目（不含答案，防作弊）；passageNo=材料组号（null=独立题） */
@@ -115,7 +120,13 @@ public class QuizService {
     /** 错题本条目（answeredAt 为 ISO 字符串，前端按日期分组；correctAnswer/explanation 前端不展示，防止重刷时偷看答案） */
     public record MistakeVO(Long questionId, Long quizId, int no, String type, String stem,
                             List<String> options, String userAnswer, String correctAnswer,
-                            String explanation, String knowledgePoint, String paperTitle, String answeredAt) {}
+                            String explanation, String knowledgePoint, String paperTitle, String answeredAt,ObjectNode revision) {
+        public MistakeVO { revision=revision==null?null:revision.deepCopy(); }
+        public MistakeVO(Long questionId,Long quizId,int no,String type,String stem,List<String> options,String userAnswer,
+                         String correctAnswer,String explanation,String knowledgePoint,String paperTitle,String answeredAt) {
+            this(questionId,quizId,no,type,stem,options,userAnswer,correctAnswer,explanation,knowledgePoint,paperTitle,answeredAt,null);
+        }
+    }
 
     /** 错题重做结果：removed=true 表示答对已自动移出错题本 */
     public record RedoResult(int no, Boolean correct, String correctAnswer, String explanation, boolean removed) {}
@@ -406,6 +417,11 @@ public class QuizService {
      * 简答或文档没给答案 → 返回 auto=false，提示交卷时由 LLM 评判。
      */
     public GradeOneResult gradeOne(Long quizId, int no, String answer) {
+        return QuizMutationGuard.withPaper(quizId, () -> gradeOneLocked(quizId, no, answer));
+    }
+
+    private GradeOneResult gradeOneLocked(Long quizId, int no, String answer) {
+        if(quizRevisions!=null)quizRevisions.assertScorable(quizId);
         QuizQuestionEntity q = findQuestion(quizId, no);
         if (requiresLlm(q)) {
             return new GradeOneResult(no, false, null, null, null);
@@ -421,6 +437,12 @@ public class QuizService {
      */
     @Transactional(rollbackFor = Exception.class)
     public SubmitResult submit(String userId, Long quizId, List<AnswerSubmission> submissions) {
+        // 与课堂修题共用同一试卷锁，并由事务完成回调释放；方法返回尚不代表数据库已提交。
+        return QuizMutationGuard.withPaper(quizId, () -> submitLocked(userId, quizId, submissions));
+    }
+
+    private SubmitResult submitLocked(String userId, Long quizId, List<AnswerSubmission> submissions) {
+        if(quizRevisions!=null)quizRevisions.assertScorable(quizId);
         List<QuizQuestionEntity> questions = questionMapper.selectList(
                 new LambdaQueryWrapper<QuizQuestionEntity>()
                         .eq(QuizQuestionEntity::getPaperId, quizId)
@@ -676,13 +698,20 @@ public class QuizService {
             out.add(new MistakeVO(q.getId(), q.getPaperId(), q.getQuestionNo(), q.getQType(), q.getStem(),
                     parseOptions(q.getOptions()), ans.getUserAnswer(), q.getAnswer(), q.getExplanation(),
                     q.getKnowledgePoint(), paperTitle.get(q.getPaperId()),
-                    ans.getAnsweredAt() == null ? null : ans.getAnsweredAt().toString()));
+                    ans.getAnsweredAt() == null ? null : ans.getAnsweredAt().toString(),
+                    quizRevisions==null?null:quizRevisions.revisionForPaper(q.getPaperId())));
         }
         return out;
     }
 
     /** 错题重做：判分 → 答对自动移出错题本，答错新增一条错误记录 */
+    @Transactional(rollbackFor = Exception.class)
     public RedoResult mistakeRedo(String userId, Long quizId, Long questionId, String answer) {
+        return QuizMutationGuard.withPaper(quizId, () -> mistakeRedoLocked(userId, quizId, questionId, answer));
+    }
+
+    private RedoResult mistakeRedoLocked(String userId, Long quizId, Long questionId, String answer) {
+        if(quizRevisions!=null)quizRevisions.assertScorable(quizId);
         QuizQuestionEntity q = questionMapper.selectById(questionId);
         if (q == null || !quizId.equals(q.getPaperId())) throw new QuizException("题目不存在或不属于该试卷");
 

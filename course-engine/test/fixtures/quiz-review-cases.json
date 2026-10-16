@@ -1,0 +1,107 @@
+{
+  "_comment": [
+    "习题审核回归语料。两类用途：",
+    "1) reported* 来自真实缺陷样本，锁住'这道题必须被拦下'；",
+    "2) cleanNegatives 是误报校准语料——L1 命中即丢题，任一条误报都会删掉一道正确的题，",
+    "   因此新增任何 L1 规则前必须先让这一组保持零命中。"
+  ],
+
+  "reported": {
+    "volumeWithCotLeak": {
+      "type": "single",
+      "question": "一个长方体文具盒的长是20厘米，宽是8厘米，高是3厘米。它的体积是多少立方厘米？",
+      "options": [
+        { "label": "48立方厘米", "value": "A" },
+        { "label": "240立方厘米", "value": "B" },
+        { "label": "60立方厘米", "value": "C" },
+        { "label": "512立方厘米", "value": "D" }
+      ],
+      "answer": ["B"],
+      "analysis": "长方体的体积计算公式为：体积 = 长 × 宽 × 高。将题目中的数据代入公式：20 × 8 × 3 = 160 × 3 = 480。等等，让我重新计算一下：20 * 8 = 160, 160 * 3 = 480。选项中没有480？让我检查选项设计。哦，我刚才心算错了或者选项设置需要调整。让我们修正选项以匹配正确答案480，或者修改题目数据使其更简单。",
+      "points": 1
+    },
+    "volumeCleanButWrongKey": {
+      "type": "single",
+      "question": "一个长方体文具盒的长是20厘米，宽是8厘米，高是3厘米。它的体积是多少立方厘米？",
+      "options": [
+        { "label": "48立方厘米", "value": "A" },
+        { "label": "240立方厘米", "value": "B" },
+        { "label": "60立方厘米", "value": "C" },
+        { "label": "512立方厘米", "value": "D" }
+      ],
+      "answer": ["B"],
+      "analysis": "长方体体积由长、宽、高相乘得到，把三个数依次相乘即可。",
+      "points": 1
+    }
+  },
+
+  "cleanNegatives": [
+    {
+      "_note": "解析里出现『让我们』是完全正常的中文讲解，绝不能因为这两个字丢题。",
+      "type": "single",
+      "question": "3/4 和 6/8 哪个大？",
+      "options": [
+        { "label": "3/4 大", "value": "A" },
+        { "label": "一样大", "value": "B" }
+      ],
+      "answer": ["B"],
+      "analysis": "让我们先把 6/8 约分：分子分母同时除以 2 得到 3/4，所以两个分数一样大。",
+      "points": 1
+    },
+    {
+      "_note": "『等等』可以正常用于提醒读者注意前提，不能作为单独判据。",
+      "type": "single",
+      "question": "计算 12 ÷ 3 × 2 的结果。",
+      "options": [
+        { "label": "8", "value": "A" },
+        { "label": "2", "value": "B" }
+      ],
+      "answer": ["A"],
+      "analysis": "同级运算从左到右：等等，先确认这里没有括号，所以先算 12 ÷ 3 = 4，再乘 2 得到 8。",
+      "points": 1
+    },
+    {
+      "_note": "解析合法地提到干扰项字母，不能据此判定与标答矛盾。",
+      "type": "single",
+      "question": "下面哪个是质数？",
+      "options": [
+        { "label": "9", "value": "A" },
+        { "label": "11", "value": "B" },
+        { "label": "15", "value": "C" }
+      ],
+      "answer": ["B"],
+      "analysis": "11 只能被 1 和它本身整除。A 是常见误答，因为 9 可以拆成 3×3；C 同理可以拆成 3×5。",
+      "points": 1
+    },
+    {
+      "_note": "数值填空：标答是数字而非文本，必须能比对，不能因类型不同而退化成无法判定。",
+      "type": "fill",
+      "question": "8乘3是多少？",
+      "answer": 24,
+      "analysis": "8 个 3 相加等于 24。",
+      "points": 1
+    },
+    {
+      "_note": "简答题只靠参考文本与评分要点，不能用文本比对复核。",
+      "type": "short_answer",
+      "question": "为什么比较分数时要先统一整体？",
+      "answer": "比较基准要一致。",
+      "analysis": "整体不同时，份额的大小无法直接比较。",
+      "gradingPoints": ["指出基准一致", "说明份额不可直接比较"],
+      "points": 1
+    },
+    {
+      "_note": "多选：标答为数组，复核返回数组，两边都要能归一化。",
+      "type": "multiple",
+      "question": "下面哪些是偶数？",
+      "options": [
+        { "label": "2", "value": "A" },
+        { "label": "3", "value": "B" },
+        { "label": "4", "value": "C" }
+      ],
+      "answer": ["A", "C"],
+      "analysis": "2 和 4 都能被 2 整除。",
+      "points": 1
+    }
+  ]
+}

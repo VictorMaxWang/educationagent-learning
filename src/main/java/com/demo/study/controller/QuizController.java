@@ -4,6 +4,7 @@ import com.demo.controller.DesktopFileStore;
 import com.demo.service.TtsService;
 import com.demo.study.quiz.QuizException;
 import com.demo.study.quiz.QuizService;
+import com.demo.edu.classroom.ClassroomException;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import java.util.Base64;
 import java.util.List;
@@ -27,6 +29,12 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/desktop/quiz")
 public class QuizController {
+
+    /** 修订指针必须让所有旧判分入口一致返回409，不落回普通400或泛化500。 */
+    @ExceptionHandler(ClassroomException.class)
+    public ResponseEntity<Map<String,String>> classroomBoundary(ClassroomException error) {
+        return ResponseEntity.status(error.status()).body(Map.of("error",error.getMessage()));
+    }
 
     @Resource
     private QuizService quizService;
@@ -71,6 +79,9 @@ public class QuizController {
             // 解析成功，消费文件缓存
             fileStore.remove(fileId);
             return ResponseEntity.ok(result);
+        } catch (ClassroomException boundary) {
+            // 保留稳定业务状态，让统一处理器返回409/422等；不能被下方catch-all改写为500。
+            throw boundary;
         } catch (QuizException e) {
             log.warn("刷题生成失败：{}", e.getMessage());
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
@@ -89,6 +100,8 @@ public class QuizController {
         try {
             QuizService.GradeOneResult result = quizService.gradeOne(req.quizId(), req.no(), req.answer());
             return ResponseEntity.ok(result);
+        } catch (ClassroomException boundary) {
+            throw boundary;
         } catch (QuizException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
@@ -108,6 +121,8 @@ public class QuizController {
             QuizService.SubmitResult result = quizService.submit(userId, req.quizId(),
                     req.answers() == null ? List.of() : req.answers());
             return ResponseEntity.ok(result);
+        } catch (ClassroomException boundary) {
+            throw boundary;
         } catch (QuizException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {

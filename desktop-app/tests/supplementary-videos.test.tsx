@@ -103,7 +103,7 @@ describe('补充视频的展示和请求边界', () => {
   it('核验缓存与直连资料明确区分，显示真实上海时间且不泄露网络诊断', async () => {
     vi.useFakeTimers(); vi.setSystemTime(new Date('2026-10-16T12:00:00Z'));
     const first = { ...response().items[0], checkedAt: '2026-10-16T09:05:00Z', sourceKind: 'bilibili-public-api' as const, sourceLabel: '已核验的视频资料' };
-    const cached = { ...first, id: 'BV1xx411c7mD:2', url: 'https://www.bilibili.com/video/BV1xx411c7mD?p=2', sourceKind: 'verified-metadata-cache' as const, sourceLabel: 'HTTP 412 blocked' };
+    const cached = { ...first, id: 'BV1r3411q7mV:2', url: 'https://www.bilibili.com/video/BV1r3411q7mV?p=2', sourceKind: 'verified-metadata-cache' as const, sourceLabel: 'HTTP 412 blocked' };
     api.get.mockResolvedValue(response({ items: [first, cached] })); await act(async () => render());
     const sources = Array.from(host.querySelectorAll('.cr-video-verification')).map(node => node.textContent);
     expect(sources).toEqual(['已核验的视频资料 · 2026-10-16 17:05', '已核验资料缓存 · 2026-10-16 17:05']);
@@ -113,6 +113,15 @@ describe('补充视频的展示和请求边界', () => {
   });
 });
 describe('视频身份检查', () => {
+  it('整条搜索资料保留无p链接与整条时长，不能冒充首P或详情核验', async () => {
+    const whole = { ...response().items[0], id: 'BV1xx411c7mD:whole', url: 'https://www.bilibili.com/video/BV1xx411c7mD/', durationSeconds: 166,
+      part: 0, durationScope: 'whole-video' as const, verificationScope: 'search-metadata' as const, sourceKind: 'bilibili-search-metadata' as const };
+    expect(displayableVideos(response({ items: [whole] }), 10)).toHaveLength(1);
+    api.get.mockResolvedValue(response({ items: [whole] })); await act(async () => render());
+    expect(host.querySelector('a')?.href).not.toContain('?p='); expect(host.textContent).toContain('B站搜索资料'); expect(host.textContent).toContain('整条视频 2:46');
+    expect(displayableVideos(response({ items: [{ ...whole, url: `${whole.url}?p=1` }] }), 10)).toEqual([]);
+    expect(displayableVideos(response({ items: [whole, response().items[0]] }), 10)).toEqual([]);
+  });
   it.each(['https://evil.example/video/BV1xx411c7mD', 'https://www.bilibili.com.evil.example/video/BV1xx411c7mD', 'https://www.bilibili.com/search', 'javascript:alert(1)', 'https://user:pass@www.bilibili.com/video/BV1xx411c7mD', 'https://www.bilibili.com/video/BV1xx411c7mD?p=0'])('拒绝 %s', value => expect(safeBilibiliVideoUrl(value)).toBeNull());
   it('去掉跟踪参数但保留有效分P', () => expect(safeBilibiliVideoUrl('https://www.bilibili.com/video/BV1xx411c7mD/?p=2&track=foo')).toBe('https://www.bilibili.com/video/BV1xx411c7mD?p=2'));
   it('未知时长、重复URL和空标题都隐藏整个组合', () => {
