@@ -66,7 +66,28 @@ final class ClassroomDocumentValidator {
             text(q, "id", 80); text(q, "question", 4000);
             if (!ids.add(q.path("id").asText())) throw invalid("随堂题目 ID 重复");
             String type = q.path("type").asText();
-            if (!Set.of("single", "multiple").contains(type)) throw invalid("随堂练习只支持单选和多选");
+            if (!Set.of("single", "multiple", "judge", "fill", "short_answer").contains(type)) throw invalid("随堂练习题型无效");
+            JsonNode answer = q.path("answer");
+            if (type.equals("judge")) {
+                if (!(answer.isBoolean() || answer.isTextual() && Set.of("对", "错").contains(answer.asText())))
+                    throw invalid("判断题标准答案必须为对或错");
+                continue;
+            }
+            if (type.equals("fill") || type.equals("short_answer")) {
+                boolean supplied = !answer.isMissingNode() && !answer.isNull();
+                if (supplied && !(answer.isNumber() || answer.isTextual()) || supplied && (answer.asText().isBlank() || answer.asText().length() > 4000))
+                    throw invalid("填空和简答的参考答案必须为单个文本或数值");
+                if (type.equals("fill") && !supplied) throw invalid("填空题缺少标准答案");
+                JsonNode points = q.path("gradingPoints");
+                if (!points.isMissingNode()) {
+                    if (!points.isArray() || points.size() > 12) throw invalid("简答评分要点格式无效");
+                    for (JsonNode point : points) if (!point.isTextual() || point.asText().isBlank() || point.asText().length() > 600) throw invalid("简答评分要点格式无效");
+                }
+                // 无参考文本的简答仍需明确要点，不能把空白规则当成可靠判分。
+                if (type.equals("short_answer") && !supplied && q.path("analysis").asText().isBlank() && points.isEmpty())
+                    throw invalid("简答题需提供参考答案或评分要点");
+                continue;
+            }
             JsonNode options = q.path("options");
             if (!options.isArray() || options.size() < 2 || options.size() > 8) throw invalid("选择题需有 2–8 个选项");
             Set<String> keys = new HashSet<>();
@@ -74,7 +95,6 @@ final class ClassroomDocumentValidator {
                 text(o, "label", 2000); text(o, "value", 80);
                 if (!keys.add(o.path("value").asText())) throw invalid("选择题选项值重复");
             }
-            JsonNode answer = q.path("answer");
             if (!answer.isArray() || answer.isEmpty() || (type.equals("single") && answer.size() != 1)) throw invalid("选择题缺少合法标准答案");
             Set<String> selected = new HashSet<>();
             for (JsonNode a : answer) {

@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "typecheck": "tsc --noEmit",
-    "test:classroom": "vitest run tests/classroom.test.ts tests/classroom-editor.test.ts tests/interactiveBridge.test.ts tests/growth-companion.test.ts tests/classroom-export.test.ts"
+    "test:classroom": "vitest run tests --exclude **/*.test.mjs"
   },
   "dependencies": {
     "@educationagent/dsl": "file:../vendor/educationagent/dsl",

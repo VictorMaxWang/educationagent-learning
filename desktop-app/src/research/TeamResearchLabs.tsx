@@ -17,7 +17,7 @@ export default function TeamResearchLabs() {
   const tabs = useRef<Record<LabId, HTMLButtonElement | null>>({ array: null, image: null, resources: null });
   return <section className="tr-labs" aria-label="团队成果实验室">
     <div className="tr-labs-inner">
-      <header className="tr-labs-header"><div><p className="tr-eyebrow"><span>禾</span> 团队成果实验室</p><h1>动手改变，亲眼发现</h1><p>从一条公式、一张图和一组资料开始，把研究问题变成可以尝试的小实验。</p></div><span className="tr-local-badge">浏览器本地计算</span></header>
+      <header className="tr-labs-header"><div><p className="tr-eyebrow"><span>陶</span> 团队成果实验室</p><h1>动手改变，亲眼发现</h1><p>从一条公式、一张图和一组资料开始，把研究问题变成可以尝试的小实验。</p></div><span className="tr-local-badge">浏览器本地计算</span></header>
       <div className="tr-lab-tabs" role="tablist" aria-label="选择实验">{LABS.map((lab, index) => <button key={lab.id} id={`research-tab-${lab.id}`} role="tab"
         ref={node => { tabs.current[lab.id] = node; }} tabIndex={active === lab.id ? 0 : -1}
         aria-selected={active === lab.id} aria-controls={`research-panel-${lab.id}`} className={active === lab.id ? 'is-active' : ''}

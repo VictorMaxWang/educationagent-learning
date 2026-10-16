@@ -37,6 +37,8 @@ public class ClassroomQuizAdapter {
         int no = 0;
         for (JsonNode raw : questions) {
             ObjectNode question = (ObjectNode) raw;
+            String type = question.path("type").asText();
+            boolean choice = type.equals("single") || type.equals("multiple");
             ArrayNode normalizedOptions = json.createArrayNode();
             ArrayNode labels = json.createArrayNode();
             Map<String, String> mapping = new LinkedHashMap<>();
@@ -48,18 +50,29 @@ public class ClassroomQuizAdapter {
                 normalizedOptions.addObject().put("label", label).put("value", letter);
                 labels.add(letter + ". " + label);
             }
-            String answer = normalizeAnswerValues(question.path("answer"), mapping);
+            String answer = choice ? normalizeAnswerValues(question.path("answer"), mapping)
+                    : type.equals("judge") && question.path("answer").isBoolean() ? (question.path("answer").asBoolean() ? "对" : "错")
+                    : question.path("answer").asText("");
             QuizQuestionEntity q = new QuizQuestionEntity();
             q.setPaperId(paper.getId()); q.setQuestionNo(++no);
-            q.setQType("multiple".equals(question.path("type").asText()) ? "multi" : "single");
+            q.setQType(switch (type) { case "multiple" -> "multi"; case "short_answer" -> "short"; default -> type; });
             q.setStem(question.path("question").asText()); q.setOptions(labels.toString());
-            q.setAnswer(answer); q.setExplanation(question.path("analysis").asText(""));
+            q.setAnswer(answer);
+            String explanation = question.path("analysis").asText("");
+            if (question.path("gradingPoints").isArray() && !question.path("gradingPoints").isEmpty()) {
+                List<String> points = new ArrayList<>(); question.path("gradingPoints").forEach(point -> points.add(point.asText()));
+                explanation += "\n评分要点：" + String.join("；", points);
+            }
+            q.setExplanation(explanation);
             q.setKnowledgePoint(course.path("topic").asText().substring(0, Math.min(128, course.path("topic").asText().length())));
-            q.setHasAnswer(1); mapper.insertQuestion(q);
-            question.put("no", no); question.set("options", normalizedOptions); question.put("hasAnswer", true);
-            ArrayNode normalizedAnswer = json.createArrayNode();
-            for (char letter : answer.toCharArray()) normalizedAnswer.add(String.valueOf(letter));
-            question.set("answer", normalizedAnswer);
+            q.setHasAnswer(answer.isBlank() ? 0 : 1); mapper.insertQuestion(q);
+            question.put("no", no); question.set("options", normalizedOptions); question.put("hasAnswer", !answer.isBlank());
+            if (choice) {
+                ArrayNode normalizedAnswer = json.createArrayNode();
+                for (char letter : answer.toCharArray()) normalizedAnswer.add(String.valueOf(letter));
+                question.set("answer", normalizedAnswer);
+            } else if (type.equals("judge")) question.put("answer", answer);
+            // DB 统一存文本，课件仍保留填空数值/简答文本原类型，避免数字零在导出时丢失。
         }
         scene.put("quizId", paper.getId());
     }
@@ -84,7 +97,18 @@ public class ClassroomQuizAdapter {
         for (QuizService.AnswerSubmission answer : answers) {
             if (answer == null || !seen.add(answer.no()) || !byNo.containsKey(answer.no())) throw new ClassroomException(400, "题号重复或不属于本页");
             JsonNode q = byNo.get(answer.no());
-            String value = answer.answer() == null ? "" : answer.answer().trim().toUpperCase(Locale.ROOT);
+            String type = q.path("type").asText();
+            String value = answer.answer() == null ? "" : answer.answer().trim();
+            if (value.isBlank()) throw new ClassroomException(400, "请完成每一道题后提交");
+            if (type.equals("judge")) {
+                if (!Set.of("对", "错").contains(value)) throw new ClassroomException(400, "判断题请选择正确或错误");
+                normalized.add(new QuizService.AnswerSubmission(answer.no(), value)); continue;
+            }
+            if (type.equals("fill") || type.equals("short_answer")) {
+                if (value.length() > (type.equals("fill") ? 2000 : 4000)) throw new ClassroomException(400, "答案过长，请精简后提交");
+                normalized.add(new QuizService.AnswerSubmission(answer.no(), value)); continue;
+            }
+            value = value.toUpperCase(Locale.ROOT);
             if (!value.matches("[A-H,，、\\s]*")) throw new ClassroomException(400, "请选择题目提供的选项");
             String letters = value.replaceAll("[^A-H]", "");
             SortedSet<Character> unique = new TreeSet<>();
@@ -96,6 +120,12 @@ public class ClassroomQuizAdapter {
             StringBuilder canonical = new StringBuilder(); unique.forEach(canonical::append);
             normalized.add(new QuizService.AnswerSubmission(answer.no(), canonical.toString()));
         }
-        return quizService.submit(ClassroomCourseService.LEARNER_ID, scene.path("quizId").asLong(), normalized);
+        QuizService.SubmitResult result = quizService.submit(ClassroomCourseService.LEARNER_ID, scene.path("quizId").asLong(), normalized);
+        // 外层课程事务同时覆盖题库写入。未确定的评阅整组回滚，前端可使用原提交 ID 重试。
+        if (result == null || result.results() == null || result.results().size() != questions.size()
+                || result.results().stream().anyMatch(item -> item == null || item.correct() == null)
+                || !result.results().stream().map(QuizService.ResultItem::no).collect(java.util.stream.Collectors.toSet()).equals(seen))
+            throw new ClassroomException(502, "本组练习暂未完成评阅，答案已保留，请稍后重试");
+        return result;
     }
 }

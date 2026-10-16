@@ -102,7 +102,7 @@ export async function readPortableFile(file: File): Promise<PortableEnvelope> {
     if (file.size > PORTABLE_MAX_JSON_BYTES) throw new Error('JSON 课程超过 20 MB 上限');
     return validateEnvelope(JSON.parse(await file.text()));
   }
-  if (!/\.zip$/i.test(file.name)) throw new Error('请选择 educationagent JSON 或课堂 ZIP 文件');
+  if (!/\.zip$/i.test(file.name)) throw new Error('请选择晓陶学伴 JSON 或课堂 ZIP 文件');
   const buffer = await file.arrayBuffer();
   const entries = inspectZipDirectory(buffer);
   const zip = await JSZip.loadAsync(buffer, { checkCRC32: false });

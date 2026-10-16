@@ -15,6 +15,11 @@ public class GuideController {
 
     @GetMapping("/topics") public GuideTopics.TopicResponse topics(@RequestParam Integer grade) { return service.topics(grade); }
 
+    /** 只有读取入口；学生聊天与附件不经此接口写入全站共享历史。 */
+    @GetMapping("/conversations") public GuideService.Conversation conversations(@RequestParam Integer grade, @RequestParam String group) {
+        return service.conversations(grade, group);
+    }
+
     @PostMapping("/chat") public GuideService.Reply chat(@RequestBody JsonNode body) {
         if (body == null || !body.isObject()) throw invalid();
         JsonNode grade = body.path("grade");
@@ -30,12 +35,19 @@ public class GuideController {
                 items.add(new GuideService.HistoryMessage(text(item, "role"), text(item, "content")));
             }
         }
-        return service.chat(new GuideService.ChatRequest(question, grade.intValue(), category, items));
+        return service.chat(new GuideService.ChatRequest(question, grade.intValue(), category, items,
+            optionalText(body, "group"), optionalText(body, "sourceText"), optionalText(body, "sourceName"), optionalText(body, "interactiveContext")));
     }
 
     private static String text(JsonNode object, String name) {
         if (!object.path(name).isTextual()) throw invalid();
         return object.path(name).textValue();
+    }
+    private static String optionalText(JsonNode object, String name) {
+        JsonNode value = object.path(name);
+        if (value.isMissingNode() || value.isNull()) return null;
+        if (!value.isTextual()) throw invalid();
+        return value.textValue();
     }
     private static ClassroomException invalid() { return new ClassroomException(400, "成长问答参数格式无效，请检查问题、年级和话题"); }
     @ExceptionHandler(ClassroomException.class) public ResponseEntity<Map<String, String>> error(ClassroomException error) {

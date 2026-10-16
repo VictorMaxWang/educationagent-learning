@@ -1,0 +1,24 @@
+{
+  "repository": "https://github.com/THU-MAIC/OpenMAIC",
+  "commit": "9f6c1419ec3dbc601e1db60863b4dc428874256a",
+  "license": "MIT",
+  "files": [
+    "LICENSE",
+    "packages/@openmaic/generation/templates/code-content/system.md",
+    "packages/@openmaic/generation/templates/code-content/user.md",
+    "packages/@openmaic/generation/templates/simulation-content/system.md",
+    "packages/@openmaic/generation/templates/visualization3d-content/system.md",
+    "skills/agent-runtime/deep-interactive/SKILL.md",
+    "lib/types/widgets.ts"
+  ],
+  "adaptedCapabilities": [
+    "code widget starterCode/testCases/hints/solution schema",
+    "simulation/diagram/game/visualization3d interaction types and teaching structure"
+  ],
+  "hostImplementation": [
+    "desktop-app/src/practice/code-examples.ts",
+    "desktop-app/src/practice/CodeVisualization.tsx",
+    "desktop-app/src/practice/PracticeActivities.tsx"
+  ],
+  "notes": "Runtime debugger adapters are original host implementation; upstream CDN loading and unrestricted execution are not enabled."
+}

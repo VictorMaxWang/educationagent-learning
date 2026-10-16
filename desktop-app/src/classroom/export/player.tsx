@@ -4,7 +4,7 @@ import { SlideCanvas, type SlideEffects } from '@educationagent/renderer';
 import '@educationagent/renderer/styles.css';
 import './player.css';
 import { validateEnvelope, type PlayerData, type PortableQuestion, type PortableScene } from './contract';
-import { canonicalAnswer } from './quiz';
+import { answerText, canonicalAnswer, QUESTION_TYPE_LABELS } from './quiz';
 import InteractiveScene, { type InteractiveSceneHandle } from '../InteractiveScene';
 import { applyWhiteboardAction } from '../whiteboardModel';
 import type { WhiteboardState } from '../types';
@@ -31,11 +31,15 @@ function OfflineQuiz({ scene }: { scene: PortableScene }) {
     });
   };
   return <div className="ep-quiz">{questions.map((question, index) => {
-    const correct = canonicalAnswer(question.correctAnswer ?? question.answer);
-    const actual = canonicalAnswer(answers[question.id]);
-    return <fieldset key={question.id || index}><legend>{index + 1}. {question.question}</legend><p className="ep-muted">{question.type === 'multiple' ? '选择所有符合的选项' : '选择一个选项'}</p>
-      {question.options.map(option => <label key={option.value}><input type={question.type === 'multiple' ? 'checkbox' : 'radio'} name={`question-${question.id}`} checked={(answers[question.id] || []).includes(option.value)} onChange={() => choose(question, option.value)} /><span><strong>{option.value}.</strong> {option.label}</span></label>)}
-      {checked && <p className={correct && actual === correct ? 'ep-correct' : 'ep-feedback'}>{!correct ? '本题未附标准答案，请对照讲稿复习。' : actual === correct ? '答对了。' : `再想一想，参考答案：${correct.replace(/\|/g, '、')}`} {question.explanation || question.analysis || ''}</p>}
+    const reference = question.correctAnswer ?? question.answer;
+    const correct = canonicalAnswer(reference, question.type);
+    const actual = canonicalAnswer(answers[question.id], question.type);
+    const choices = question.type === 'judge' ? [{ value: '对', label: '正确' }, { value: '错', label: '错误' }] : question.options || [];
+    return <fieldset key={question.id || index}><legend>{index + 1}. {question.question}</legend><p className="ep-muted">{QUESTION_TYPE_LABELS[question.type]} · {question.type === 'multiple' ? '选择所有符合的选项' : question.type === 'short_answer' ? '结合参考答案和要点自查' : question.type === 'fill' ? '填写一个答案' : '选择一个答案'}</p>
+      {question.type === 'short_answer' ? <textarea aria-label={`第 ${index + 1} 题答案`} rows={4} maxLength={4000} value={answers[question.id]?.[0] || ''} onChange={event => choose(question, event.target.value)} />
+        : question.type === 'fill' ? <input aria-label={`第 ${index + 1} 题答案`} type="text" maxLength={2000} value={answers[question.id]?.[0] || ''} onChange={event => choose(question, event.target.value)} />
+        : choices.map(option => <label key={option.value}><input type={question.type === 'multiple' ? 'checkbox' : 'radio'} name={`question-${question.id}`} checked={(answers[question.id] || []).includes(option.value)} onChange={() => choose(question, option.value)} /><span><strong>{option.value}.</strong> {option.label}</span></label>)}
+      {checked && <div className={question.type !== 'short_answer' && correct && actual === correct ? 'ep-correct' : 'ep-feedback'}>{question.type === 'short_answer' ? '请对照参考答案和评分要点自查；离线未进行 AI 判分。' : !correct ? '本题未附标准答案，请对照讲稿复习。' : actual === correct ? '答对了。' : '再想一想。'}<p>参考答案：{answerText(reference) || '未附'}</p><p>{question.explanation || question.analysis || ''}</p>{!!question.gradingPoints?.length && <ul>{question.gradingPoints.map((point, i) => <li key={i}>{point}</li>)}</ul>}</div>}
     </fieldset>;
   })}<button onClick={() => setChecked(true)}>检查这一页</button><p className="ep-muted">离线练习仅在此页面核对答案，不会上传或写入在线成绩。</p></div>;
 }
@@ -127,7 +131,7 @@ function Player({ data }: { data: PlayerData }) {
   const whiteboards = [...(scene.whiteboards || [])];
   const savedBoard = course.runtime?.[scene.id]?.whiteboard?.canvas;
   if (savedBoard) whiteboards.push(savedBoard);
-  return <div className="ep-shell"><header className="ep-header"><div><span className="ep-kicker">educationagent · 离线课堂</span><h1>{course.title}</h1><p>{course.subject} · {course.grade} 年级 · 已有课程内容</p></div><span className="ep-badge">无需联网播放</span></header>
+  return <div className="ep-shell"><header className="ep-header"><div><span className="ep-kicker">晓陶学伴 · 离线课堂</span><h1>{course.title}</h1><p>{{ academic: '学科学习', wellbeing: '身心成长', exploration: '实践探索' }[course.direction || 'academic']}{!course.direction || course.direction === 'academic' ? ` · ${course.subject}` : ''} · {course.grade} 年级 · 已有课程内容</p></div><span className="ep-badge">无需联网播放</span></header>
     <div className="ep-layout"><nav className="ep-directory" aria-label="课程目录">{course.scenes.map((page, i) => <button key={page.id} aria-current={i === index ? 'step' : undefined} onClick={() => navigate(i)}><span>{String(i + 1).padStart(2, '0')}</span>{page.title}</button>)}</nav>
       <main><div className="ep-title"><span>第 {index + 1} / {course.scenes.length} 页</span><h2>{scene.title}</h2></div><PageBoundary key={scene.id}><section className="ep-stage">{scene.type === 'slide' && scene.content.canvas && <SlideCanvas slide={displayCanvas(scene.content.canvas)} effects={effects} />}{scene.type === 'quiz' && <OfflineQuiz key={scene.id} scene={scene} />}{scene.type === 'interactive' && <InteractiveScene key={`${scene.id}-${frameSerial}`} ref={interactive} scene={scene} selectionMode={false} onSelect={() => {}} onError={setMessage} />}</section></PageBoundary>
         <div className="ep-caption" aria-live="polite">{caption || '可以阅读课件、动手练习，或查看完整讲稿。'}</div>

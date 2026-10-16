@@ -3,6 +3,8 @@ import { submitAnswers } from './api';
 import { newLocalId } from './navigation';
 import type { Question, QuizResult, Scene } from './types';
 
+const QUESTION_LABELS = { single: '单选', multiple: '多选', judge: '判断', fill: '填空', short_answer: '简答' };
+
 export function answerForChoices(previous: string, choice: string, multiple: boolean): string {
   if (!multiple) return choice;
   const values = previous.split('').filter(Boolean);
@@ -30,12 +32,16 @@ export default function QuizScene({ courseId, scene }: { courseId: string; scene
     <p className="cr-eyebrow">试着独立想一想</p><h2>{scene.title}</h2>
     {questions.map(question => {
       const feedback = result?.results.find(item => item.no === question.no);
-      return <fieldset key={question.id || question.no} className="cr-question" disabled={busy || Boolean(result)}><legend>{question.no}. {question.question}<span className="cr-question-type">{question.type === 'multiple' ? '多选' : '单选'}</span></legend>
-        <div className="cr-options">{question.options.map(option => <label key={option.value} className={`cr-option ${answers[question.no]?.includes(option.value) ? 'selected' : ''}`}><input type={question.type === 'multiple' ? 'checkbox' : 'radio'} name={`question-${scene.id}-${question.no}`} checked={Boolean(answers[question.no]?.includes(option.value))} onChange={() => setAnswers(previous => ({ ...previous, [question.no]: answerForChoices(previous[question.no] || '', option.value, question.type === 'multiple') }))} /><strong>{option.value}</strong><span>{option.label}</span></label>)}</div>
-        {feedback && <div className={`cr-feedback ${feedback.correct ? 'correct' : 'retry'}`}><strong>{feedback.correct ? '答对了，继续保持。' : '一起把这道题弄明白。'}</strong><p>参考答案：{feedback.correctAnswer}</p><p>{feedback.explanation}</p></div>}
+      const choices = question.type === 'judge' ? [{ value: '对', label: '正确' }, { value: '错', label: '错误' }] : question.options || [];
+      return <fieldset key={question.id || question.no} className="cr-question" disabled={busy || Boolean(result)}><legend>{question.no}. {question.question}<span className="cr-question-type">{QUESTION_LABELS[question.type]}</span></legend>
+        {question.type === 'fill' ? <input className="cr-text-answer" aria-label={`第 ${question.no} 题答案`} maxLength={2000} placeholder="填写你的答案" value={answers[question.no] || ''} onChange={event => setAnswers(previous => ({ ...previous, [question.no]: event.target.value }))} />
+          : question.type === 'short_answer' ? <textarea className="cr-text-answer" aria-label={`第 ${question.no} 题答案`} rows={4} maxLength={4000} placeholder="说说你的思路，可以分步说明" value={answers[question.no] || ''} onChange={event => setAnswers(previous => ({ ...previous, [question.no]: event.target.value }))} />
+          : <div className="cr-options">{choices.map(option => <label key={option.value} className={`cr-option ${answers[question.no]?.includes(option.value) ? 'selected' : ''}`}><input type={question.type === 'multiple' ? 'checkbox' : 'radio'} name={`question-${scene.id}-${question.no}`} checked={Boolean(answers[question.no]?.includes(option.value))} onChange={() => setAnswers(previous => ({ ...previous, [question.no]: answerForChoices(previous[question.no] || '', option.value, question.type === 'multiple') }))} /><strong>{option.value}</strong><span>{option.label}</span></label>)}</div>}
+        {question.type === 'short_answer' && !feedback && <p className="cr-muted">小陶会结合参考答案和要点评阅你的思路。</p>}
+        {feedback && <div className={`cr-feedback ${feedback.correct === true ? 'correct' : 'retry'}`}><strong>{feedback.correct === true ? '答对了，继续保持。' : feedback.correct === false ? '一起把这道题弄明白。' : '本题暂未得到确定评阅，请稍后重试。'}</strong><p>参考答案：{feedback.correctAnswer || '请参照下方要点'}</p><p>{feedback.explanation}</p></div>}
       </fieldset>;
     })}
     {error && <p className="cr-error" role="alert">{error}</p>}
-    {result ? <div className="cr-feedback correct" role="status">完成 {result.total} 道题，答对 {result.score} 道。需要再练的题会出现在「复习」里。</div> : <button className="cr-button" disabled={busy || !questions.length || questions.some(question => !answers[question.no])} onClick={() => void submit()}>{busy ? '正在检查答案…' : '提交这组练习'}</button>}
+    {result ? <div className="cr-feedback correct" role="status">完成 {result.total} 道题，答对 {result.score} 道。需要再练的题会出现在「复习」里。</div> : <button className="cr-button" disabled={busy || !questions.length || questions.some(question => !answers[question.no]?.trim())} onClick={() => void submit()}>{busy ? '正在检查答案…' : '提交这组练习'}</button>}
   </section>;
 }

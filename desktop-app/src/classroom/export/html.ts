@@ -29,7 +29,7 @@ export async function readPlayerAssets(signal?: AbortSignal): Promise<PlayerAsse
 
 export function assembleHtml(data: PlayerData, assets: PlayerAssets, linkedMedia = false): Blob {
   const title = escapeHtml(data.envelope.course.title);
-  const html = `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="${escapeHtml(offlineCsp(linkedMedia))}"><meta name="referrer" content="no-referrer"><title>${title} · educationagent</title><style>${assets.css}</style></head><body><div id="educationagent-player"><noscript>请在支持 JavaScript 的浏览器中打开本课程。</noscript></div><script id="educationagent-course-data" type="application/json">${serializeScriptJson(data)}</script><script>${assets.script}</script></body></html>`;
+  const html = `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="${escapeHtml(offlineCsp(linkedMedia))}"><meta name="referrer" content="no-referrer"><title>${title} · 晓陶学伴</title><style>${assets.css}</style></head><body><div id="educationagent-player"><noscript>请在支持 JavaScript 的浏览器中打开本课程。</noscript></div><script id="educationagent-course-data" type="application/json">${serializeScriptJson(data)}</script><script>${assets.script}</script></body></html>`;
   const result = new Blob([html], { type: 'text/html;charset=utf-8' });
   if (result.size > EXPORT_MAX_BYTES) throw new Error('单文件课堂超过 80 MB，请取消配音或选择课堂 ZIP');
   return result;

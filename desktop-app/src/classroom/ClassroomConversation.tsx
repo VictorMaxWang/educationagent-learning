@@ -4,6 +4,7 @@ import { canRecordClassroomAudio, startClassroomRecording } from './recording';
 import type { ClassroomMessage, Course, ElementReference, Speaker, TeachingAction } from './types';
 import { newLocalId } from './navigation';
 import { registerVoiceContext, type VoiceReply } from './voiceContext';
+import { companionIdentityText } from './branding';
 
 /** 等待实际页面采样与保存完成后再取状态，不能使用点击发送时闭包中的旧 props 快照。 */
 export async function prepareQuestionState(
@@ -168,7 +169,7 @@ export default function ClassroomConversation({ course, sceneId, onInterrupt, as
     const response = await send(question, 'teacher', 'question', signal);
     if (!response) throw new Error('课堂暂时忙碌，请先完成录音、编辑或当前问题。');
     return {
-      text: response.text, role: 'teacher', actions: response.actions,
+      text: companionIdentityText(response.text), role: 'teacher', actions: response.actions,
       executeAction: async (action, actionSignal) => {
         if (!mounted.current || currentScene.current !== sourceScene || actionSignal.aborted) throw new Error('课堂页面已切换，原操作已停止。');
         if (!executeVoiceAction) throw new Error('当前页面没有可执行的课堂操作入口。');
@@ -177,7 +178,7 @@ export default function ClassroomConversation({ course, sceneId, onInterrupt, as
     };
   };
   return <aside className="cr-conversation" aria-label="课堂问答">
-    <div className="cr-conversation-heading"><span className="cr-avatar">{speaker === 'teacher' ? '师' : '伴'}</span><div><h3>{speaker === 'teacher' ? '老师在这里' : '小禾 · AI 学伴'}</h3><p>{speaker === 'teacher' ? '哪里没听懂，都可以问' : '一起尝试，互相启发'}</p></div></div>
+    <div className="cr-conversation-heading"><span className="cr-avatar">{speaker === 'teacher' ? '师' : '伴'}</span><div><h3>{speaker === 'teacher' ? '老师在这里' : '小陶 · AI 学伴'}</h3><p>{speaker === 'teacher' ? '哪里没听懂，都可以问' : '一起尝试，互相启发'}</p></div></div>
     <div className="cr-segmented"><button aria-pressed={speaker === 'teacher'} onClick={() => setSpeaker('teacher')}>问老师</button><button aria-pressed={speaker === 'peer'} onClick={() => { setSpeaker('peer'); setIntent('question'); }}>和学伴讨论</button></div>
     {selection && <div className="ce-reference-chip"><span>{selection.reference.kind === 'slide_element' ? '课件对象' : selection.reference.kind === 'whiteboard_element' ? '白板对象' : '互动对象'}</span><strong>{selection.summary}</strong><button aria-label="取消对象引用" onClick={onClearSelection}>×</button></div>}
     <div className="ce-intent-toggle"><button aria-pressed={intent === 'question'} onClick={() => setIntent('question')}>针对内容提问</button><button aria-pressed={intent === 'edit'} onClick={() => { setIntent('edit'); setSpeaker('teacher'); }}>请老师修改</button></div>
@@ -186,7 +187,7 @@ export default function ClassroomConversation({ course, sceneId, onInterrupt, as
     {discussionPrompt && <button className="cr-discussion-invite" disabled={busy || recording || recordingStarting || transcribing || interactionLocked} onClick={() => { setSpeaker('peer'); setIntent('question'); void send(discussionPrompt, 'peer', 'question'); }}>邀请学伴一起想一想 →</button>}
     <div className="cr-message-list" aria-live="polite">
       {!messages.length && <div className="cr-conversation-empty"><span>✦</span><p>不用急着给出正确答案。<br />把你的想法说出来，我们一步步来。</p><button onClick={() => setInput('能用一个生活中的例子，再讲讲这一页吗？')}>用生活中的例子讲一讲</button><button onClick={() => setInput('先给我一点提示，让我自己试一试。')}>先给我一点提示</button></div>}
-      {messages.map((message, index) => <div key={message.id || index} className={`cr-message ${message.speaker === 'user' ? 'is-user' : ''}`}><strong>{message.speaker === 'user' ? '我' : message.speaker === 'peer' ? '小禾 · AI 学伴' : '老师'}</strong>{message.elementReference && <small className="ce-message-reference">带有{message.elementReference.kind === 'interactive_component' ? '互动对象' : message.elementReference.kind === 'whiteboard_element' ? '白板对象' : '课件对象'}引用</small>}<p>{message.text}</p>{message.updatedScene && <small className="ce-message-reference">课件已更新，可在画布查看和继续编辑。</small>}{Boolean(message.actions?.length) && <><small className="ce-message-reference">包含 {message.actions!.length} 项课堂操作，实际结果见“老师操作记录”。</small>{onRunActions && <button className="cr-link" disabled={recording || recordingStarting || busy || interactionLocked || message.sceneId !== sceneId} onClick={() => onRunActions(message.actions!, message.speaker === 'peer' ? 'peer' : 'teacher')}>执行 / 重试课堂操作</button>}</>}{message.speaker !== 'user' && onReadResponse && <button className="cr-link" disabled={recording || recordingStarting || transcribing || busy || interactionLocked} onClick={() => onReadResponse(message.text, message.speaker as Speaker)}>听一听这段回答</button>}</div>)}
+      {messages.map((message, index) => <div key={message.id || index} className={`cr-message ${message.speaker === 'user' ? 'is-user' : ''}`}><strong>{message.speaker === 'user' ? '我' : message.speaker === 'peer' ? '小陶 · AI 学伴' : '老师'}</strong>{message.elementReference && <small className="ce-message-reference">带有{message.elementReference.kind === 'interactive_component' ? '互动对象' : message.elementReference.kind === 'whiteboard_element' ? '白板对象' : '课件对象'}引用</small>}<p>{message.speaker === 'user' ? message.text : companionIdentityText(message.text)}</p>{message.updatedScene && <small className="ce-message-reference">课件已更新，可在画布查看和继续编辑。</small>}{Boolean(message.actions?.length) && <><small className="ce-message-reference">包含 {message.actions!.length} 项课堂操作，实际结果见“老师操作记录”。</small>{onRunActions && <button className="cr-link" disabled={recording || recordingStarting || busy || interactionLocked || message.sceneId !== sceneId} onClick={() => onRunActions(message.actions!, message.speaker === 'peer' ? 'peer' : 'teacher')}>执行 / 重试课堂操作</button>}</>}{message.speaker !== 'user' && onReadResponse && <button className="cr-link" disabled={recording || recordingStarting || transcribing || busy || interactionLocked} onClick={() => onReadResponse(message.text, message.speaker as Speaker)}>听一听这段回答</button>}</div>)}
       {busy && <p className="cr-muted" role="status">正在想一个适合你的讲法…</p>}<div ref={bottom} />
     </div>
     {error && <p className="cr-error" role="alert">{error}</p>}

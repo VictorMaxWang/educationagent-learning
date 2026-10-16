@@ -228,6 +228,10 @@ def collect_files(overlay: bool) -> dict[str, Path]:
         files["app.jar"] = application_jar()
     for tree in ("desktop-app/dist", "course-engine/dist"):
         files.update((archive, source) for source, archive in tree_files(tree))
+    # 多语言运行器单独部署，但源码和已锁定的第三方来源随同一版本交付，便于恢复与复建。
+    for tree in ("code-runner", "course-engine/upstream/openmaic-practice"):
+        if (ROOT / tree).is_dir():
+            files.update((archive, source) for source, archive in tree_files(tree) if source.suffix not in {".class", ".pyc"})
     files.update((archive, source) for source, archive in tree_files("deploy/linux", deployment=True))
     for name in PACKAGES:
         files.update((archive, source) for source, archive in package_artifacts(name))

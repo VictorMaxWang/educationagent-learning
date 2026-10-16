@@ -8,8 +8,9 @@ public final class GuideTopics {
     private GuideTopics() {}
 
     public record Persona(String name, String identity, String intro) {}
-    public record Topic(String id, String label, String description, String domain, List<String> questions) {}
-    public record TopicResponse(int grade, Persona persona, List<Topic> categories) {}
+    public record Topic(String id, String label, String description, String domain, List<String> questions, String group) {}
+    public record Group(String id, String label, String description, List<String> categories) {}
+    public record TopicResponse(int grade, Persona persona, List<Topic> categories, List<Group> groups) {}
     private record Definition(String id, String label, String description, String domain,
                               List<String> common, List<String> primary, List<String> middle, List<String> high) {}
 
@@ -53,7 +54,29 @@ public final class GuideTopics {
             List.of("我需要帮助，却不知道怎样开口，可以和我练习吗？", "如果第一次求助没有被认真听见，我还能怎么办？", "我想找一个值得信任的大人，可以怎样判断和选择？"),
             List.of("我想告诉老师我遇到困难，可以先说哪一句？", "我不舒服或害怕时，可以怎样说得更清楚？", "我想被陪一会儿，这个需要可以怎样表达？"),
             List.of("我想让大人先听完再给建议，可以怎么说？", "我担心求助会被说矫情，可以怎样迈出第一步？", "我需要学习上的帮助，怎样向老师描述具体困难？"),
-            List.of("我想寻求学校心理老师的支持，第一次可以怎么开始？", "我想表达自己的选择，又希望得到支持，可以怎样说？", "朋友需要的帮助超过我能承担的范围，我该怎么办？"))
+            List.of("我想寻求学校心理老师的支持，第一次可以怎么开始？", "我想表达自己的选择，又希望得到支持，可以怎样说？", "朋友需要的帮助超过我能承担的范围，我该怎么办？")),
+        new Definition("english", "英语学习", "把家乡与生活说给更多人听", "school",
+            List.of("怎样用英语介绍我的家乡？", "能陪我练习一段问候对话吗？", "怎样从例句中记住一个新单词？"),
+            List.of("我想用三句英语介绍自己和家乡，可以一步一步教我吗？", "英语单词读不熟，我可以怎样每天练一点？", "能用菜地和小河举例，教我描述身边的事物吗？"),
+            List.of("我写的家乡介绍怎样连成一段通顺的英文？", "英语句子里时态不一致，我可以怎样检查？", "能陪我练习一次向游客介绍家乡的对话吗？"),
+            List.of("介绍乡村变化的英语短文怎样安排论点和例子？", "这段英文中哪些表达可以更准确自然？", "阅读长句时，怎样找主干和修饰关系？")),
+        new Definition("general", "通识探索", "从身边的问题开始观察与求证", "school",
+            List.of("一场雨从哪里来，最后又到哪里去？", "怎样判断网上一条知识说法是否可靠？", "观察家乡时，我可以提出哪些好问题？"),
+            List.of("能用家乡的水塘解释水循环吗？", "菜地的面积和收获有什么关系？", "做观察记录时，怎样区分看见的事实和自己的猜想？"),
+            List.of("调查家乡用水情况时，怎样设计问题和整理资料？", "一条新闻中的数字怎样核实来源？", "能带我比较两种解释，再想办法验证吗？"),
+            List.of("怎样围绕乡村生态问题建立一个有证据的论证？", "相关关系与因果关系有什么区别？", "一个调查样本不足时，结论应该怎样表述？")),
+        new Definition("practice", "实践与创造", "在操作、观察与修改中理解原理", "school",
+            List.of("怎样用代码记录菜地的浇水次数？", "我想把分数通分做成一步一步的图解。", "模拟实验中改变一个参数后，我应该观察什么？"),
+            List.of("我想用循环记录五天的浇水量，可以先解释思路吗？", "通分图里每一份的大小为什么要保持一样？", "长方体的长、宽、高改变时，体积怎样变化？"),
+            List.of("数组排序每一步都改变了什么，怎样读变量追踪？", "我怎样设计一个只改变一个条件的仿真实验？", "怎样把分数配对游戏的规则写成程序？"),
+            List.of("递归函数的调用栈怎样帮助定位错误？", "仿真的假设与实际观察不同，怎样判断模型的局限？", "怎样为一个算法选择输入、测试用例和可视化？"))
+    );
+
+    private static final List<Group> GROUPS = List.of(
+        new Group("mind-communication", "心灵与沟通", "认识感受，练习沟通与表达需要", List.of("study-stress", "emotions", "family", "friends", "needs")),
+        new Group("safety-health", "安全与健康", "学习保护自己，科学认识身体变化", List.of("campus-safety", "life-safety", "puberty")),
+        new Group("language-general", "语言与通识", "练习语言，从生活问题走向知识探索", List.of("english", "general")),
+        new Group("practice-creation", "实践与创造", "用代码、图解、实验和游戏边做边学", List.of("practice"))
     );
 
     public static int requireGrade(Integer grade) {
@@ -66,14 +89,24 @@ public final class GuideTopics {
         List<Topic> topics = DEFINITIONS.stream().map(d -> {
             List<String> questions = new ArrayList<>(checked <= 6 ? d.primary : checked <= 9 ? d.middle : d.high);
             questions.addAll(d.common);
-            return new Topic(d.id, d.label, d.description, d.domain, List.copyOf(questions));
+            return new Topic(d.id, d.label, d.description, d.domain, List.copyOf(questions), groupFor(d.id).id());
         }).toList();
-        return new TopicResponse(checked, new Persona("小禾姐姐", "AI成长陪伴助手",
-            "我是小禾姐姐，一个 AI 成长陪伴助手。你可以慢慢说，我会耐心听、陪你整理想法；现实中的困难也可以一起向可信的大人寻求支持。"), topics);
+        return new TopicResponse(checked, new Persona("小陶", "AI成长陪伴助手",
+            "我是小陶，晓陶学伴的 AI 学习与成长助手。你可以和我整理想法、练习语言，也可以一起观察、动手和创造。现实中的困难也可以向可信的大人寻求支持。"), topics, GROUPS);
     }
 
     public static Topic requireTopic(String category, int grade) {
         return forGrade(grade).categories.stream().filter(t -> t.id.equals(category)).findFirst()
+            .orElseThrow(() -> new ClassroomException(400, "请选择有效的成长话题"));
+    }
+
+    public static Group requireGroup(String id) {
+        return GROUPS.stream().filter(group -> group.id().equals(id)).findFirst()
+            .orElseThrow(() -> new ClassroomException(400, "请选择有效的成长课堂"));
+    }
+
+    public static Group groupFor(String category) {
+        return GROUPS.stream().filter(group -> group.categories().contains(category)).findFirst()
             .orElseThrow(() -> new ClassroomException(400, "请选择有效的成长话题"));
     }
 
@@ -84,6 +117,9 @@ public final class GuideTopics {
         List<String> contextual = switch (topic.id) {
             case "family", "friends", "needs" -> List.of("可以陪我练习一句具体的开场白吗？", "如果对方暂时不愿意听，我可以怎样再找支持？", "我怎样把发生的事、感受和需要分别说清楚？");
             case "campus-safety", "life-safety", "puberty" -> List.of("我可以向哪一位可信的大人说明这件事？", "可以帮我整理一段求助时要说的话吗？", "如果我现在觉得不安全，怎样先联系身边的支持？");
+            case "english" -> List.of("可以给我一个能模仿的短例句，再让我试着说吗？", "请指出我这句话里最值得先改的一处。", "换一个家乡生活的场景，我们再练一轮好吗？");
+            case "general" -> List.of("可以用一个身边可观察的例子解释吗？", "这个解释需要哪些证据，我们怎样核实？", "我可以做什么小观察来检验自己的猜想？");
+            case "practice" -> List.of("可以按当前步骤解释变量为什么变化吗？", "如果只改一个参数，结果会怎样变化？", "请给我一个提示，让我先自己试着修改。");
             default -> List.of("如果今天只做一小步，我可以从哪里开始？", "可以用一个贴近学校生活的例子说明吗？", "我怎样把这种感受告诉值得信任的人？");
         };
         LinkedHashSet<String> candidates = new LinkedHashSet<>(contextual);

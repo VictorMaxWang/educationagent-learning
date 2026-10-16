@@ -540,3 +540,13 @@ CREATE TABLE IF NOT EXISTS edu_learning_course (
     updated_at  DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     KEY idx_learning_course_updated (updated_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='乡村学习课堂状态';
+
+-- 仅保存经真实模型生成并人工核对的公共成长问答，不存访客的个人续聊或上传附件。
+-- 联合主键保证一次性准备脚本可用 INSERT IGNORE 只补缺失组，避免覆盖已有内容。
+CREATE TABLE IF NOT EXISTS edu_growth_conversation (
+    group_id    VARCHAR(40) NOT NULL,
+    grade       INT NOT NULL,
+    messages    LONGTEXT NOT NULL,
+    created_at  DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    PRIMARY KEY (group_id, grade)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='成长课堂公共问答历史';

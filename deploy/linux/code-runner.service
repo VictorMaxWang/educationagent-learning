@@ -1,0 +1,27 @@
+[Unit]
+Description=Xiaotao private code execution broker
+After=xiaotao-code-docker.service
+Requires=xiaotao-code-docker.service
+
+[Service]
+Type=simple
+User=educationagent-code
+Group=educationagent-code
+EnvironmentFile=/etc/xiaotao-code/runner.env
+Environment=DOCKER_HOST=unix:///run/xiaotao-code/docker.sock
+ExecStart=/usr/bin/python3 -I /opt/educationagent-code-runner/broker.py
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+UMask=0077
+TasksMax=64
+MemoryMax=192M
+
+[Install]
+WantedBy=multi-user.target

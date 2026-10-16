@@ -3,6 +3,7 @@ import { checkAbort, EXPORT_MAX_BYTES, safeFilename, type ExportOptions, type Ex
 import { fetchExportSnapshot, inlineSnapshotAssets } from './snapshot';
 import { buildOfflineHtml, escapeHtml, offlineCsp, readPlayerAssets } from './html';
 import { buildStoredZip, type StoredZipEntry } from './storedZip';
+import { answerText, QUESTION_TYPE_LABELS } from './quiz';
 
 export type { ExportOptions, ExportProgress, ExportResult } from './contract';
 export { importCourseFile, readPortableFile } from './importCourse';
@@ -13,7 +14,8 @@ function textOnly(value: string): string {
 
 /** 文本副本由同一快照产生，便于教师检索或打印，不另调一次模型改写内容。 */
 export function courseToMarkdown(course: PortableCourse): string {
-  const lines = [`# ${course.title}`, '', `${course.grade} 年级 · ${course.subject}`, ''];
+  const direction = { academic: '学科学习', wellbeing: '身心成长', exploration: '实践探索' }[course.direction || 'academic'];
+  const lines = [`# ${course.title}`, '', `晓陶学伴 · ${course.grade} 年级 · ${direction}${course.direction && course.direction !== 'academic' ? '' : ` · ${course.subject}`}`, ''];
   for (const [index, scene] of course.scenes.entries()) {
     lines.push(`## ${index + 1}. ${scene.title}`, '');
     for (const element of scene.content.canvas?.elements || []) {
@@ -21,9 +23,9 @@ export function courseToMarkdown(course: PortableCourse): string {
       if (element.type === 'latex') lines.push(`$$${element.latex}$$`, '');
     }
     for (const question of scene.content.questions || []) {
-      lines.push(question.question, ...question.options.map(option => `- ${option.value}. ${option.label}`));
+      lines.push(`【${QUESTION_TYPE_LABELS[question.type]}】${question.question}`, ...(question.options || []).map(option => `- ${option.value}. ${option.label}`));
       const answer = question.correctAnswer ?? question.answer;
-      lines.push('', `参考答案：${Array.isArray(answer) ? answer.join('、') : answer || '未附'}`, question.explanation || question.analysis || '', '');
+      lines.push('', `参考答案：${answerText(answer) || '未附'}`, question.explanation || question.analysis || '', ...(question.gradingPoints || []).map(point => `- ${point}`), question.type === 'short_answer' ? '简答请结合参考答案与要点自查，离线不进行 AI 判分。' : '', '');
     }
     if (scene.type === 'interactive') lines.push('互动操作见 index.html 或 interactive 文件夹。', '');
     lines.push('### 讲稿', '', ...(scene.actions || []).filter(action => action.type === 'speech' || action.type === 'discussion').flatMap(action => [String(action.text || action.content || action.prompt || action.topic || ''), '']));
@@ -53,7 +55,7 @@ export async function exportCourse(course: Course, options: ExportOptions): Prom
     { path: 'course.json', data: JSON.stringify(snapshot.envelope, null, 2) },
     { path: 'index.html', data: html },
     { path: '讲稿.md', data: courseToMarkdown(snapshot.envelope.course) },
-    { path: 'README.txt', data: 'educationagent 离线课堂\n\n请先完整解压，再打开 index.html；不要移动 assets 文件夹。\n课程内容、互动和已打包配音可以离线使用；AI 问答、录音识别和成绩同步需要回到在线课堂。\n在在线课堂使用“导入课程”选择本 ZIP，可复制成一节新课程，不覆盖原来的课程和学习记录。\ncourse.json 含标准答案供离线练习，分享前请自行确认使用场景。\n' },
+    { path: 'README.txt', data: '晓陶学伴 · 离线课堂\n\n请先完整解压，再打开 index.html；不要移动 assets 文件夹。\n课程内容、互动和已打包配音可以离线使用；AI 问答、录音识别和成绩同步需要回到在线课堂。\n在在线课堂使用“导入课程”选择本 ZIP，可复制成一节新课程，不覆盖原来的课程和学习记录。\ncourse.json 含标准答案供离线练习，简答请结合参考答案与评分要点自查，离线不进行 AI 判分。\n' },
     ...[...snapshot.assets].map(([path, data]) => ({ path, data })),
   ];
   for (const [index, scene] of snapshot.envelope.course.scenes.entries()) {

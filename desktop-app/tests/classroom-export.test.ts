@@ -8,7 +8,8 @@ import { importCourseFile, inspectZipDirectory, prepareImportedImages, readPorta
 import { buildStoredZip } from '../src/classroom/export/storedZip';
 import { buildPptx } from '../src/classroom/export/pptx';
 import { exportCourse } from '../src/classroom/export';
-import { canonicalAnswer } from '../src/classroom/export/quiz';
+import { answerText, canonicalAnswer } from '../src/classroom/export/quiz';
+import { courseToMarkdown } from '../src/classroom/export';
 import { playOfflineActions, type OfflinePlaybackPorts } from '../src/classroom/export/playback';
 import type { TeachingAction } from '../src/classroom/types';
 import { validateEnvelope, type PortableEnvelope } from '../src/classroom/export/contract';
@@ -43,6 +44,65 @@ function envelope(interactive = false): PortableEnvelope {
 afterEach(() => { vi.unstubAllGlobals(); vi.clearAllMocks(); });
 
 describe('统一导出快照', () => {
+  it('旧学伴身份在深副本中统一为小陶，教材和用户原话及原对象保持不变', async () => {
+    const source = envelope();
+    source.course.scenes[0].actions = [
+      { type: 'speech', text: '我是小禾姐姐，和你一起学习。', content: '这里是小盒。' },
+      { type: 'discussion', prompt: '和小禾一起讨论通分。', topic: '你的AI学伴小禾陪你检查。' },
+    ];
+    source.course.messages[0].text = '我说：我是小禾，故事里的学生。';
+    (source.course.scenes[0].content.canvas!.elements[0] as { content: string }).content = '<p>禾苗长高了，故事里的小禾正在量菜地。</p>';
+    source.course.scenes[1].content.questions![0].question = '禾苗长高了。故事里的小禾同学种了几行菜？';
+    const original = structuredClone(source);
+    const snapshot = await collectSnapshot(source, { format: 'zip', includeNarration: false });
+    expect(source).toEqual(original);
+    expect(snapshot.envelope.course.scenes[0].actions).toEqual([
+      { type: 'speech', text: '我是小陶，和你一起学习。', content: '这里是小陶。' },
+      { type: 'discussion', prompt: '和小陶一起讨论通分。', topic: '你的AI学伴小陶陪你检查。' },
+    ]);
+    expect(snapshot.envelope.course.scenes[1].content.questions![0].question).toBe(original.course.scenes[1].content.questions![0].question);
+    expect(snapshot.envelope.course.scenes[0].content.canvas!.elements.filter(element => element.type === 'text')).toEqual(original.course.scenes[0].content.canvas!.elements.filter(element => element.type === 'text'));
+    expect(snapshot.envelope.course.messages).toBeUndefined();
+    const markdown = courseToMarkdown(snapshot.envelope.course);
+    expect(markdown).toContain('我是小陶，和你一起学习。');
+    expect(markdown).toContain('故事里的小禾同学');
+    const archive = await buildStoredZip([{ path: 'course.json', data: JSON.stringify(snapshot.envelope) }]);
+    const zip = await JSZip.loadAsync(await archive.arrayBuffer());
+    expect(JSON.parse(await zip.file('course.json')!.async('string')).course.scenes[0].actions[0].text).toBe('我是小陶，和你一起学习。');
+    const html = await buildOfflineHtml(snapshot, { script: '', css: '' });
+    const document = new JSDOM(await html.text());
+    const data = JSON.parse(document.window.document.getElementById('educationagent-course-data')!.textContent!);
+    expect(data.envelope.course.scenes[0].actions[0].text).toBe('我是小陶，和你一起学习。');
+    document.window.close();
+    const pptx = await buildPptx((await inlineSnapshotAssets(snapshot)).course);
+    const presentation = await JSZip.loadAsync(await pptx.blob.arrayBuffer());
+    const notes = await presentation.file('ppt/notesSlides/notesSlide1.xml')!.async('string');
+    expect(notes).toContain('我是小陶，和你一起学习。');
+    expect(notes).not.toContain('我是小禾姐姐');
+  });
+  it('文字答案和数字零不拆成选项，填空规范化与判断一致', () => {
+    expect(answerText(0)).toBe('0'); expect(canonicalAnswer(' ２４ ', 'fill')).toBe('24');
+    expect(canonicalAnswer('New York', 'fill')).toBe('newyork');
+    expect(canonicalAnswer('ABC', 'fill')).toBe('abc');
+    expect(canonicalAnswer(true, 'judge')).toBe('对');
+    expect(canonicalAnswer(['对'], 'judge')).toBe('对');
+  });
+  it('五题型JSON和ZIP往返保留标量答案、评分要点与方向，Markdown明示简答自查', async () => {
+    const source=envelope(); source.course.direction='exploration';
+    source.course.scenes[1].content.questions=[
+      { id:'j',no:1,type:'judge',question:'整体相同？',options:[],answer:'对' },
+      { id:'f',no:2,type:'fill',question:'相差多少？',options:[],answer:0 },
+      { id:'s',no:3,type:'short_answer',question:'说理由',options:[],answer:'比较基准相同',gradingPoints:['同样大小的整体'],analysis:'基准一致' },
+    ];
+    const snapshot=await collectSnapshot(source,{format:'zip',includeNarration:false});
+    const archive=await buildStoredZip([{path:'course.json',data:JSON.stringify(snapshot.envelope)},...[...snapshot.assets].map(([path,data])=>({path,data}))]);
+    const restored=await readPortableFile(new File([archive],'混合题.zip'));
+    expect(restored.course.scenes[1].content.questions).toEqual(source.course.scenes[1].content.questions);
+    expect(restored.course.direction).toBe('exploration');
+    const markdown=courseToMarkdown(restored.course);
+    expect(markdown).toContain('参考答案：0');expect(markdown).toContain('同样大小的整体');expect(markdown).toContain('离线不进行 AI 判分');
+    expect(markdown).toContain('实践探索');expect(markdown).not.toContain('· 数学');
+  });
   it('选项与后端真实题库一致：value为答案键，label为正文', () => {
     const question = envelope().course.scenes[1].content.questions![0];
     expect(canonicalAnswer([question.options[0].value])).toBe(canonicalAnswer(question.correctAnswer));
@@ -156,7 +216,9 @@ describe('真实 PPTX 内容', () => {
     const slide = await zip.file('ppt/slides/slide1.xml')!.async('string');
     expect(slide).toContain('分数与田地面积'); expect(slide).toContain('<a:tbl>'); expect(slide).toContain('<c:chart');
     expect(slide).toContain('if (x &lt; 2) console.log');
-    const chart = await zip.file('ppt/charts/chart1.xml')!.async('string');
+    // PptxGenJS 在同进程连续导出时递增图表 ID，不能把包内真实文件名写死为 chart1。
+    const chartFile = Object.keys(zip.files).find(name => /^ppt\/charts\/chart\d+\.xml$/.test(name))!;
+    const chart = await zip.file(chartFile)!.async('string');
     expect(chart).toContain('第一组'); expect(chart).toContain('<c:barDir val="bar"/>');
     expect(Object.keys(zip.files).some(name => /^ppt\/media\//.test(name))).toBe(true);
     expect(await zip.file('ppt/notesSlides/notesSlide1.xml')!.async('string')).toContain('平均分成四份');

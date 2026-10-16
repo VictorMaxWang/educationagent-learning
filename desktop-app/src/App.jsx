@@ -36,7 +36,7 @@ import './App.css';
 
 // 公网课堂按已核准功能列“更多工具”；本机完整侧栏保留，不以隐藏导航替代服务端权限。
 const PUBLIC_CLASSROOM = import.meta.env.VITE_PUBLIC_CLASSROOM === 'true';
-const PUBLIC_TOOL_KEYS = new Set(['quiz', 'english', 'tongshi', 'psychology', 'lifesafety', 'sexedu', 'watermark', 'browsercode', 'researchlabs']);
+const PUBLIC_TOOL_KEYS = new Set(['quiz', 'watermark', 'researchlabs']);
 
 // 侧栏板块图标（用户提供的 PNG），目前 7 张都是透明底单色 → 一律 mono: true
 // mono=true 的单色图标走 CSS mask，由 currentColor 上色，7 套主题 / hover / 选中态自动跟随；
@@ -121,7 +121,7 @@ function NavIcon({ ico }) {
 }
 
 const NAV_GROUPS = [
-  { key: 'classroom', ico: '禾', title: 'educationagent 学习课堂', direct: true },
+  { key: 'classroom', ico: '陶', title: '晓陶学伴', direct: true },
   {
     key: 'chat',
     ico: { src: icoChat, mono: true },
@@ -345,7 +345,7 @@ function App() {
       ? PUBLIC_CLASSROOM ? [{ key: 'english', label: '英语口语与语法' }]
         : ENGLISH_ITEMS.map(([module, label]) => ({ key: 'english', group: 'english', module, label })) : [item]).filter(item => !PUBLIC_CLASSROOM || PUBLIC_TOOL_KEYS.has(item.key)),
   })).filter(group => group.items.length);
-  moreGroups.unshift({ key: 'explore', title: '学习实验', items: [{ key: 'browsercode', label: 'JavaScript 浏览器练习' }, { key: 'researchlabs', label: '团队成果实验室' }] });
+  moreGroups.unshift({ key: 'explore', title: '学习实验', items: [...(!PUBLIC_CLASSROOM ? [{ key: 'browsercode', label: 'JavaScript 浏览器练习' }] : []), { key: 'researchlabs', label: '团队成果实验室' }] });
   const activeToolLabel = moreGroups.flatMap(group => group.items).find(item => item.key === activeView && (!item.module || item.module === (item.group === 'english' ? englishModule : item.group === 'travel' ? travelModule : item.group === 'health' ? healthModule : petModule)))?.label || '学习工具';
 
   // 导航栏手动伸缩（仅 full 模式可拖拽）

@@ -19,6 +19,8 @@ export type CourseRuntime = Record<string, SceneRuntime>;
 
 export type SceneType = 'slide' | 'quiz' | 'interactive';
 export type Domain = 'general' | 'psychology' | 'lifesafety' | 'sexedu';
+export type CourseDirection = 'academic' | 'wellbeing' | 'exploration';
+export type QuestionType = 'single' | 'multiple' | 'judge' | 'fill' | 'short_answer';
 export type CourseStatus = 'outlining' | 'outline_ready' | 'generating' | 'ready' | 'error' | 'cancelled';
 export type Speaker = 'teacher' | 'peer';
 export interface Outline {
@@ -32,7 +34,7 @@ export interface Outline {
 export interface Question {
   id: string;
   no: number;
-  type: 'single' | 'multiple';
+  type: QuestionType;
   question: string;
   options: { label: string; value: string }[];
   hasAnswer?: boolean;
@@ -78,6 +80,7 @@ export interface Course {
   grade: number;
   subject: string;
   domain: Domain;
+  direction?: CourseDirection;
   status: CourseStatus;
   outlines: Outline[];
   scenes: Scene[];
@@ -97,7 +100,7 @@ export interface QuizResult {
   quizId: string;
   score: number;
   total: number;
-  results: { no: number; correct: boolean; correctAnswer: string; userAnswer: string; explanation: string }[];
+  results: { no: number; correct: boolean | null; correctAnswer: string; userAnswer: string; explanation: string }[];
 }
 export const GRADE_LABELS = ['一年级', '二年级', '三年级', '四年级', '五年级', '六年级', '初一', '初二', '初三', '高一', '高二', '高三'];
 export const TYPE_LABELS: Record<SceneType, string> = { slide: '讲解', quiz: '练一练', interactive: '动手探索' };

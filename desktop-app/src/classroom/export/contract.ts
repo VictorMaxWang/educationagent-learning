@@ -2,10 +2,11 @@ import type { Course, Question, Scene } from '../types';
 
 /** 离线练习明确携带标准答案；在线课堂的普通 Course 响应不包含这些字段。 */
 export interface PortableQuestion extends Question {
-  answer?: string | string[];
-  correctAnswer?: string | string[];
+  answer?: string | number | boolean | string[];
+  correctAnswer?: string | number | boolean | string[];
   explanation?: string;
   analysis?: string;
+  gradingPoints?: string[];
 }
 export type PortableScene = Omit<Scene, 'content'> & {
   content: { type: Scene['type']; canvas?: import('@educationagent/dsl').Slide; questions?: PortableQuestion[]; html?: string; [key: string]: unknown };

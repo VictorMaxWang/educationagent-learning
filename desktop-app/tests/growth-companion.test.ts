@@ -1,10 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { growthSuggestionBatch, growthRequestHistory, restoreGrowthMessages, GROWTH_CATEGORY_IDS, type GrowthMessage } from '../src/classroom/growth-topics';
+import { growthSuggestionBatch, growthRequestHistory, restoreGrowthMessages, GROWTH_CATEGORY_IDS, GROWTH_GROUPS, GROWTH_STORAGE_PREFIX, growthGroupForCategory, growthStorageKey, readGrowthGroupMessages, type GrowthMessage } from '../src/classroom/growth-topics';
 
 const message = (id: string, content = '一段对话'): GrowthMessage => ({ id, content, role: 'user', category: 'needs' });
 describe('成长陪伴话题与本机对话边界', () => {
-  it('八种分类有稳定独立标识', () => {
-    expect(GROWTH_CATEGORY_IDS).toHaveLength(8); expect(new Set(GROWTH_CATEGORY_IDS).size).toBe(8);
+  it('保留八种原分类，新增语言与实践分类并归入四个大类', () => {
+    expect(GROWTH_CATEGORY_IDS).toHaveLength(11); expect(new Set(GROWTH_CATEGORY_IDS).size).toBe(11);
+    expect(GROWTH_GROUPS).toHaveLength(4);
+    expect(growthGroupForCategory('needs')).toBe('mind-communication');
+    expect(growthGroupForCategory('puberty')).toBe('safety-health');
+    expect(growthGroupForCategory('english')).toBe('language-general');
+    expect(growthGroupForCategory('practice')).toBe('practice-creation');
   });
   it('动态追问优先于固定问题且去重，换一批真实改变内容', () => {
     const first = growthSuggestionBatch(['继续问一', '继续问二'], ['默认一', '默认二', '默认三', '继续问一'], 0);
@@ -34,5 +39,21 @@ describe('成长陪伴话题与本机对话边界', () => {
     const source = [message('a', '甲'.repeat(1999) + '🌾后续')];
     const out = growthRequestHistory(source);
     expect(out[0].content).toHaveLength(1999); expect(source[0].content.endsWith('🌾后续')).toBe(true);
+  });
+  it('旧年级记录按原分类迁入大类，保留源值且不混入其他大类', () => {
+    const original = JSON.stringify([message('mind'), { ...message('safe'), category: 'life-safety' }]);
+    const values = new Map([[GROWTH_STORAGE_PREFIX + '5', original]]);
+    const storage = { getItem: (key: string) => values.get(key) ?? null };
+    expect(readGrowthGroupMessages(storage, 5, 'mind-communication').map(item => item.id)).toEqual(['mind']);
+    expect(readGrowthGroupMessages(storage, 5, 'safety-health').map(item => item.id)).toEqual(['safe']);
+    expect(values.get(GROWTH_STORAGE_PREFIX + '5')).toBe(original);
+    expect(readGrowthGroupMessages(storage, 6, 'mind-communication')).toEqual([]);
+  });
+  it('已清空的v2记录不再次迁入旧记录，新记录优先且拒绝跨类污染', () => {
+    const values = new Map([[GROWTH_STORAGE_PREFIX + '5', JSON.stringify([message('old')])], [growthStorageKey(5, 'mind-communication'), '[]']]);
+    const storage = { getItem: (key: string) => values.get(key) ?? null };
+    expect(readGrowthGroupMessages(storage, 5, 'mind-communication')).toEqual([]);
+    values.set(growthStorageKey(5, 'mind-communication'), JSON.stringify([message('new'), { ...message('safe'), category: 'campus-safety' }]));
+    expect(readGrowthGroupMessages(storage, 5, 'mind-communication').map(item => item.id)).toEqual(['new']);
   });
 });

@@ -1,14 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { audioUrl, classroomRequest, synthesizeSpeech, transcribeAudio, voiceHealth } from './api';
+import { audioUrl, classroomRequest, synthesizeSpeech, transcribeAudio, uploadMaterial, voiceHealth } from './api';
 import { NarrationQueue, type PlaybackStatus } from './audioQueue';
 import { canRecordClassroomAudio, startClassroomRecording, type ClassroomRecording } from './recording';
 import { newLocalId } from './navigation';
 import { registerVoiceContext, type VoiceReply } from './voiceContext';
 import { useAudioFocus } from './useAudioFocus';
+import { companionIdentityText } from './branding';
 import {
-  GROWTH_CATEGORY_ICONS, GROWTH_GRADE_LABELS, GROWTH_STORAGE_PREFIX, growthRequestHistory,
+  GROWTH_CATEGORY_ICONS, GROWTH_GRADE_LABELS, GROWTH_FALLBACK_TOPICS, growthGroupForCategory, growthStorageKey, readGrowthGroupMessages, growthRequestHistory,
   growthSuggestionBatch, restoreGrowthMessages, type GrowthCategoryId, type GrowthMessage,
-  type GrowthReply, type GrowthTopicsResponse,
+  type GrowthReply, type GrowthTopicsResponse, type GrowthGroupId,
 } from './growth-topics';
 import './growth-companion.css';
 
@@ -16,20 +17,37 @@ function readGrade(): number {
   try { const value = Number(localStorage.getItem('educationagent.growth.grade')); return Number.isInteger(value) && value >= 1 && value <= 12 ? value : 5; }
   catch { return 5; }
 }
-function readMessages(grade: number): GrowthMessage[] {
-  try { return restoreGrowthMessages(localStorage.getItem(GROWTH_STORAGE_PREFIX + grade)); } catch { return []; }
+function readMessages(grade: number, group: GrowthGroupId): GrowthMessage[] {
+  try { return readGrowthGroupMessages(localStorage, grade, group); } catch { return []; }
 }
 
-/** 一处成长入口，聊天只保存在当前浏览器；问答、引用和语音仍通过已有 Java 边界。 */
-export default function GrowthCompanion() {
+export interface GrowthCompanionProps {
+  group?: GrowthGroupId; category?: GrowthCategoryId; interactiveContext?: string; embedded?: boolean;
+  grade?: number;
+}
+
+/** 共享历史只读加载，个人续聊按年级和成长大类隔离；语音、引用与资料沿用服务端边界。 */
+export default function GrowthCompanion({ group = 'mind-communication', category: categoryProp, interactiveContext = '', embedded = false, grade: gradeProp }: GrowthCompanionProps = {}) {
   const audioFocus = useAudioFocus();
-  const [grade, setGrade] = useState(readGrade);
-  const [category, setCategory] = useState<GrowthCategoryId>('study-stress');
+  const [localGrade, setGrade] = useState(readGrade);
+  const grade = gradeProp ?? localGrade;
+  const [localCategory, setCategory] = useState<GrowthCategoryId>(() => group === 'safety-health' ? 'campus-safety' : group === 'language-general' ? 'general' : group === 'practice-creation' ? 'practice' : 'study-stress');
+  const category = categoryProp ?? localCategory;
   const [topics, setTopics] = useState<GrowthTopicsResponse | null>(null);
   const [topicsLoading, setTopicsLoading] = useState(true);
   const [topicsError, setTopicsError] = useState('');
   const [topicsRevision, setTopicsRevision] = useState(0);
-  const [messages, setMessages] = useState<GrowthMessage[]>(() => readMessages(readGrade()));
+  const [messages, setMessages] = useState<GrowthMessage[]>(() => readMessages(gradeProp ?? readGrade(), group));
+  const [sharedMessages, setSharedMessages] = useState<GrowthMessage[]>([]);
+  const [sharedLoading, setSharedLoading] = useState(true);
+  const [sharedError, setSharedError] = useState('');
+  const [sharedRevision, setSharedRevision] = useState(0);
+  const [material, setMaterial] = useState<{ text: string; fileName: string; truncated?: boolean } | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const uploadRun = useRef(0);
+  const sessionKey = `${grade}.${group}`;
+  const loadedSessionKey = useRef(sessionKey);
+  const [messagesSessionKey, setMessagesSessionKey] = useState(sessionKey);
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -81,7 +99,20 @@ export default function GrowthCompanion() {
       queue.current?.destroy();
     };
   }, []);
-  useEffect(() => registerVoiceContext({ id: `growth:${grade}:${category}`, kind: 'growth', label: '小禾姐姐 · 成长课堂', grade, ask: (question, signal) => voiceAsk.current(question, signal) }), [grade, category]);
+  useEffect(() => registerVoiceContext({ id: `growth:${grade}:${group}`, kind: 'growth', label: '小陶 · 成长课堂', grade, ask: (question, signal) => voiceAsk.current(question, signal) }), [grade, group]);
+  useEffect(() => {
+    if (loadedSessionKey.current === sessionKey) return;
+    cancelActivity(); uploadRun.current++; setUploading(false); setMaterial(null); setMessages(readMessages(grade, group)); setSharedMessages([]);
+    setInput(''); setError(''); setVoiceError(''); setSuggestionPage(0); setMessagesSessionKey(sessionKey); loadedSessionKey.current = sessionKey;
+  }, [sessionKey, grade, group, cancelActivity]);
+  useEffect(() => {
+    const controller = new AbortController(); setSharedLoading(true); setSharedError('');
+    void classroomRequest<{ grade: number; group: GrowthGroupId; messages: GrowthMessage[] }>(`/guide/conversations?grade=${grade}&group=${group}`, { signal: controller.signal })
+      .then(result => { if (!controller.signal.aborted) setSharedMessages(restoreGrowthMessages(JSON.stringify(result.messages)).filter(item => growthGroupForCategory(item.category) === group)); })
+      .catch(problem => { if (!controller.signal.aborted) { setSharedMessages([]); setSharedError(problem instanceof Error ? problem.message : '历史对话暂未加载'); } })
+      .finally(() => { if (!controller.signal.aborted) setSharedLoading(false); });
+    return () => controller.abort();
+  }, [grade, group, sharedRevision]);
   useEffect(() => {
     const controller = new AbortController(); setTopicsLoading(true); setTopicsError('');
     void classroomRequest<GrowthTopicsResponse>(`/guide/topics?grade=${grade}`, { signal: controller.signal })
@@ -91,23 +122,25 @@ export default function GrowthCompanion() {
     return () => controller.abort();
   }, [grade, topicsRevision]);
   useEffect(() => {
-    try { localStorage.setItem(GROWTH_STORAGE_PREFIX + grade, JSON.stringify(messages.slice(-40))); setStorageError(''); }
+    // 切换年级/大类的首帧仍持有上一个会话，不能把它写入新会话的键。
+    if (messagesSessionKey !== sessionKey) return;
+    try { localStorage.setItem(growthStorageKey(grade, group), JSON.stringify(messages.slice(-40))); setStorageError(''); }
     catch { setStorageError('浏览器暂时无法保存记录。当前对话仍可继续，离开后可能无法恢复。'); }
-  }, [grade, messages]);
-  useEffect(() => { messageEnd.current?.scrollIntoView({ block: 'nearest' }); }, [messages.length, busy]);
+  }, [grade, group, messages, sessionKey, messagesSessionKey]);
+  useEffect(() => { messageEnd.current?.scrollIntoView({ block: 'nearest' }); }, [messages.length, sharedMessages.length, busy]);
 
   const changeGrade = (value: number) => {
-    cancelActivity(); setGrade(value); setMessages(readMessages(value)); setInput(''); setError(''); setVoiceError(''); setTopics(null); setSuggestionPage(0);
+    cancelActivity(); setGrade(value); setInput(''); setError(''); setVoiceError(''); setTopics(null); setSuggestionPage(0);
     try { localStorage.setItem('educationagent.growth.grade', String(value)); } catch { /* 非必要偏好不阻断对话 */ }
   };
   const selectCategory = (value: GrowthCategoryId) => { setCategory(value); setSuggestionPage(0); };
   const clearConversation = () => {
     cancelActivity(); setMessages([]); setInput(''); setError(''); setVoiceError(''); setSuggestionPage(0);
-    try { localStorage.removeItem(GROWTH_STORAGE_PREFIX + grade); } catch { /* 清除内存状态仍然有效 */ }
+    try { localStorage.setItem(growthStorageKey(grade, group), '[]'); } catch { /* 清除内存状态仍然有效 */ }
   };
   const send = async (questionOverride?: string, externalSignal?: AbortSignal): Promise<GrowthReply | undefined> => {
     const question = (questionOverride ?? input).trim();
-    if (!question || sending.current || recordingBusy.current) return;
+    if (!question || sending.current || recordingBusy.current || uploading) return;
     if (question.length > 2000) { setError('这段话超过 2000 字，可以先分成两段慢慢说。'); return; }
     sending.current = true; setBusy(true); setError(''); queue.current?.stop();
     const run = epoch.current;
@@ -115,17 +148,19 @@ export default function GrowthCompanion() {
     const relayAbort = () => controller.abort(); externalSignal?.addEventListener('abort', relayAbort, { once: true });
     if (externalSignal?.aborted) controller.abort();
     const entry: GrowthMessage = { id: newLocalId(), role: 'user', content: question, category };
-    const payload = { question, grade, category, history: growthRequestHistory(messages) };
+    const payload = { question, grade, group, category, history: growthRequestHistory([...sharedMessages, ...messages]),
+      ...(material ? { sourceText: material.text, sourceName: material.fileName } : {}), ...(interactiveContext ? { interactiveContext: interactiveContext.slice(0, 4000) } : {}) };
     setMessages(previous => [...previous, entry].slice(-40)); setInput('');
     try {
       const reply = await classroomRequest<GrowthReply>('/guide/chat', { method: 'POST', body: JSON.stringify(payload), signal: controller.signal });
       if (controller.signal.aborted || !mounted.current || run !== epoch.current) return;
       if (typeof reply.text !== 'string' || !reply.text.trim()) throw new Error('这次回复没有完整送达，请再试一次。');
       setMessages(previous => [...previous, { id: reply.id || newLocalId(), role: 'assistant' as const,
-        content: reply.text, category: reply.category, sources: reply.sources || [], suggestions: reply.suggestions || [], crisis: reply.crisis }].slice(-40));
+        content: reply.text, category: reply.category || category, sources: reply.sources || [], suggestions: reply.suggestions || [], crisis: reply.crisis }].slice(-40));
       setSuggestionPage(0);
       return reply;
     } catch (problem) {
+      if (controller.signal.aborted && mounted.current) setMessages(previous => previous.filter(item => item.id !== entry.id));
       if (!controller.signal.aborted && mounted.current && run === epoch.current) {
         setError(problem instanceof Error ? problem.message : '这次没有连上，请稍后重试。');
         setInput(question); setMessages(previous => previous.filter(item => item.id !== entry.id));
@@ -191,40 +226,60 @@ export default function GrowthCompanion() {
     if (readingId === message.id && playback === 'paused') { queue.current?.resume(); return; }
     setReadingId(message.id); setVoiceError(''); void queue.current?.readResponse(message.content, 'peer');
   };
-  const currentTopic = topics?.categories.find(item => item.id === category);
-  const lastReply = [...messages].reverse().find(item => item.role === 'assistant' && item.category === category);
+  const attachMaterial = async (file: File) => {
+    if (file.size > 10 * 1024 * 1024) { setError('请选择不超过 10 MB 的资料。'); return; }
+    if (!/\.(pdf|docx?|txt|md|markdown)$/i.test(file.name)) { setError('目前支持 PDF、Word、TXT 和 Markdown 资料。'); return; }
+    cancelActivity(); const run = ++uploadRun.current; setUploading(true); setError('');
+    try {
+      const value = await uploadMaterial(file);
+      if (!mounted.current || run !== uploadRun.current) return;
+      if (!value.text?.trim()) throw new Error('没有读取到文字，请换一份含文字的资料。');
+      setMaterial({ ...value, text: value.text.slice(0, 20000) });
+    } catch (problem) { if (mounted.current && run === uploadRun.current) setError(problem instanceof Error ? problem.message : '资料读取失败，请重试。'); }
+    finally { if (mounted.current && run === uploadRun.current) setUploading(false); }
+  };
+  const availableTopics = (topics?.categories || GROWTH_FALLBACK_TOPICS).filter(item => growthGroupForCategory(item.id) === group);
+  const currentTopic = availableTopics.find(item => item.id === category) || GROWTH_FALLBACK_TOPICS.find(item => item.id === category);
+  const allMessages = [...sharedMessages, ...messages];
+  const lastReply = [...allMessages].reverse().find(item => item.role === 'assistant' && item.category === category);
   const suggestions = growthSuggestionBatch(lastReply?.suggestions || [], currentTopic?.questions || [], suggestionPage);
   const ownMicBusy = recordingState !== 'idle';
   const micBusy = ownMicBusy || audioFocus.microphoneBlocked;
 
-  return <section className="growth-companion" aria-label="成长课堂">
-    <header className="gc-header"><div><span className="gc-eyebrow">成长课堂 · 说一说，也是一小步</span><h1>有些心事，可以慢慢说。</h1><p>学习之外，情绪、关系和成长中的疑问，也值得被认真听见。</p></div><label className="gc-grade">我在读<select value={grade} onChange={event => changeGrade(Number(event.target.value))}>{GROWTH_GRADE_LABELS.map((label, index) => <option key={label} value={index + 1}>{label}</option>)}</select></label></header>
+  return <section className={`growth-companion${embedded ? ' gc-embedded' : ''}`} aria-label="小陶问答">
+    {!embedded && <header className="gc-header"><div><span className="gc-eyebrow">成长课堂 · 说一说，也是一小步</span><h1>在好奇与尝试中，一起成长。</h1><p>把问题说出来，把想法做出来，小陶陪你找到下一小步。</p></div><label className="gc-grade">我在读<select value={grade} disabled={gradeProp !== undefined} onChange={event => changeGrade(Number(event.target.value))}>{GROWTH_GRADE_LABELS.map((label, index) => <option key={label} value={index + 1}>{label}</option>)}</select></label></header>}
     <div className="gc-layout">
-      <aside className="gc-topics"><div className="gc-topics-title"><h2>从你关心的事开始</h2><span>不需要一次说完</span></div>
+      {!embedded && <aside className="gc-topics"><div className="gc-topics-title"><h2>从你关心的事开始</h2><span>不需要一次说完</span></div>
         {topicsLoading && <p className="gc-note" role="status">正在准备适合这个学段的话题…</p>}
         {topicsError && <div className="gc-error" role="alert">{topicsError}<button onClick={() => setTopicsRevision(value => value + 1)}>重新加载话题</button></div>}
-        <nav className="gc-category-list" aria-label="成长话题分类">{topics?.categories.map(topic => <button key={topic.id} disabled={busy || micBusy} aria-pressed={category === topic.id} className={category === topic.id ? 'active' : ''} onClick={() => selectCategory(topic.id)}><span className="gc-topic-icon" aria-hidden="true">{GROWTH_CATEGORY_ICONS[topic.id]}</span><span><strong>{topic.label}</strong><small>{topic.description}</small></span><span aria-hidden="true">›</span></button>)}</nav>
+        <nav className="gc-category-list" aria-label="成长话题分类">{availableTopics.map(topic => <button key={topic.id} disabled={busy || micBusy} aria-pressed={category === topic.id} className={category === topic.id ? 'active' : ''} onClick={() => selectCategory(topic.id)}><span className="gc-topic-icon" aria-hidden="true">{GROWTH_CATEGORY_ICONS[topic.id]}</span><span><strong>{topic.label}</strong><small>{topic.description}</small></span><span aria-hidden="true">›</span></button>)}</nav>
         <div className="gc-prompt-box"><div className="gc-prompt-title"><h3>{lastReply ? '接着聊一聊' : '猜你想问'}</h3><button disabled={suggestions.length < 2 || busy || micBusy} onClick={() => setSuggestionPage(value => value + 1)}>换一批 ↻</button></div><p>{currentTopic?.label || '写下任何想聊的成长问题'} · 点击问题就能开始</p>
           <div className="gc-prompts">{suggestions.map(question => <button key={question} disabled={busy || micBusy} onClick={() => void send(question)}>{question}<span aria-hidden="true">↗</span></button>)}</div>
         </div><div className="gc-real-support"><span aria-hidden="true">☀</span><p>需要现实中的帮助时，老师、家人或其他值得信任的大人也可以和你一起想办法。</p></div>
-      </aside>
-      <div className="gc-chat"><div className="gc-chat-header"><div className="gc-persona"><span className="gc-persona-avatar" aria-hidden="true">禾</span><div><h2>小禾姐姐 <span>AI</span></h2><p>耐心听你说，陪你整理想法</p></div></div><button className="gc-clear" disabled={busy || micBusy} onClick={clearConversation}>清除本年级对话</button></div>
+      </aside>}
+      <div className="gc-chat"><div className="gc-chat-header"><div className="gc-persona"><span className="gc-persona-avatar" aria-hidden="true">陶</span><div><h2>小陶问答 <span>AI</span></h2><p>{group === 'practice-creation' ? '带着操作与观察，一起理解为什么' : group === 'language-general' ? '从一个问题出发，把世界看得更清楚' : '耐心听你说，陪你整理想法'}</p></div></div><button className="gc-clear" disabled={busy || micBusy} onClick={clearConversation}>清除我的续聊</button></div>
         <div className="gc-messages" aria-live="polite">
-          {!messages.length && <div className="gc-welcome"><span className="gc-welcome-mark" aria-hidden="true">✦</span><h3>你好，我是小禾姐姐。</h3><p>{topics?.persona.intro || '我是一个 AI 成长陪伴助手。你可以用自己的节奏说说最近的感受，我会陪你把问题一点点理清楚。'}</p><div className="gc-welcome-pills"><span>不急着下结论</span><span>一起找一小步</span><span>也向现实中的人求助</span></div></div>}
-          {messages.map(message => <article key={message.id} className={`gc-message ${message.role === 'user' ? 'gc-user' : 'gc-assistant'} ${message.crisis ? 'gc-support-message' : ''}`}><div className="gc-message-label">{message.role === 'user' ? '我' : '小禾姐姐 · AI'}{message.crisis && <span>先照顾眼前的安全</span>}</div><p className="gc-message-text">{message.content}</p>
+          {sharedLoading && <p className="gc-note" role="status">正在读取课堂对话…</p>}
+          {sharedError && <div className="gc-error" role="status">课堂历史暂未连上，仍可继续提问。<button onClick={() => setSharedRevision(value => value + 1)}>重新读取</button></div>}
+          {!allMessages.length && !sharedLoading && <div className="gc-welcome"><span className="gc-welcome-mark" aria-hidden="true">✦</span><h3>你好，我是小陶。</h3><p>把正在想的问题告诉我，我们可以先观察、再尝试，一起把下一步想清楚。</p><div className="gc-welcome-pills"><span>从一个问题开始</span><span>尝试一小步</span><span>把发现说清楚</span></div></div>}
+          {allMessages.map((message, index) => <article key={`${index < sharedMessages.length ? 'shared' : 'local'}:${message.id}`} className={`gc-message ${message.role === 'user' ? 'gc-user' : 'gc-assistant'} ${message.crisis ? 'gc-support-message' : ''}`}><div className="gc-message-label">{message.role === 'user' ? '我' : '小陶 · AI'}{message.crisis && <span>先照顾眼前的安全</span>}</div><p className="gc-message-text">{message.role === 'user' ? message.content : companionIdentityText(message.content)}</p>
             {message.role === 'assistant' && <><div className="gc-message-tools"><button disabled={!voice.ttsAvailable || busy || micBusy} onClick={() => readAnswer(message)}>{readingId === message.id && playback === 'paused' ? '▶ 继续听' : readingId === message.id && (playback === 'playing' || playback === 'loading') ? 'Ⅱ 暂停朗读' : '▷ 听一听'}</button>{readingId === message.id && <button onClick={() => queue.current?.stop()}>停止</button>}<span>{message.sources?.length ? `参考 ${message.sources.length} 条资料片段` : message.crisis ? '需要时请联系身边可信的大人' : '未引用知识库资料'}</span></div>
               {!!message.sources?.length && <details className="gc-sources"><summary>看看参考资料</summary>{message.sources.map((source, index) => <div key={`${source.file}-${index}`}><strong>{source.file}</strong>{source.content && <p>{source.content}</p>}</div>)}<small>这些是检索到的参考片段，并非针对个人情况的评估结论。</small></details>}</>}
           </article>)}
-          {busy && <div className="gc-thinking" role="status"><span>· · ·</span>小禾姐姐正在认真想一想…</div>}<div ref={messageEnd} />
+          {busy && <div className="gc-thinking" role="status"><span>· · ·</span>小陶正在认真想一想…</div>}<div ref={messageEnd} />
         </div>
         <div className="gc-compose"><div className="gc-current-topic">正在聊：{currentTopic?.label || '成长中的疑问'}<span>{GROWTH_GRADE_LABELS[grade - 1]}</span></div>
+          {embedded && <div className="gc-inline-prompts" aria-label="相关问题">{suggestions.map(question => <button key={question} disabled={busy || micBusy || uploading} onClick={() => { setInput(question); inputRef.current?.focus(); }}>{question}</button>)}<button className="gc-prompt-refresh" disabled={busy || micBusy} onClick={() => setSuggestionPage(value => value + 1)}>换一批 ↻</button></div>}
+          {interactiveContext && <details className="gc-interactive-context"><summary>已关联当前操作与观察</summary><p>{interactiveContext.slice(0, 4000)}</p></details>}
+          <div className="gc-material-row"><label className={`gc-material-picker${busy || uploading ? ' is-disabled' : ''}`}><span aria-hidden="true">＋</span>{uploading ? '正在读取资料…' : material ? '替换参考资料' : '添加参考资料'}<input type="file" accept=".pdf,.doc,.docx,.txt,.md,.markdown" disabled={busy || micBusy || uploading} onChange={event => { const file = event.target.files?.[0]; event.target.value = ''; if (file) void attachMaterial(file); }} /></label><span>PDF / Word / TXT / Markdown · 10 MB</span></div>
+          {material && <div className="gc-material-card"><span aria-hidden="true">▤</span><div><strong>{material.fileName}</strong><small>已读取 {material.text.length.toLocaleString()} 字{material.truncated ? ' · 已截取前 20,000 字' : ' · 用于当前对话'}</small></div><button aria-label={`移除资料${material.fileName}`} disabled={busy} onClick={() => { cancelActivity(); uploadRun.current++; setUploading(false); setMaterial(null); }}>移除</button></div>}
           {error && <div className="gc-error" role="alert">{error}<button onClick={() => void send()} disabled={busy || !input.trim() || micBusy}>重试发送</button></div>}
           {voiceError && <div className="gc-error" role="alert">{voiceError}<button onClick={() => setVoiceError('')}>收起</button></div>}
-          <label className="cr-visually-hidden" htmlFor="growth-question">想对小禾姐姐说的话</label><textarea ref={inputRef} id="growth-question" rows={3} maxLength={2000} value={input} disabled={busy || micBusy} onChange={event => setInput(event.target.value)} placeholder={recordingState === 'transcribing' ? '正在把录音转成文字，确认后再发送…' : '今天发生了什么？或者，有什么一直想问却没开口的事？'} />
+          <label className="cr-visually-hidden" htmlFor="growth-question">想对小陶说的话</label><textarea ref={inputRef} id="growth-question" rows={3} maxLength={2000} value={input} disabled={busy || micBusy} onChange={event => setInput(event.target.value)} placeholder={recordingState === 'transcribing' ? '正在把录音转成文字，确认后再发送…' : group === 'practice-creation' ? '说说你的发现，或请小陶解释当前代码与操作…' : '想聊什么？把问题、感受或新发现写在这里…'} />
           <div className="gc-compose-actions"><div><button className={recordingState === 'recording' ? 'gc-recording' : ''} disabled={busy || recordingState === 'starting' || recordingState === 'transcribing' || (audioFocus.microphoneBlocked && !ownMicBusy) || !voice.asrAvailable || (!micBusy && !canRecordClassroomAudio())} onClick={() => void toggleRecording()}>{recordingState === 'recording' ? `■ 完成录音 ${duration}s` : recordingState === 'starting' ? '打开麦克风…' : recordingState === 'transcribing' ? '正在转写…' : '● 录音说一说'}</button>{ownMicBusy && <button onClick={cancelRecording}>取消录音</button>}{voice.asrAvailable && !micBusy && <label className="gc-wav-upload">上传 WAV<input type="file" accept=".wav,audio/wav" disabled={busy} onChange={event => { const file = event.target.files?.[0]; event.target.value = ''; if (!file || sending.current || recordingBusy.current) return; const run = ++recordingRun.current; recordingBusy.current = true; queue.current?.setMicrophoneBusy(true); void recognize(file, run); }} /></label>}</div><button className="gc-send" disabled={busy || micBusy || !input.trim()} onClick={() => void send()}>{busy ? '正在发送…' : '发送 ↑'}</button></div>
           <p className="gc-input-note">{micBusy ? '最长 60 秒。转成文字后，由你确认再发送。' : !voice.asrAvailable ? '现在可以输入文字聊天；语音识别尚不可用。' : !canRecordClassroomAudio() ? '当前浏览器需要 HTTPS 麦克风权限，也可以输入文字或上传 WAV。' : '录音会先转成文字，不会自动发送。'} <span>{input.length}/2000</span></p>
         </div>
       </div>
-    </div><p className="gc-privacy">对话记录只保存在当前浏览器，按年级分开；发送时会将近期对话交给 AI 理解，不写入公共课程或儿童档案。共用设备时，可以清除本年级对话。</p>{storageError && <p className="gc-error" role="status">{storageError}</p>}
+    </div><p className="gc-privacy">课堂已有对话由网站保存；你的续聊仅保存在当前浏览器，按年级与大类分开。发送时，近期对话和已选资料会用于理解问题。清除续聊会保留课堂已有对话。</p>{storageError && <p className="gc-error" role="status">{storageError}</p>}
   </section>;
 }

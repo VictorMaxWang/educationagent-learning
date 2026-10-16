@@ -47,7 +47,11 @@ public class ClassroomCourseService {
     private final ConcurrentMap<String, ClassroomCancellation> running = new ConcurrentHashMap<>();
     private ClassroomMediaService media;
 
-    public record CreateRequest(String topic, Integer grade, String subject, String domain, String sourceText, String sourceName) {}
+    public record CreateRequest(String topic, Integer grade, String subject, String domain, String sourceText, String sourceName, String direction) {
+        public CreateRequest(String topic,Integer grade,String subject,String domain,String sourceText,String sourceName) {
+            this(topic,grade,subject,domain,sourceText,sourceName,null);
+        }
+    }
     public record ChatRequest(String sceneId, String text, String speaker, JsonNode elementReference,
                               JsonNode interactiveState, String intent) {
         public ChatRequest(String sceneId,String text,String speaker) { this(sceneId,text,speaker,null,null,null); }
@@ -98,10 +102,13 @@ public class ClassroomCourseService {
     public ObjectNode create(CreateRequest request) {
         if (request == null) throw bad("请填写学习主题");
         String topic = required(request.topic(), "学习主题", 200);
-        String subject = required(request.subject(), "学科", 80);
         if (request.grade() == null || request.grade() < 1 || request.grade() > 12) throw bad("年级必须为 1–12");
         String domain = request.domain() == null ? "general" : request.domain();
         if (!DOMAINS.contains(domain)) throw bad("不支持的教育专题");
+        String direction = checkedDirection(request.direction(),domain);
+        // 非学科方向不采纳隐藏的学科旧值；技术上的 domain 仍供旧课程与知识库兼容。
+        String subject = direction.equals("academic") ? required(request.subject(),"学科",80)
+            : direction.equals("wellbeing") ? "身心成长" : "实践探索";
         String source = optional(request.sourceText(), "资料正文", 20000);
         String sourceName = optional(request.sourceName(), "资料名称", 200);
         tutor.precheck(topic + "\n" + source).ifPresent(reply -> { throw new ClassroomException(422, reply); });
@@ -109,7 +116,7 @@ public class ClassroomCourseService {
         String id = UUID.randomUUID().toString();
         ObjectNode c = json.createObjectNode();
         c.put("id", id); c.put("title", topic); c.put("topic", topic); c.put("grade", request.grade());
-        c.put("subject", subject); c.put("domain", domain); c.put("status", "outlining");
+        c.put("subject", subject); c.put("domain", domain); c.put("direction",direction); c.put("status", "outlining");
         c.put("sourceText", source); c.put("sourceName", sourceName);
         c.put("mediaEnabled",media!=null&&media.isAvailable());
         c.putArray("outlines"); c.putArray("scenes"); c.putArray("messages"); c.putArray("sources");
@@ -284,6 +291,7 @@ public class ClassroomCourseService {
     public ObjectNode portable(String id) {
         synchronized(lock(id)) {
             ObjectNode copy=load(id).deepCopy();
+            copy.put("direction",checkedDirection(copy.hasNonNull("direction")?copy.path("direction").asText():null,copy.path("domain").asText("general")));
             copy.remove(List.of("history","submissions","messages","runtimeOperations","sourceText","generationContext","error"));
             for(JsonNode outline:copy.path("outlines")) if(outline.isObject()) ((ObjectNode)outline).remove("mediaGenerations");
             ObjectNode boards=json.createObjectNode();
@@ -319,11 +327,13 @@ public class ClassroomCourseService {
         String topic=required(source.path("topic").asText(source.path("title").asText()),"学习主题",200);
         int grade=source.path("grade").asInt();
         if(!source.path("grade").isIntegralNumber()||grade<1||grade>12) throw bad("年级必须为1至12");
-        String subject=required(source.path("subject").asText(),"学科",80);
         String domain=source.path("domain").asText("general"); if(!DOMAINS.contains(domain)) throw bad("不支持的教育专题");
+        String direction=checkedDirection(source.hasNonNull("direction")?source.path("direction").asText():null,domain);
+        String subject=direction.equals("academic")?required(source.path("subject").asText(),"学科",80)
+                :direction.equals("wellbeing")?"身心成长":"实践探索";
         String id=UUID.randomUUID().toString();
         ObjectNode course=json.createObjectNode().put("id",id).put("title",required(source.path("title").asText(topic),"课程名称",200))
-                .put("topic",topic).put("grade",grade).put("subject",subject).put("domain",domain).put("status","ready")
+                .put("topic",topic).put("grade",grade).put("subject",subject).put("domain",domain).put("direction",direction).put("status","ready")
                 .put("createdAt",now()).put("updatedAt",now()).put("sourceName",optional(source.path("sourceName").asText(),"资料名称",200))
                 .put("sourceText","").put("mediaEnabled",false).put("imported",true);
         ArrayNode scenes=course.putArray("scenes"); ArrayNode outlines=course.putArray("outlines");
@@ -343,7 +353,7 @@ public class ClassroomCourseService {
                 question.put("id",UUID.randomUUID().toString()); question.remove("no");
                 if(!question.has("answer")&&question.has("correctAnswer")) {
                     JsonNode answer=question.path("correctAnswer");
-                    if(answer.isTextual()) {
+                    if(answer.isTextual()&&Set.of("single","multiple").contains(question.path("type").asText())) {
                         ArrayNode values=question.putArray("answer");
                         for(char ch:answer.asText().toUpperCase(Locale.ROOT).replaceAll("[^A-Z]","").toCharArray()) values.add(String.valueOf(ch));
                     } else question.set("answer",answer.deepCopy());
@@ -395,7 +405,7 @@ public class ClassroomCourseService {
         if (blocked.isPresent()) reply = blocked.get();
         else {
             ArrayNode messages = json.createArrayNode();
-            String role = speaker.equals("peer") ? "你是明确标识为 AI 的学习同伴，提供一种思路或追问，不冒充真人同学。" : "你是耐心的学习导师，先解释思路，用短句和逐步引导帮助理解。";
+            String role = speaker.equals("peer") ? "你是小陶，明确标识为 AI 的学习同伴，提供一种思路或追问，不冒充真人同学。" : "你是晓陶学伴中的学习导师，先解释思路，用短句和逐步引导帮助理解。";
             messages.addObject().put("role", "system").put("content", role + "面向中国中小学 " + snapshot.path("grade").asInt()
                     + " 年级学生。主题：" + snapshot.path("topic").asText() + "。遵循适龄教育；不作医疗诊断，不给危险操作细节。"
                     + "乡村学生不等于能力较低，不假设其家庭结构；举例可使用校园、生活、田园等熟悉情境。"
@@ -587,6 +597,15 @@ public class ClassroomCourseService {
                 "safety", tutor.health(), "storage", "MySQL edu_learning_course", "model", "existing OpenAiChatModel");
     }
 
+    /** 运行队列只需读取任务计数，不触发生成器的健康探测或外部模型请求。 */
+    public boolean hasActiveGeneration() { return !running.isEmpty(); }
+
+    private static String checkedDirection(String direction,String domain) {
+        if(direction==null) return "general".equals(domain)?"academic":"wellbeing";
+        if(!Set.of("academic","wellbeing","exploration").contains(direction)) throw bad("请选择有效的学习方向");
+        return direction;
+    }
+
     private void enqueue(String id, ClassroomCancellation token, boolean outlineOnly) {
         jobs.submit(() -> {
             try {
@@ -650,23 +669,46 @@ public class ClassroomCourseService {
 
     private void retrieveSources(ObjectNode input, ClassroomCancellation token) {
         String domain = input.path("domain").asText();
-        if (domain.equals("general")) return;
-        token.check();
-        DocKnowledgeAssistant assistant = knowledge.getAssistant(domain);
-        if (assistant == null) { input.put("retrievalNote", "该专题知识库未配置；课程依据用户材料和模型知识，请核对来源"); return; }
-        try {
-            List<Map<String, Object>> sources = EvidenceSelector.select(assistant.searchArticles(input.path("topic").asText(), null, EvidenceSelector.CANDIDATE_LIMIT),3);
-            ArrayNode sourceViews = json.createArrayNode(); StringBuilder context = new StringBuilder();
-            for (Map<String, Object> source : sources) {
-                String text = String.valueOf(source.getOrDefault("content", ""));
-                context.append(truncate(text, 1800)).append('\n');
-                ObjectNode s = sourceViews.addObject(); s.put("file", EvidenceSelector.displayFile(source.get("file")));
-                s.put("source", String.valueOf(source.getOrDefault("source", domain)));
-                if (source.get("chunkIndex") != null) s.put("chunkIndex", String.valueOf(source.get("chunkIndex")));
-            }
-            input.set("sources", sourceViews); input.put("generationContext", context.toString());
-            input.put("retrievalNote", sources.isEmpty() ? "未检索到匹配资料，请核对课程内容来源" : "使用了专题知识库片段；资料尚需按年级核对");
-        } catch (Exception unavailable) { input.put("retrievalNote", "专题知识库暂不可用，未引用检索资料"); }
+        String direction=checkedDirection(input.hasNonNull("direction")?input.path("direction").asText():null,domain);
+        List<String> domains=switch(direction) {
+            case "wellbeing" -> List.of("psychology","lifesafety","sexedu");
+            case "exploration" -> List.of("tongshi");
+            default -> domain.equals("general")?List.of():List.of(domain);
+        };
+        if(domains.isEmpty()) return; // 旧版 general 学科学习不新增知识库检索行为。
+        List<List<Map<String,Object>>> groups=new ArrayList<>();int unavailable=0;
+        for(String candidateDomain:domains) {
+            token.check(); DocKnowledgeAssistant assistant=knowledge.getAssistant(candidateDomain);
+            if(assistant==null) {unavailable++;continue;}
+            try {
+                List<Map<String,Object>> found=assistant.searchArticles(input.path("topic").asText(),null,EvidenceSelector.CANDIDATE_LIMIT);
+                List<Map<String,Object>> group=new ArrayList<>();
+                if(found!=null) for(Map<String,Object> source:found) if(source!=null) {
+                    Map<String,Object> candidate=new LinkedHashMap<>(source);
+                    // 领域标签来自实际调用的知识库；不会构造内容或虚构文件引用。
+                    candidate.put("_retrievalDomain",candidateDomain);group.add(candidate);
+                }
+                groups.add(group);
+            } catch(CancellationException cancelled) {throw cancelled;}
+            catch(Exception failed) {unavailable++;}
+        }
+        // 不比较不同向量库的距离。按各库检索名次轮流放入，再统一去重与选证。
+        List<Map<String,Object>> candidates=new ArrayList<>();
+        for(int rank=0;rank<EvidenceSelector.CANDIDATE_LIMIT;rank++) for(List<Map<String,Object>> group:groups)
+            if(rank<group.size()) candidates.add(group.get(rank));
+        List<Map<String,Object>> selected=EvidenceSelector.select(candidates,3);
+        ArrayNode sourceViews=json.createArrayNode();StringBuilder context=new StringBuilder();
+        for(Map<String,Object> source:selected) {
+            String file=EvidenceSelector.displayFile(source.get("file"));
+            context.append("【来源：").append(file).append("】\n").append(truncate((String)source.get("content"),1800)).append('\n');
+            ObjectNode view=sourceViews.addObject().put("file",file);
+            Object label=source.get("source");
+            view.put("source",label instanceof String value&&!value.isBlank()?value:String.valueOf(source.get("_retrievalDomain")));
+            if(source.get("chunkIndex")!=null) view.put("chunkIndex",String.valueOf(source.get("chunkIndex")));
+        }
+        input.set("sources",sourceViews);input.put("generationContext",context.toString());
+        input.put("retrievalNote",selected.isEmpty()?(unavailable>0?"专题知识库部分未配置或暂不可用，未检索到可引用资料":"未检索到匹配资料，请核对课程内容来源")
+                :"使用了专题知识库片段；资料尚需按年级核对"+(unavailable>0?"；部分知识库暂不可用":""));
         token.check();
     }
 
@@ -739,6 +781,7 @@ public class ClassroomCourseService {
     }
     static ObjectNode publicCourse(ObjectNode internal) {
         ObjectNode copy = internal.deepCopy();
+        copy.put("direction",checkedDirection(copy.hasNonNull("direction")?copy.path("direction").asText():null,copy.path("domain").asText("general")));
         ClassroomEditingSupport.initialize(copy);
         copy.remove(List.of("sourceText", "generationContext", "history", "submissions", "runtimeOperations"));
         for(JsonNode outline:copy.path("outlines")) if(outline.isObject()) ((ObjectNode)outline).remove("mediaGenerations");
@@ -747,7 +790,7 @@ public class ClassroomCourseService {
             ((ObjectNode)scene).remove("_pendingMediaRepair");
             ClassroomSlideSanitizer.cleanScene((ObjectNode) scene);
             if ("quiz".equals(scene.path("type").asText())) {
-                for (JsonNode q : scene.path("content").path("questions")) ((ObjectNode) q).remove(List.of("answer", "analysis", "commentPrompt", "correctAnswer", "explanation"));
+                for (JsonNode q : scene.path("content").path("questions")) ((ObjectNode) q).remove(List.of("answer", "analysis", "commentPrompt", "correctAnswer", "explanation", "gradingPoints"));
             }
         }
         return copy;

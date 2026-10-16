@@ -1,6 +1,7 @@
 import { API_BASE_URL } from '../../api/baseUrl';
 import { classroomRequest, synthesizeSpeech } from '../api';
 import type { Course } from '../types';
+import { companionIdentityText } from '../branding';
 import { checkAbort, EXPORT_ASSET_MAX_BYTES, EXPORT_MAX_BYTES, validateEnvelope, type ExportOptions, type ExportSnapshot, type PortableEnvelope } from './contract';
 
 const LOCAL_IMAGE = /^\/api\/classroom\/media\/[A-Za-z0-9_-]+\.(?:jpe?g|png|webp|gif)$/i;
@@ -138,6 +139,13 @@ export async function collectSnapshot(envelope: PortableEnvelope, options: Expor
   for (let sceneIndex = 0; sceneIndex < copy.course.scenes.length; sceneIndex++) {
     const scene = copy.course.scenes[sceneIndex];
     checkAbort(options.signal);
+    // 仅整理导出深副本中的学伴身份。题干、教材、用户原话不参与替换，也不回写原课程。
+    for (const action of scene.actions || []) if (action.type === 'speech' || action.type === 'discussion') {
+      for (const field of ['text', 'content', 'prompt', 'topic'] as const) {
+        const value = action[field];
+        if (typeof value === 'string') action[field] = companionIdentityText(value);
+      }
+    }
     options.onProgress?.({ phase: '收集页面与图片', completed: sceneIndex, total: copy.course.scenes.length });
     if (scene.content.canvas) await replaceImages(scene.content.canvas);
     if (scene.whiteboards) await replaceImages(scene.whiteboards);

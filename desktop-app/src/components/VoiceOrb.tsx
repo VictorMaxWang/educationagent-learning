@@ -5,6 +5,7 @@ import { NarrationQueue, type PlaybackStatus } from '../classroom/audioQueue';
 import { canRecordClassroomAudio, startClassroomRecording, type ClassroomRecording } from '../classroom/recording';
 import { currentVoiceContext, subscribeVoiceContext, type VoiceContext, type VoiceReply } from '../classroom/voiceContext';
 import { GRADE_LABELS } from '../classroom/types';
+import { companionIdentityText } from '../classroom/branding';
 import './VoiceOrb.css';
 
 type Phase = 'idle' | 'starting' | 'recording' | 'transcribing' | 'thinking';
@@ -50,7 +51,7 @@ export default function VoiceOrb({ suspended = false }: { suspended?: boolean })
   if (!audio.current) audio.current = new NarrationQueue({
     synthesize: synthesizeSpeech, resolveUrl: audioUrl,
     onStatus: value => { if (mounted.current) setPlayback(value); },
-    onCaption: text => { if (mounted.current) setCaption(text); },
+    onCaption: text => { if (mounted.current) setCaption(companionIdentityText(text)); },
     onError: text => { if (mounted.current) setError(text); },
     onAction: async (_index, action, signal) => {
       if (action.type.startsWith('wb_') || action.type.startsWith('widget_') || action.type === 'spotlight' || action.type === 'laser') {
@@ -153,13 +154,14 @@ export default function VoiceOrb({ suspended = false }: { suspended?: boolean })
       let fallbackTurn: HistoryItem[] | undefined;
       if (source) response = await source.ask(text, controller.signal);
       else {
-        const value = await classroomRequest<{ text: string }>('/guide/chat', { method: 'POST', body: JSON.stringify({ question: text, grade, category: 'needs', history: boundedVoiceHistory(history.current) }), signal: controller.signal });
+        const value = await classroomRequest<{ text: string }>('/guide/chat', { method: 'POST', body: JSON.stringify({ question: text, grade, group: 'mind-communication', category: 'needs', history: boundedVoiceHistory(history.current) }), signal: controller.signal });
         if (!value.text?.trim()) throw new Error('这次回答没有完整送达，请再试一次。');
         response = { text: value.text, role: 'peer' };
         fallbackTurn = [{ role: 'user', content: text }, { role: 'assistant', content: value.text }];
       }
       if (!mounted.current || epoch !== run.current || controller.signal.aborted) return;
       if (fallbackTurn) history.current = [...history.current, ...fallbackTurn].slice(-12);
+      response = { ...response, text: companionIdentityText(response.text) };
       reply.current = response; setAnswer(response.text); setDraft(''); setPhase('idle');
       if (autoRead && capabilities.ttsAvailable) playReply(response);
       else if (response.actions?.length) void audio.current?.playActions(response.actions.filter(action => action.type !== 'speech' && action.type !== 'discussion'), response.role);
@@ -169,13 +171,13 @@ export default function VoiceOrb({ suspended = false }: { suspended?: boolean })
   };
   const recording = phase === 'recording' || phase === 'starting', waiting = phase === 'thinking' || phase === 'transcribing';
   const otherMicrophone = focus.microphoneBlocked && !recording, speaking = playback === 'playing' || playback === 'loading';
-  const label = phase === 'recording' ? `正在听 · ${duration}s` : phase === 'starting' ? '打开麦克风' : phase === 'transcribing' ? '转成文字中' : phase === 'thinking' ? '正在想一想' : speaking ? '正在朗读' : '小禾语音';
+  const label = phase === 'recording' ? `正在听 · ${duration}s` : phase === 'starting' ? '打开麦克风' : phase === 'transcribing' ? '转成文字中' : phase === 'thinking' ? '正在想一想' : speaking ? '正在朗读' : '小陶语音';
   return <div className={`voice-orb ${open ? 'vo-open' : ''} ${recording ? 'vo-recording' : ''} ${speaking ? 'vo-speaking' : ''}`} hidden={suspended} style={{ '--vo-keyboard-offset': `${keyboardOffset}px` } as CSSProperties}>
-    {open && <section className="vo-panel" role="dialog" aria-label="小禾语音助手" onKeyDown={event => { if (event.key === 'Escape') close(); }}>
-      <header className="vo-header"><span className="vo-mini-mark" aria-hidden="true">禾</span><div><h2>小禾语音 <span>AI</span></h2><p title={context?.label}>{context ? context.kind === 'classroom' ? `正在这堂课：${context.label}` : '正在成长课堂，沿用当前话题' : '小禾姐姐在这里，慢慢说就好'}</p></div><button className="vo-close" aria-label="收起语音助手" onClick={close}>×</button></header>
+    {open && <section className="vo-panel" role="dialog" aria-label="小陶语音助手" onKeyDown={event => { if (event.key === 'Escape') close(); }}>
+      <header className="vo-header"><span className="vo-mini-mark" aria-hidden="true">陶</span><div><h2>小陶语音 <span>AI</span></h2><p title={context?.label}>{context ? context.kind === 'classroom' ? `正在这堂课：${context.label}` : '正在成长课堂，沿用当前话题' : '小陶在这里，慢慢说就好'}</p></div><button className="vo-close" aria-label="收起语音助手" onClick={close}>×</button></header>
       {!context && <label className="vo-grade">我在读<select value={grade} disabled={recording || waiting} onChange={event => { audio.current?.stop(); history.current = []; setAnswer(''); setQuestion(''); setGrade(Number(event.target.value)); }}>{GRADE_LABELS.map((name, index) => <option key={name} value={index + 1}>{name}</option>)}</select></label>}
       <div className="vo-body">{question && <p className="vo-question">{question}</p>}
-        {answer ? <div className="vo-answer"><span>{context?.kind === 'classroom' ? '课堂老师 · AI' : '小禾姐姐 · AI'}</span><p>{answer}</p><div className="vo-read-actions"><button disabled={!capabilities.ttsAvailable || recording || otherMicrophone} onClick={() => { if (speaking) audio.current?.pause(); else if (playback === 'paused') audio.current?.resume(); else if (reply.current) playReply({ ...reply.current, actions: [] }); }}>{speaking ? '暂停朗读' : playback === 'paused' ? '继续朗读' : '听一听'}</button>{(speaking || playback === 'paused') && <button onClick={() => audio.current?.stop()}>停止声音</button>}</div></div> : <div className="vo-empty"><span aria-hidden="true">✦</span><p>{context?.kind === 'classroom' ? '这一页哪里没听懂？说出来，老师会接着当前内容回答。' : '一个问题，一点心事，先说一说，再一起想办法。'}</p></div>}
+        {answer ? <div className="vo-answer"><span>{context?.kind === 'classroom' ? '课堂老师 · AI' : '小陶 · AI'}</span><p>{answer}</p><div className="vo-read-actions"><button disabled={!capabilities.ttsAvailable || recording || otherMicrophone} onClick={() => { if (speaking) audio.current?.pause(); else if (playback === 'paused') audio.current?.resume(); else if (reply.current) playReply({ ...reply.current, actions: [] }); }}>{speaking ? '暂停朗读' : playback === 'paused' ? '继续朗读' : '听一听'}</button>{(speaking || playback === 'paused') && <button onClick={() => audio.current?.stop()}>停止声音</button>}</div></div> : <div className="vo-empty"><span aria-hidden="true">✦</span><p>{context?.kind === 'classroom' ? '这一页哪里没听懂？说出来，老师会接着当前内容回答。' : '一个问题，一点心事，先说一说，再一起想办法。'}</p></div>}
         {speaking && caption && <p className="vo-caption" aria-live="polite">{caption}</p>}{error && <p className="vo-error" role="alert">{error}</p>}
       </div>
       <div className="vo-compose"><label htmlFor="voice-orb-draft">{draft ? '确认文字后，再发送' : '可以说，也可以写'}</label><textarea ref={textArea} id="voice-orb-draft" rows={3} value={draft} maxLength={2000} disabled={recording || waiting} onChange={event => setDraft(event.target.value)} placeholder={phase === 'transcribing' ? '正在识别录音…' : '录音会先转成文字，不会自动发送。'} />
@@ -184,6 +186,6 @@ export default function VoiceOrb({ suspended = false }: { suspended?: boolean })
         <p className="vo-note">{otherMicrophone ? '另一处正在使用语音输入，请先完成或取消。' : !capabilities.asrAvailable ? '语音识别暂不可用，仍可输入文字。' : !canRecordClassroomAudio() ? '录音需要 HTTPS 与麦克风权限，也可上传 WAV。' : '最多录音 60 秒；你确认文字后才会发给 AI。'}</p>
       </div>
     </section>}
-    <button ref={orbButton} className="vo-orb-button" aria-label={open ? '收起小禾语音助手' : '打开小禾语音助手'} aria-expanded={open} onClick={() => open ? close() : setOpen(true)}><span className="vo-petal petal-one" /><span className="vo-petal petal-two" /><span className="vo-core" aria-hidden="true">禾</span><span className="vo-wave" aria-hidden="true"><i /><i /><i /></span></button><span className="vo-dock-label" aria-live="polite">{label}</span>
+    <button ref={orbButton} className="vo-orb-button" aria-label={open ? '收起小陶语音助手' : '打开小陶语音助手'} aria-expanded={open} onClick={() => open ? close() : setOpen(true)}><span className="vo-petal petal-one" /><span className="vo-petal petal-two" /><span className="vo-core" aria-hidden="true">陶</span><span className="vo-wave" aria-hidden="true"><i /><i /><i /></span></button><span className="vo-dock-label" aria-live="polite">{label}</span>
   </div>;
 }

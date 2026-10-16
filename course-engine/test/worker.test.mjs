@@ -46,7 +46,7 @@ test('outline uses source/RAG and stable IDs over the injected model callback', 
   assert.equal(response.type, 'result');
   assert.deepEqual(response.value.map((item) => item.id), ['course-1-scene-1', 'course-1-scene-2', 'course-1-scene-3']);
   assert.deepEqual(response.value.map((item) => item.order), [0, 1, 2]);
-  assert.deepEqual(response.value[2].quizConfig.questionTypes, ['single', 'multiple']);
+  assert.deepEqual(response.value[2].quizConfig.questionTypes, ['single', 'multiple', 'judge', 'fill', 'short_answer']);
 });
 
 test('numeric grades 1, 7 and 12 retain primary, middle and high school teaching levels', async () => {
@@ -120,6 +120,30 @@ test('quiz preserves server grading keys and binds question IDs to the scene', a
   assert.equal(question.id, `${outline().id}-q1`);
   assert.deepEqual(question.answer, ['A']);
   assert.equal(question.points, 1);
+});
+
+test('host quiz supports all five types and retains semantic grading guidance', async () => {
+  const result = await runJob({ operation: 'scene', outline: outline('quiz') }, [
+    [{ type: 'single', question: '哪个是1/2？', options: [{ value: 'A', label: '2/4' }, { value: 'B', label: '1/4' }], answer: ['A'] },
+      { type: 'multiple', question: '选偶数', options: [{ value: 'A', label: '2' }, { value: 'B', label: '4' }], answer: ['A', 'B'] },
+      { type: 'judge', question: '同样大的整体才方便比较面积？', answer: true },
+      { type: 'fill', question: '8乘3是多少？', answer: 24 },
+      { type: 'short_answer', question: '为何要统一整体？', answer: '比较基准一致', gradingPoints: ['同样大小的整体', '相同基准'], analysis: '比较需要共同基准' }],
+    [{ type: 'text', content: '先独立完成，再检查思路。' }],
+  ]);
+  assert.equal(result.code, 0, result.received.at(-1)?.message);
+  const questions = result.received.at(-1).value.content.questions;
+  assert.deepEqual(questions.map(q => q.type), ['single', 'multiple', 'judge', 'fill', 'short_answer']);
+  assert.equal(questions[2].answer, '对'); assert.equal(questions[3].answer, 24);
+  assert.deepEqual(questions[4].gradingPoints, ['同样大小的整体', '相同基准']);
+});
+
+test('direction profile ignores academic subject for wellbeing and exploration', async () => {
+  const result = await runJob({ operation: 'outline', input: { ...input, direction: 'exploration', subject: '数学' } }, [{ outlines: [outline(), outline('interactive'), outline('quiz')] }]);
+  assert.equal(result.code, 0, result.received.at(-1)?.message);
+  const request = result.received.find(item => item.type === 'llm.request');
+  assert.match(request.messages[0].content, /学习方向：实践探索/);
+  assert.doesNotMatch(request.messages[0].content, /学科：数学/);
 });
 
 test('interactive preserves working controls while blocking external resources', async () => {

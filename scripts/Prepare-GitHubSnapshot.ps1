@@ -19,7 +19,7 @@ $manifestName = '.educationagent-publish-manifest.json'
 $producer = 'educationagent/Prepare-GitHubSnapshot.ps1'
 
 # 白名单以源代码边界为单位；不依赖 gitignore，因为原仓库已追踪过本地密钥和依赖。
-$includeDirectories = @('src', 'desktop-app', 'course-engine', 'vendor/educationagent', 'scripts', 'docs', 'deploy', '.mvn')
+$includeDirectories = @('src', 'desktop-app', 'course-engine', 'code-runner', 'vendor/educationagent', 'scripts', 'docs', 'deploy', '.mvn')
 $includeRootFiles = @('pom.xml', 'package.json', 'package-lock.json', 'mvnw', 'mvnw.cmd', 'start-desktop.bat',
     '.gitattributes', '.dockerignore', '.env.example', 'README.md', 'LICENSE', 'NOTICE', 'Dockerfile',
     'compose.yaml', 'compose.yml', 'docker-compose.yml')
@@ -165,8 +165,12 @@ function Find-PublishProblems([string]$BasePath, [string[]]$RelativePaths) {
                     [pscustomobject]@{ File = $relative; Line = $lineNumber; Rule = 'literal-sensitive-property'; Property = $match.Groups[1].Value }
                 }
             }
-            # 保留法律归属文档中的上游名称，业务包和 import 不再使用旧 scope。
-            if ($line.Contains($legacyScope, [StringComparison]::OrdinalIgnoreCase) -and $file.Name -notmatch '^(LICENSE|NOTICE|THIRD_PARTY_NOTICES)') {
+            # 固定提交的原始类型参考和来源清单保留上游名称；它们不参与宿主编译。
+            # 该例外仅限命名规则，前面的实际秘密与凭据模式检查仍逐行执行。
+            $upstreamReference = $relative.Replace('\', '/') -in @(
+                'course-engine/upstream/openmaic-practice/lib/types/widgets.ts',
+                'course-engine/upstream/openmaic-practice/SOURCE.json')
+            if ($line.Contains($legacyScope, [StringComparison]::OrdinalIgnoreCase) -and $file.Name -notmatch '^(LICENSE|NOTICE|THIRD_PARTY_NOTICES)' -and -not $upstreamReference) {
                 [pscustomobject]@{ File = $relative; Line = $lineNumber; Rule = 'legacy-package-scope'; Property = '' }
             }
         }

@@ -1,5 +1,6 @@
 import { API_BASE_URL } from '../api/baseUrl';
-import type { ActionResult, ClassroomMessage, Course, Domain, ElementReference, Outline, QuizResult, Scene, Speaker, TeachingAction, WhiteboardState } from './types';
+import { companionIdentityText } from './branding';
+import type { ActionResult, ClassroomMessage, Course, CourseDirection, Domain, ElementReference, Outline, QuizResult, Scene, Speaker, TeachingAction, WhiteboardState } from './types';
 
 /** 课堂只走当前电脑后端，同一 Wi-Fi 下的手机不携带模型密钥。 */
 export async function classroomRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
@@ -23,7 +24,7 @@ export async function resumeCourse(id: string, pendingProgress: Promise<unknown>
   await pendingProgress;
   return getCourse(id, signal);
 }
-export const createCourse = (data: { topic: string; grade: number; subject: string; domain: Domain; sourceText?: string; sourceName?: string }) => post<Course>('/courses', data);
+export const createCourse = (data: { topic: string; grade: number; subject?: string; direction?: CourseDirection; domain: Domain; sourceText?: string; sourceName?: string }) => post<Course>('/courses', data);
 export const saveOutline = (id: string, outlines: Outline[]) => classroomRequest<Course>(`/courses/${encodeURIComponent(id)}/outline`, { method: 'PUT', body: JSON.stringify({ outlines }) });
 export const generateCourse = (id: string) => post<Course>(`/courses/${encodeURIComponent(id)}/generate`);
 export const cancelCourse = (id: string) => post<Course>(`/courses/${encodeURIComponent(id)}/cancel`);
@@ -69,7 +70,7 @@ export function splitNarrationText(text: string, limit = 2000): string[] {
 }
 export async function synthesizeSpeech(text: string, role: Speaker, signal?: AbortSignal) {
   const segments: { text: string; url: string }[] = [];
-  for (const part of splitNarrationText(text)) {
+  for (const part of splitNarrationText(companionIdentityText(text))) {
     const response = await post<{ segments: { text: string; url: string }[] }>('/voice/tts', { text: part, role }, signal);
     segments.push(...response.segments);
   }

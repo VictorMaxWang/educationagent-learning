@@ -1,6 +1,7 @@
 import PptxGenJS from 'pptxgenjs';
 import type { PPTElement, PPTLatexElement, Slide } from '@educationagent/dsl';
 import { checkAbort, type ExportProgress, type PortableCourse, type PortableScene } from './contract';
+import { answerText, QUESTION_TYPE_LABELS } from './quiz';
 
 const PAGE_WIDTH = 13.333333;
 const PAGE_HEIGHT = 7.5;
@@ -119,7 +120,7 @@ function heading(page: PptxSlide, title: string, subtitle?: string) {
 
 export async function buildPptx(course: PortableCourse, options: { signal?: AbortSignal; onProgress?: (progress: ExportProgress) => void } = {}): Promise<{ blob: Blob; warnings: string[] }> {
   const pptx = new PptxGenJS();
-  pptx.layout = 'LAYOUT_WIDE'; pptx.author = 'educationagent'; pptx.subject = course.subject; pptx.title = course.title;
+  pptx.layout = 'LAYOUT_WIDE'; pptx.author = '晓陶学伴'; pptx.subject = course.subject; pptx.title = course.title;
   pptx.theme = { headFontFace: 'Microsoft YaHei', bodyFontFace: 'Microsoft YaHei' };
   const warnings: string[] = [];
   for (let index = 0; index < course.scenes.length; index++) {
@@ -134,10 +135,10 @@ export async function buildPptx(course: PortableCourse, options: { signal?: Abor
       for (const [questionIndex, question] of scene.content.questions.entries()) {
         const page = pptx.addSlide();
         heading(page, `${scene.title} · ${questionIndex + 1}`, `${course.title} · 离线练习`);
-        page.addText(question.question, { x: 0.6, y: 1.45, w: 12.1, h: 1.3, fontFace: 'Microsoft YaHei', fontSize: 23, margin: 0, fit: 'shrink', color: '263D35' });
-        page.addText(question.options.map(option => `${option.value}. ${option.label}`).join('\n\n'), { x: 0.7, y: 2.85, w: 11.9, h: 3.45, fontFace: 'Microsoft YaHei', fontSize: 19, margin: 0, fit: 'shrink', color: '33483E' });
+        page.addText(`【${QUESTION_TYPE_LABELS[question.type]}】${question.question}`, { x: 0.6, y: 1.45, w: 12.1, h: 1.3, fontFace: 'Microsoft YaHei', fontSize: 23, margin: 0, fit: 'shrink', color: '263D35' });
+        page.addText((question.options || []).map(option => `${option.value}. ${option.label}`).join('\n\n') || (question.type === 'judge' ? '□ 正确    □ 错误' : question.type === 'fill' ? '请填写：____________________' : '请写下你的思路：\n\n____________________________\n\n____________________________'), { x: 0.7, y: 2.85, w: 11.9, h: 3.45, fontFace: 'Microsoft YaHei', fontSize: 19, margin: 0, fit: 'shrink', color: '33483E' });
         const answer = question.correctAnswer ?? question.answer;
-        page.addNotes([notes(scene), `参考答案：${Array.isArray(answer) ? answer.join('、') : answer || '未附'}`, question.explanation || question.analysis || ''].join('\n\n'));
+        page.addNotes([notes(scene), `参考答案：${answerText(answer) || '未附'}`, question.explanation || question.analysis || '', ...(question.gradingPoints || []), question.type === 'short_answer' ? '请结合参考答案和评分要点自查，离线不进行 AI 判分。' : ''].join('\n\n'));
       }
     } else {
       const page = pptx.addSlide();

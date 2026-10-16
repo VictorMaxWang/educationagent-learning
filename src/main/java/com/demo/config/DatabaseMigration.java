@@ -80,6 +80,15 @@ public class DatabaseMigration {
                     "VARCHAR(256) DEFAULT NULL COMMENT '出错的知识库来源文档名'",
                     "AFTER query_tag");
 
+            // 老站即使关闭 schema.sql 初始化也能得到只读成长历史表；不改动任何原有记录。
+            try (Statement statement = conn.createStatement()) {
+                statement.executeUpdate("CREATE TABLE IF NOT EXISTS edu_growth_conversation (" +
+                    "group_id VARCHAR(40) NOT NULL, grade INT NOT NULL, messages LONGTEXT NOT NULL, " +
+                    "created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3), " +
+                    "PRIMARY KEY (group_id,grade)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 " +
+                    "COMMENT='成长课堂公共问答历史'");
+            }
+
             log.info("✅ 数据库迁移检查完成");
         } catch (Exception e) {
             log.error("❌ 数据库迁移执行失败: {}", e.getMessage(), e);
