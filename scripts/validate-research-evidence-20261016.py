@@ -81,13 +81,14 @@ def portable_bundle(result,mapping,locations):
         writer.writeheader()
         for row in locations: writer.writerow({**{k:row[k] for k in fields if k in row},'commit':mapping['codeCommit'] or 'PENDING'})
     index=['# 晓陶学伴：来源与实现便携清单','',
-           '此目录进入私有源码仓库，保存论文/专利来源定位、方法适配、代码锚点与验证状态，不包含论文全文、页面截图、用户资料或模型原始响应。',
+           '此目录进入私有源码仓库，保存来源定位、方法适配、代码锚点、验证状态和自编验收样例的网站截图；不包含论文全文及原页截图、用户私密资料或内部模型调用记录。',
            '',f"对应源码提交：`{mapping['codeCommit'] or 'PENDING（待最终发布回填）'}`。",'',
            '- [来源清单](来源清单.json)：标题、原件版本哈希、PDF页码、原文段落/公式、采用方式。',
            '- [实现映射](实现映射.json)：已有/本轮/未采用、业务模块、测试与上游代码函数。',
            '- [代码位置](代码位置索引.csv)：主项目条目使用仓库相对路径；upstream条目相对childcare-smart项目。',
            '- [技术选型](技术选型清单.json)、[评分依据](评分依据.json)、[实际验证状态](验证状态.json)。','',
            '- [原式适配对照](原式适配对照.md)：逐条说明原公式、业务转换、真实代码和没有采用的部分。','',
+           '- [工程评测结果](工程评测结果.md)、[可移植冻结输入](frozen-optimizer-inputs/README.md)：24组算法输入已离线重放一致，完整30条分母与失败另列。','',
            '完整原件及真实裁图位于交付电脑的 `D:/A-project/newbot_agent3.0/团队成果参考库`，本轮索引位于其 `本轮算法深化_20261016` 子目录。该本地资料不在源码仓库中，不构造指向缺失全文的仓库链接。','',
            '## 核心来源','', '|ID|题名|本轮使用|', '|---|---|---|']
     for s in sources:index.append(f"|{s['sourceId']}|{s['title']}|{s['kind']}：{'；'.join(e['locator'] for e in s['locators'])}|")

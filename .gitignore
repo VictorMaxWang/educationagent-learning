@@ -10,6 +10,7 @@
 /runtime/
 **/test-results/
 **/playwright-report/
+**/*.baiduyun.uploading.cfg
 # Local credentials and machine settings
 **/.env
 **/.env.*

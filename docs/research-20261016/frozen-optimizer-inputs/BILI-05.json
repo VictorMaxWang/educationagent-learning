@@ -1,0 +1,165 @@
+{
+  "id": "BILI-05",
+  "query": "英语th 发音示范",
+  "status": "features_ready",
+  "searchStatus": "ok",
+  "decision": {
+    "status": "ready",
+    "audit": {
+      "optimizerInput": {
+        "candidates": [
+          {
+            "id": "BV1cD421K7XS:1",
+            "durationSeconds": 264,
+            "goals": [
+              "观察并模仿英语th音的正确口型与发音过程"
+            ],
+            "purpose": "pronunciation",
+            "relevance": 0.6674,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1cD421K7XS:1"
+          },
+          {
+            "id": "BV17K421e7jn:1",
+            "durationSeconds": 201,
+            "goals": [
+              "观察并模仿英语th音的正确口型与发音过程"
+            ],
+            "purpose": "pronunciation",
+            "relevance": 0.7404,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV17K421e7jn:1"
+          },
+          {
+            "id": "BV1s5411G71Y:1",
+            "durationSeconds": 149,
+            "goals": [
+              "观察并模仿英语th音的正确口型与发音过程"
+            ],
+            "purpose": "pronunciation",
+            "relevance": 0.7686,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1s5411G71Y:1"
+          },
+          {
+            "id": "BV137411j7LQ:1",
+            "durationSeconds": 328,
+            "goals": [
+              "观察并模仿英语th音的正确口型与发音过程"
+            ],
+            "purpose": "pronunciation",
+            "relevance": 0.6658,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV137411j7LQ:1"
+          },
+          {
+            "id": "BV14J411x7if:1",
+            "durationSeconds": 270,
+            "goals": [
+              "观察并模仿英语th音的正确口型与发音过程"
+            ],
+            "purpose": "pronunciation",
+            "relevance": 0.7728,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV14J411x7if:1"
+          },
+          {
+            "id": "BV1WE411G7X1:1",
+            "durationSeconds": 909,
+            "goals": [
+              "观察并模仿英语th音的正确口型与发音过程"
+            ],
+            "purpose": "pronunciation",
+            "relevance": 0.7609,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1WE411G7X1:1"
+          }
+        ],
+        "targetGoals": [
+          "观察并模仿英语th音的正确口型与发音过程"
+        ],
+        "budgetSeconds": 600,
+        "preferenceAvailable": false,
+        "pairSimilarities": {
+          "BV137411j7LQ:1\nBV14J411x7if:1": 0.6686,
+          "BV137411j7LQ:1\nBV17K421e7jn:1": 0.7083,
+          "BV137411j7LQ:1\nBV1WE411G7X1:1": 0.6623,
+          "BV137411j7LQ:1\nBV1cD421K7XS:1": 0.579,
+          "BV137411j7LQ:1\nBV1s5411G71Y:1": 0.6335,
+          "BV14J411x7if:1\nBV17K421e7jn:1": 0.7093,
+          "BV14J411x7if:1\nBV1WE411G7X1:1": 0.7453,
+          "BV14J411x7if:1\nBV1cD421K7XS:1": 0.6239,
+          "BV14J411x7if:1\nBV1s5411G71Y:1": 0.7077,
+          "BV17K421e7jn:1\nBV1WE411G7X1:1": 0.6949,
+          "BV17K421e7jn:1\nBV1cD421K7XS:1": 0.6966,
+          "BV17K421e7jn:1\nBV1s5411G71Y:1": 0.7586,
+          "BV1WE411G7X1:1\nBV1cD421K7XS:1": 0.6572,
+          "BV1WE411G7X1:1\nBV1s5411G71Y:1": 0.737,
+          "BV1cD421K7XS:1\nBV1s5411G71Y:1": 0.8018
+        }
+      },
+      "metadata": [
+        {
+          "id": "BV1cD421K7XS:1",
+          "title": "30天学会拼读 第27天 辅音组合th  th有两种发音，令人脑袋大的两个发音，看我带你摆平它",
+          "partTitle": "30天学会拼读 第27天 辅音组合th  th有两种发音，令人脑袋大的两个发音，看我带你摆平它",
+          "description": "-"
+        },
+        {
+          "id": "BV1rd4y1a7jK:1",
+          "title": "英语发音口语| /tr//dr/别再读\"戳\"\"浊\"啦，一个公式搞定发音！",
+          "partTitle": "英语发音口语| /tr//dr/别再读\"戳\"\"浊\"啦，一个公式搞定发音！",
+          "description": "/tr/实际发音≈/tʃ/➕/r/，/dr/实际发音≈/dʒ/➕/r/"
+        },
+        {
+          "id": "BV17K421e7jn:1",
+          "title": "th这个音到底怎么发？🤯",
+          "partTitle": "th这个音到底怎么发？🤯",
+          "description": "觉得有用的话请三连哇，非常感谢～"
+        },
+        {
+          "id": "BV1YM411N7aZ:1",
+          "title": "英语发音口语 | them的th竟然可以不发音？them发音详细讲解！",
+          "partTitle": "英语发音口语 | them的th竟然可以不发音？them发音详细讲解！",
+          "description": "them的发音不用太讲究，可以在任何时候都读/ðem/。"
+        },
+        {
+          "id": "BV1s5411G71Y:1",
+          "title": "【音标】辅音组合th的发音",
+          "partTitle": "【音标】辅音组合th的发音",
+          "description": "-"
+        },
+        {
+          "id": "BV137411j7LQ:1",
+          "title": "【美语发音】TH 发音合集|每天半小时，Smooth起来！",
+          "partTitle": "Lisa“TH”的发音",
+          "description": "https://i.youku.com/i/UOTA0NjYxOTY和Youtube网\n转载：https://i.youku.com/i/UOTA0NjYxOTY 和 油管\n便于他人收藏学习。哈哈哈哈哈。\nTH-是只有英文中有的音，是世界性难题。有耐心时间就能改正，不要灰心哦。"
+        },
+        {
+          "id": "BV14J411x7if:1",
+          "title": "【英音】别再“咬舌”啦！爱惜你的舌头！“th”发音技巧|英式英语|英国口音|",
+          "partTitle": "th音",
+          "description": ""
+        },
+        {
+          "id": "BV1WE411G7X1:1",
+          "title": "《中国式发音纠正》英语中 \"th\" 到底该怎么发音？！手把手教你“th\"口型以及读音技巧！让你的美语口语更地道！音标 清辅音 浊辅音，常用简单词汇",
+          "partTitle": "th的发音",
+          "description": "本期视频讲解困扰我们中国学生多年的一个英语发音 “ th \", 以及音标 清辅音和浊辅音的区别。让你说英语更像老外！"
+        }
+      ]
+    }
+  }
+}

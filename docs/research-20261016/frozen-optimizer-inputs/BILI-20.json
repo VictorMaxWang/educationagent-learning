@@ -1,0 +1,99 @@
+{
+  "id": "BILI-20",
+  "query": "小数乘法 算理",
+  "status": "features_ready",
+  "searchStatus": "ok",
+  "decision": {
+    "status": "ready",
+    "audit": {
+      "optimizerInput": {
+        "candidates": [
+          {
+            "id": "BV1BhNj6REwU:1",
+            "durationSeconds": 2581,
+            "goals": [
+              "理解小数乘法的计算原理"
+            ],
+            "purpose": "concept",
+            "relevance": 0.582,
+            "complementarity": 0.8,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1BhNj6REwU:1"
+          },
+          {
+            "id": "BV1aJ7rzaELB:1",
+            "durationSeconds": 324,
+            "goals": [
+              "理解小数乘法的计算原理"
+            ],
+            "purpose": "concept",
+            "relevance": 0.6633,
+            "complementarity": 0.8,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1aJ7rzaELB:1"
+          }
+        ],
+        "targetGoals": [
+          "理解小数乘法的计算原理"
+        ],
+        "budgetSeconds": 600,
+        "preferenceAvailable": false,
+        "pairSimilarities": {
+          "BV1BhNj6REwU:1\nBV1aJ7rzaELB:1": 0.6156
+        }
+      },
+      "metadata": [
+        {
+          "id": "BV1xa4y1j7QK:1",
+          "title": "小数乘分数",
+          "partTitle": "小数乘分数",
+          "description": ""
+        },
+        {
+          "id": "BV1BhNj6REwU:1",
+          "title": "《小数乘法》公开课五年级上册数学优质课小学数学26年最新教学视频",
+          "partTitle": "《小数乘法》公开课五年级上册数学优质课小学数学26年最新教学视频",
+          "description": "《小数乘法》公开课五年级上册数学优质课小学数学26年最新教学视频"
+        },
+        {
+          "id": "BV1Q4411d7ui:1",
+          "title": "小学数学培优 乘法的简便运算 多位数乘11掌握这技巧口算得答案",
+          "partTitle": "20 多位数乘11",
+          "description": "在小学乘法中，如果其中某一个数字是11，那么利用下面的规律，就很容易的可以得到答案"
+        },
+        {
+          "id": "BV16qQRYoEQ4:1",
+          "title": "进制转换-小数部分",
+          "partTitle": "进制转换-小数部分",
+          "description": "进制转换 - “小数部分”，单招计算机，计算机专业专升本考试，计算机大学课程，（二转十、八转十、十六转十、十转二、十转八、十转十六、二转八、八转二、二转十六、十六转二）所有小数部分的直接转换，超详细的小数部分进制转换讲解！！！"
+        },
+        {
+          "id": "BV1dj411X778:1",
+          "title": "假期提前练！五年级上册数学口算题600道专项",
+          "partTitle": "假期提前练！五年级上册数学口算题600道专项",
+          "description": "🔥假期提前练！五年级上册数学口算题600道专项🔥\n\n1️⃣600道数学口算题\n2️⃣专门针对五年级上册的内容\n3️⏰提前练习，轻松过关\n\n👍专项练习题，更有针对性\n\n💪不要等到考试前才开始练习，⏰提前准备才是王道！这套600道数学口算题，专门针对五年级上册的内容，让孩子提前练习，轻松过关。快来试试吧！\n#小学数学 #五年级 #口算 #数学练习"
+        },
+        {
+          "id": "BV1aJ7rzaELB:1",
+          "title": "小数乘法（面积模型法一）",
+          "partTitle": "小数乘法（面积模型法一）",
+          "description": ""
+        },
+        {
+          "id": "BV1aP4y1e7p2:1",
+          "title": "人教版五年级上口算题卡，每天练一练。练出好成绩！",
+          "partTitle": "人教版五年级上口算题卡，每天练一练。练出好成绩！",
+          "description": "-"
+        },
+        {
+          "id": "BV1yUYM67EpC:1",
+          "title": "2026版五上《小数乘法》专题练习20页｜含答案📚这套是五年级上册数学《小数乘法》专题专项练习#五年级上册数学 #小数乘法专项 #五上数学计算",
+          "partTitle": "2026版五上《小数乘法》专题练习20页｜含答案📚这套是五年级上册数学《小数乘法》专题专项练习#五年级上册数学 #小数乘法专项 #五上数学计算",
+          "description": "-"
+        }
+      ]
+    }
+  }
+}

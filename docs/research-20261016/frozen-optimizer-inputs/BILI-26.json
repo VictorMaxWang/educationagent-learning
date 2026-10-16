@@ -1,0 +1,114 @@
+{
+  "id": "BILI-26",
+  "query": "蔬菜播种 步骤",
+  "status": "features_ready",
+  "searchStatus": "ok",
+  "decision": {
+    "status": "ready",
+    "audit": {
+      "optimizerInput": {
+        "candidates": [
+          {
+            "id": "BV1g34y1Y7FP:1",
+            "durationSeconds": 701,
+            "goals": [
+              "观察蔬菜播种的关键操作步骤"
+            ],
+            "purpose": "observation",
+            "relevance": 0.6862,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1g34y1Y7FP:1"
+          },
+          {
+            "id": "BV1LV4y1f7qU:1",
+            "durationSeconds": 105,
+            "goals": [
+              "观察蔬菜播种的关键操作步骤"
+            ],
+            "purpose": "observation",
+            "relevance": 0.5417,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1LV4y1f7qU:1"
+          },
+          {
+            "id": "BV1vqeu6BEAB:1",
+            "durationSeconds": 136,
+            "goals": [
+              "观察蔬菜播种的关键操作步骤"
+            ],
+            "purpose": "observation",
+            "relevance": 0.5969,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1vqeu6BEAB:1"
+          }
+        ],
+        "targetGoals": [
+          "观察蔬菜播种的关键操作步骤"
+        ],
+        "budgetSeconds": 600,
+        "preferenceAvailable": false,
+        "pairSimilarities": {
+          "BV1LV4y1f7qU:1\nBV1g34y1Y7FP:1": 0.5096,
+          "BV1LV4y1f7qU:1\nBV1vqeu6BEAB:1": 0.4902,
+          "BV1g34y1Y7FP:1\nBV1vqeu6BEAB:1": 0.5495
+        }
+      },
+      "metadata": [
+        {
+          "id": "BV1g34y1Y7FP:1",
+          "title": "蔬菜的播种方法：3种播种方法，4个种植要点，是种植出苗的保证！",
+          "partTitle": "蔬菜的播种方法：3种播种方法，4个种植要点，是种植出苗的保证！",
+          "description": ""
+        },
+        {
+          "id": "BV1qD4y1i7N4:1",
+          "title": "种有机小青菜，这样做三天出齐苗，后期青菜长势壮没病虫害口感好",
+          "partTitle": "种有机小青菜，这样做三天出齐苗，后期青菜长势壮没病虫害口感好",
+          "description": "-"
+        },
+        {
+          "id": "BV1dFXsYeELg:1",
+          "title": "蔬菜苗期怎么正确施肥?小苗出苗后施肥过程? 施肥方法#关注我一起学种菜 #每天分享蔬菜种植技巧 #种植小技巧#田间地头就是我的舞台 #我的小菜园",
+          "partTitle": "蔬菜苗期怎么正确施肥?小苗出苗后施肥过程? 施肥方法#关注我一起学种菜 #每天分享蔬菜种植技巧 #种植小技巧#田间地头就是我的舞台 #我的小菜园",
+          "description": "-"
+        },
+        {
+          "id": "BV1cK4y1S7mg:1",
+          "title": "13个种菜工具装备, 各尽其职, 种菜必备",
+          "partTitle": "种菜工具 字幕",
+          "description": ""
+        },
+        {
+          "id": "BV1844y1H7vb:1",
+          "title": "蔬菜种子是否需要催芽？总结5大类蔬菜种子的特点和发芽条件 包含大多数家庭种植品种",
+          "partTitle": "蔬菜种子催芽5大类 B站",
+          "description": ""
+        },
+        {
+          "id": "BV1LV4y1f7qU:1",
+          "title": "小叮当劳动课堂第十九课《种植小白菜》",
+          "partTitle": "小叮当劳动课堂第十九课《种植小白菜》",
+          "description": "小叮当劳动课堂第十九课种植小白菜！春暖花开，到了播种的季节了，一起来种下希望的种子吧！！"
+        },
+        {
+          "id": "BV1pztzzTEBn:1",
+          "title": "立秋节气种大白菜",
+          "partTitle": "立秋节气种大白菜",
+          "description": "-"
+        },
+        {
+          "id": "BV1vqeu6BEAB:1",
+          "title": "新手种大葱，先把播种这一步学明白",
+          "partTitle": "新手种大葱，先把播种这一步学明白",
+          "description": "想自己种大葱，就从播种这一步开始。这期分享大葱播种育苗的操作：准备疏松的土、均匀撒种、薄覆土，再做好保湿和出苗后的管理。把每一步讲明白，一起从小种子开始，慢慢养出自己的葱苗！"
+        }
+      ]
+    }
+  }
+}

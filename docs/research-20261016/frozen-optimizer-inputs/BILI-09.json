@@ -1,0 +1,84 @@
+{
+  "id": "BILI-09",
+  "query": "种子萌发 观察",
+  "status": "features_ready",
+  "searchStatus": "ok",
+  "decision": {
+    "status": "ready",
+    "audit": {
+      "optimizerInput": {
+        "candidates": [
+          {
+            "id": "BV1fFtZz1Er8:1",
+            "durationSeconds": 389,
+            "goals": [
+              "通过视频观察种子萌发的关键过程"
+            ],
+            "purpose": "observation",
+            "relevance": 0.7066,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1fFtZz1Er8:1"
+          }
+        ],
+        "targetGoals": [
+          "通过视频观察种子萌发的关键过程"
+        ],
+        "budgetSeconds": 600,
+        "preferenceAvailable": false,
+        "pairSimilarities": {}
+      },
+      "metadata": [
+        {
+          "id": "BV1r84y1o7BP:1",
+          "title": "【高中生物知识拓展 | 必修一】油料种子的糖类与脂质的变化，从十年前开始考到现在，考烂的知识点，你掌握了吗？ | 高三生物一轮复习",
+          "partTitle": "【高中生物知识拓展 | 必修一】油料种子的糖类与脂质的变化，从十年前开始考到现在，考烂的知识点，你掌握了吗？ | 高三生物一轮复习",
+          "description": "-"
+        },
+        {
+          "id": "BV1gG411K7gi:1",
+          "title": "高中生物【种子萌发】水、有机物、细胞呼吸、植物激素 种子高频考点大突破｜细胞代谢",
+          "partTitle": "高中生物【种子萌发】水、有机物、细胞呼吸、植物激素 种子高频考点大突破｜细胞代谢",
+          "description": "种子成熟？种子萌发？还傻傻分不清？教你突破种子相关的四大高考考点\n水、有机物、细胞呼吸、植物激素  快来学吧！\n讲义链接: https://pan.baidu.com/s/1Vt1XooiXrBXxa1SNqHckbQ\n提取码: jojo"
+        },
+        {
+          "id": "BV1fFtZz1Er8:1",
+          "title": "36 实验：观察种子的萌发",
+          "partTitle": "36 实验：观察种子的萌发",
+          "description": ""
+        },
+        {
+          "id": "BV13M411p7wD:1",
+          "title": "兰花种子萌发，爱好者家庭条件下的一些记录",
+          "partTitle": "兰花种子萌发，爱好者家庭条件下的一些记录",
+          "description": "-"
+        },
+        {
+          "id": "BV1fFtZz1E5A:1",
+          "title": "37 种子的萌发解题课",
+          "partTitle": "37 种子的萌发解题课",
+          "description": ""
+        },
+        {
+          "id": "BV1UkdPBvEfe:1",
+          "title": "种子的萌发实验",
+          "partTitle": "1778158791067",
+          "description": "-"
+        },
+        {
+          "id": "BV19boTYxEuA:1",
+          "title": "辽阳市初中生物学实验操作《探究水是种子萌发的外界条件》",
+          "partTitle": "mmexport1744112391603",
+          "description": "weixin\n啊哈哈哈哈，今天才敢发"
+        },
+        {
+          "id": "BV1aK411P7Ef:1",
+          "title": "生石花 荒玉拿铁种子发芽过程 显微镜全纪录 种子萌发 播种发芽 延时摄影 间隔拍摄",
+          "partTitle": "序列 01",
+          "description": "TB熊童多肉\n品种系列：\n熊童手册/BV1dD4y1X7Ti\n1.云映玉/BV1UB4y1c7pP\n2.荒玉/BV1KA41137MB\n入门系列：\n1.宝典下载/BV1k54y1Q7pR\n2.靠谱购买/BV1YT4y1u7SE\n3.常见问题/BV1Ha4y1e7iR\n4.光照/BV1DA411q7mx\n5.浇水/BV1mg4y1i7Vu\n6.土/BV1Dz411i7Qx\n7.显微结构/BV1ZV411r7YQ\n10.播种指南/BV1Bp4y1S7Zw"
+        }
+      ]
+    }
+  }
+}

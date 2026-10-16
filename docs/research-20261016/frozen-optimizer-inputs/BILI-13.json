@@ -1,0 +1,84 @@
+{
+  "id": "BILI-13",
+  "query": "校园消防 疏散演示",
+  "status": "features_ready",
+  "searchStatus": "ok",
+  "decision": {
+    "status": "ready",
+    "audit": {
+      "optimizerInput": {
+        "candidates": [
+          {
+            "id": "BV16T4y1q7Ui:1",
+            "durationSeconds": 107,
+            "goals": [
+              "观察校园消防疏散的关键过程或表达方式"
+            ],
+            "purpose": "observation",
+            "relevance": 0.5715,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV16T4y1q7Ui:1"
+          }
+        ],
+        "targetGoals": [
+          "观察校园消防疏散的关键过程或表达方式"
+        ],
+        "budgetSeconds": 600,
+        "preferenceAvailable": false,
+        "pairSimilarities": {}
+      },
+      "metadata": [
+        {
+          "id": "BV1M3Eq6KE2R:1",
+          "title": "国旗下展演消防安全主题手势舞《火灾自救安全歌》这是完整版分享#国旗下展演防火手势舞 #消防安全主题汇演#开学第一课安全主题汇演#全国中小学消防安全教育日主题活动",
+          "partTitle": "国旗下展演消防安全主题手势舞《火灾自救安全歌》这是完整版分享#国旗下展演防火手势舞 #消防安全主题汇演#开学第一课安全主题汇演#全国中小学消防安全教育日主题活动",
+          "description": "-"
+        },
+        {
+          "id": "BV1uahU6eEm7:1",
+          "title": "高中生消防宅up消防装备穿戴（非现役、退役人员，视频仅作展示，无不良引导）",
+          "partTitle": "高中生消防宅up消防装备穿戴（非现役、退役人员，视频仅作展示，无不良引导）",
+          "description": "转载可以，但是要和我协商"
+        },
+        {
+          "id": "BV16T4y1q7Ui:1",
+          "title": "你没见过的——小学消防安全疏散演练",
+          "partTitle": "你没见过的——小学消防安全疏散演练",
+          "description": "-"
+        },
+        {
+          "id": "BV1TxaU6aExc:1",
+          "title": "《识火懂险自护先行》识火懂险牢记在心间，自护先行守护平安校园每一天。消防安全日主题国旗下展示消防日朗诵安全教育消防主题安全自护消防安全消防教育安全主题节目",
+          "partTitle": "1",
+          "description": "-"
+        },
+        {
+          "id": "BV1uk4y1c71w:1",
+          "title": "消防设计|手把手教你绘制疏散平面布置图",
+          "partTitle": "消防设计|手把手教你绘制疏散平面布置图",
+          "description": "消防设计|手把手教你绘制疏散平面布置图"
+        },
+        {
+          "id": "BV1XXyhBWE21:1",
+          "title": "少儿消防安全手势舞节目（消防安全逃生操）",
+          "partTitle": "少儿消防安全手势舞节目（消防安全逃生操）",
+          "description": "-"
+        },
+        {
+          "id": "BV1u7y6BuEsx:1",
+          "title": "火灾警报🚨演练5分33秒音乐#消防演练#火警报警声#消防音乐",
+          "partTitle": "火灾警报🚨演练5分33秒音乐#消防演练#火警报警声#消防音乐",
+          "description": "消防演练警报声"
+        },
+        {
+          "id": "BV1NRW1z2EJ9:1",
+          "title": "速成消防舞蹈 校园国旗下小学中学职中晨会展示！119消防安全日主题节目推荐！校园消防安全 #全国消防日 #国旗下表演 #消防主题节目 #声韵消防舞动平安",
+          "partTitle": "mmexport1760945588253",
+          "description": "-"
+        }
+      ]
+    }
+  }
+}

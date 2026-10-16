@@ -2018,11 +2018,14 @@
       "cause": "Existing local MySQL Access denied for root@localhost"
     },
     "frontend": {
+      "version": "v14",
       "files": 19,
-      "tests": 178,
+      "tests": 179,
       "status": "PASS",
       "typecheck": "PASS",
-      "build": "PASS"
+      "publicBuild": "PASS",
+      "staticDeploymentAndLayout": "PASS_V15_STATIC_AND_LAYOUT",
+      "prior178NotAddedAgain": true
     },
     "engine": {
       "tests": 27,
@@ -2030,14 +2033,38 @@
       "build": "PASS"
     },
     "postPatchTargeted": {
-      "completedBatchTests": 284,
-      "status": "PASS",
-      "additionalConceptGateTests": 7,
-      "additionalConceptGateStatus": "PASS",
-      "batchCountsMayOverlap": true,
-      "finalV13AdditionalTests": "PENDING_ROOT_FINAL_COUNTS"
+      "tests": 296,
+      "failures": 0,
+      "errors": 0,
+      "status": "PASS_V13",
+      "priorBatchCounts": [
+        284,
+        7
+      ],
+      "batchCountsMayOverlap": true
     },
-    "deploymentAcceptance": "NOT_CLAIMED_BY_THIS_REPORT"
+    "deploymentAcceptance": "PASS_V15_ACCEPTANCE_WITH_RETAINED_FAILURES"
   },
-  "releasePolicy": "Only this allowlisted summary is publishable; original run files remain local. No request IDs, prompts, raw answers, credentials or endpoint fingerprints copied."
+  "releasePolicy": "Only this allowlisted summary is publishable; original run files remain local. No request IDs, prompts, raw answers, credentials or endpoint fingerprints copied.",
+  "acceptanceStatus": "PASS_ACCEPTANCE_WITH_RETAINED_FAILURES",
+  "releaseStatus": "PASS_V15_STATIC_AND_LAYOUT",
+  "siteAcceptanceV13": {
+    "positiveVideos": 3,
+    "positiveReady": 3,
+    "negativeCases": 1,
+    "negativeHiddenNoSearch": 1,
+    "teachingReviewPages": 4,
+    "teachingReviewScope": "content-only",
+    "runtimeVerified": false,
+    "growthGroups": 4,
+    "sharedMessagesPerGroup": 2,
+    "mistakesAtReadback": 16,
+    "freshCherryBytes": 22797,
+    "htmlDownloadVerified": true,
+    "pptxZipAndNotesVerified": true,
+    "officeVisualVerified": false,
+    "sixServicesActive": true,
+    "originalDocumentsIdentical": true,
+    "firstFailuresRetained": true
+  }
 }

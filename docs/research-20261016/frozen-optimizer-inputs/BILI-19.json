@@ -1,0 +1,165 @@
+{
+  "id": "BILI-19",
+  "query": "平行四边形面积 剪拼",
+  "status": "features_ready",
+  "searchStatus": "ok",
+  "decision": {
+    "status": "ready",
+    "audit": {
+      "optimizerInput": {
+        "candidates": [
+          {
+            "id": "BV18V411k7ae:1",
+            "durationSeconds": 623,
+            "goals": [
+              "观察平行四边形转化为长方形的剪拼关键步骤"
+            ],
+            "purpose": "observation",
+            "relevance": 0.6537,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV18V411k7ae:1"
+          },
+          {
+            "id": "BV1qraq6QEmA:1",
+            "durationSeconds": 85,
+            "goals": [
+              "观察平行四边形转化为长方形的剪拼关键步骤"
+            ],
+            "purpose": "procedure",
+            "relevance": 0.7768,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1qraq6QEmA:1"
+          },
+          {
+            "id": "BV1kQSXYQEgh:1",
+            "durationSeconds": 121,
+            "goals": [
+              "观察平行四边形转化为长方形的剪拼关键步骤"
+            ],
+            "purpose": "worked_example",
+            "relevance": 0.7129,
+            "complementarity": 0.8,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1kQSXYQEgh:1"
+          },
+          {
+            "id": "BV1Hi4y1G7hc:1",
+            "durationSeconds": 413,
+            "goals": [
+              "观察平行四边形转化为长方形的剪拼关键步骤"
+            ],
+            "purpose": "observation",
+            "relevance": 0.7285,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1Hi4y1G7hc:1"
+          },
+          {
+            "id": "BV1Yg411K7jZ:1",
+            "durationSeconds": 53,
+            "goals": [
+              "观察平行四边形转化为长方形的剪拼关键步骤"
+            ],
+            "purpose": "observation",
+            "relevance": 0.6293,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1Yg411K7jZ:1"
+          },
+          {
+            "id": "BV11e4y1p7yk:1",
+            "durationSeconds": 262,
+            "goals": [
+              "观察平行四边形转化为长方形的剪拼关键步骤"
+            ],
+            "purpose": "procedure",
+            "relevance": 0.6837,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV11e4y1p7yk:1"
+          }
+        ],
+        "targetGoals": [
+          "观察平行四边形转化为长方形的剪拼关键步骤"
+        ],
+        "budgetSeconds": 600,
+        "preferenceAvailable": false,
+        "pairSimilarities": {
+          "BV11e4y1p7yk:1\nBV18V411k7ae:1": 0.5389,
+          "BV11e4y1p7yk:1\nBV1Hi4y1G7hc:1": 0.5305,
+          "BV11e4y1p7yk:1\nBV1Yg411K7jZ:1": 0.4433,
+          "BV11e4y1p7yk:1\nBV1kQSXYQEgh:1": 0.631,
+          "BV11e4y1p7yk:1\nBV1qraq6QEmA:1": 0.5796,
+          "BV18V411k7ae:1\nBV1Hi4y1G7hc:1": 0.7271,
+          "BV18V411k7ae:1\nBV1Yg411K7jZ:1": 0.6168,
+          "BV18V411k7ae:1\nBV1kQSXYQEgh:1": 0.5579,
+          "BV18V411k7ae:1\nBV1qraq6QEmA:1": 0.6722,
+          "BV1Hi4y1G7hc:1\nBV1Yg411K7jZ:1": 0.6628,
+          "BV1Hi4y1G7hc:1\nBV1kQSXYQEgh:1": 0.6402,
+          "BV1Hi4y1G7hc:1\nBV1qraq6QEmA:1": 0.7099,
+          "BV1Yg411K7jZ:1\nBV1kQSXYQEgh:1": 0.5139,
+          "BV1Yg411K7jZ:1\nBV1qraq6QEmA:1": 0.6578,
+          "BV1kQSXYQEgh:1\nBV1qraq6QEmA:1": 0.6698
+        }
+      },
+      "metadata": [
+        {
+          "id": "BV11Q4y1k7Uv:1",
+          "title": "【平面向量】比较有趣的一个求平行四边形面积的结论",
+          "partTitle": "1632481881936.mp4",
+          "description": "简介"
+        },
+        {
+          "id": "BV18V411k7ae:1",
+          "title": "平行四边形面积推导动画",
+          "partTitle": "1592545664406",
+          "description": "期末题库1"
+        },
+        {
+          "id": "BV1b6pY6eEHD:1",
+          "title": "平行四边形的面积是？",
+          "partTitle": "平行四边形的面积是？",
+          "description": "-"
+        },
+        {
+          "id": "BV1qraq6QEmA:1",
+          "title": "平行四边形面积没学过？沿着高剪一刀，拼成长方形，面积=底×高。",
+          "partTitle": "mmexport1790562751832",
+          "description": "-"
+        },
+        {
+          "id": "BV1kQSXYQEgh:1",
+          "title": "11月2－3日五四班周末实践作业：用平行四边形剪拼成长方形",
+          "partTitle": "11月2－3日五四班周末实践作业：用平行四边形剪拼成长方形",
+          "description": ""
+        },
+        {
+          "id": "BV1Hi4y1G7hc:1",
+          "title": "几何画板小学数学中推导平行四边形面积之拼接法",
+          "partTitle": "拼接法",
+          "description": "期末2"
+        },
+        {
+          "id": "BV1Yg411K7jZ:1",
+          "title": "S0G14 割补法求平行四边形面积 [Geogebra]",
+          "partTitle": "S0G14 割補法求平行四邊形面積0：介紹",
+          "description": ""
+        },
+        {
+          "id": "BV11e4y1p7yk:1",
+          "title": "人教版五年级数学上册第6单元平行四边形转化为长方形操作",
+          "partTitle": "人教版五年级数学上册第6单元平行四边形转化为长方形操作",
+          "description": "多鼓励学生跟着做一做，说一说。"
+        }
+      ]
+    }
+  }
+}

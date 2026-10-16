@@ -1,0 +1,114 @@
+{
+  "id": "BILI-02",
+  "query": "沁园春长沙 意象赏析",
+  "status": "features_ready",
+  "searchStatus": "ok",
+  "decision": {
+    "status": "ready",
+    "audit": {
+      "optimizerInput": {
+        "candidates": [
+          {
+            "id": "BV1b24y1V7ke:1",
+            "durationSeconds": 201,
+            "goals": [
+              "观察并理解诗词中关键意象的表达方式与艺术效果"
+            ],
+            "purpose": "concept",
+            "relevance": 0.7389,
+            "complementarity": 0.8,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1b24y1V7ke:1"
+          },
+          {
+            "id": "BV1H24y187Ho:1",
+            "durationSeconds": 140,
+            "goals": [
+              "观察并理解诗词中关键意象的表达方式与艺术效果"
+            ],
+            "purpose": "concept",
+            "relevance": 0.7779,
+            "complementarity": 0.8,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1H24y187Ho:1"
+          },
+          {
+            "id": "BV1Fbu36xEWF:1",
+            "durationSeconds": 968,
+            "goals": [
+              "观察并理解诗词中关键意象的表达方式与艺术效果"
+            ],
+            "purpose": "concept",
+            "relevance": 0.7018,
+            "complementarity": 0.8,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1Fbu36xEWF:1"
+          }
+        ],
+        "targetGoals": [
+          "观察并理解诗词中关键意象的表达方式与艺术效果"
+        ],
+        "budgetSeconds": 600,
+        "preferenceAvailable": false,
+        "pairSimilarities": {
+          "BV1Fbu36xEWF:1\nBV1H24y187Ho:1": 0.7863,
+          "BV1Fbu36xEWF:1\nBV1b24y1V7ke:1": 0.7483,
+          "BV1H24y187Ho:1\nBV1b24y1V7ke:1": 0.9508
+        }
+      },
+      "metadata": [
+        {
+          "id": "BV1b24y1V7ke:1",
+          "title": "语文 必修（上） 第一单元 沁园春·长沙-意象分析、比较阅读",
+          "partTitle": "语文 必修（上） 第一单元 沁园春·长沙-意象分析、比较阅读",
+          "description": "语文 必修（上） 第一单元 沁园春·长沙-意象分析、比较阅读"
+        },
+        {
+          "id": "BV1Yi4y1L7jL:1",
+          "title": "《沁园春长沙》赏析",
+          "partTitle": "《沁园春长沙》赏析",
+          "description": "-"
+        },
+        {
+          "id": "BV1JTHVzrEBm:1",
+          "title": "2.《沁园春·长沙》创作背景",
+          "partTitle": "2.《沁园春·长沙》创作背景",
+          "description": ""
+        },
+        {
+          "id": "BV1Gd4y1m7w8:1",
+          "title": "诗歌鉴赏（意象总结）",
+          "partTitle": "1.诗歌意象总述",
+          "description": "网络"
+        },
+        {
+          "id": "BV1H24y187Ho:1",
+          "title": "语文 必修（上） 第一单元 沁园春·长沙-意象分析",
+          "partTitle": "语文 必修（上） 第一单元 沁园春·长沙-意象分析",
+          "description": "语文 必修（上） 第一单元 沁园春·长沙-意象分析"
+        },
+        {
+          "id": "BV1Fbu36xEWF:1",
+          "title": "“意象”——以《沁园春·长沙》为例",
+          "partTitle": "高中语文解题底层逻辑－－回归教材1.0系列之“意象”",
+          "description": "-"
+        },
+        {
+          "id": "BV1MF4m1P7mi:1",
+          "title": "沁园春长沙 教资面试 品味意象，体会感情",
+          "partTitle": "沁园春长沙 教资面试 品味意象，体会感情",
+          "description": "词作背景那一块自己不清楚可以直接说“让我们一起看大屏幕加深了解”，因为加了几句话，没在10分钟之内完成，哎，就随便看看吧~"
+        },
+        {
+          "id": "BV1a1wizLEdP:1",
+          "title": "经典诗词科普鉴赏：沁园春-长沙，作者：毛泽东",
+          "partTitle": "经典诗词科普鉴赏：沁园春-长沙，作者：毛泽东",
+          "description": "一首关于“选择”与“主宰”的词"
+        }
+      ]
+    }
+  }
+}

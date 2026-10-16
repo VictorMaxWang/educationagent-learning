@@ -1,0 +1,86 @@
+{
+  "id": "BILI-24",
+  "query": "杠杆原理 实验",
+  "status": "features_ready",
+  "searchStatus": "ok",
+  "decision": {
+    "status": "ready",
+    "audit": {
+      "optimizerInput": {
+        "candidates": [
+          {
+            "id": "BV1fR5PzwEPT:1",
+            "durationSeconds": 134,
+            "goals": [
+              "观察杠杆平衡的关键条件与力臂关系",
+              "通过实验演示理解杠杆省力或费力的情况"
+            ],
+            "purpose": "observation",
+            "relevance": 0.6741,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1fR5PzwEPT:1"
+          }
+        ],
+        "targetGoals": [
+          "观察杠杆平衡的关键条件与力臂关系",
+          "通过实验演示理解杠杆省力或费力的情况"
+        ],
+        "budgetSeconds": 600,
+        "preferenceAvailable": false,
+        "pairSimilarities": {}
+      },
+      "metadata": [
+        {
+          "id": "BV1fR5PzwEPT:1",
+          "title": "制作简易杠杆的实验过程",
+          "partTitle": "制作简易杠杆的实验过程",
+          "description": "-"
+        },
+        {
+          "id": "BV1SM411P7NN:1",
+          "title": "拉伸法测弹性模量-光杠杆放大原理",
+          "partTitle": "拉伸法测弹性模量-光杠杆放大原理",
+          "description": "光杠杆放大原理介绍(大学物理实验-拉伸法测弹性模量)"
+        },
+        {
+          "id": "BV1vA411c7XH:1",
+          "title": "明朝老朱发明酷刑，巧妙运用杠杆原理【青丘大讲堂，抽肠】",
+          "partTitle": "202108281527",
+          "description": "来群里找我玩，求求了"
+        },
+        {
+          "id": "BV1dEJk6fEAd:1",
+          "title": "初中物理《探究杠杆的平衡条件》创新实验说课视频课件说课稿",
+          "partTitle": "初中物理《探究杠杆的平衡条件》创新实验说课视频课件说课稿",
+          "description": "探究杠杆的平衡条件"
+        },
+        {
+          "id": "BV1sW411r7dn:1",
+          "title": "验证：力的平行四边形定则",
+          "partTitle": "验证：力的平行四边形定则",
+          "description": "实验：探究两个互成角度的力的合成规律\n同学们，我们高中才刚刚接触矢量\n矢量既有大小，又有方向\n他们如果相加，就会加出来另一个新的“又有大小、又有方向”的量\n可不像我们原来学的“1+1=2（只包含大小）”那么简单\n所以，好好学习矢量的相加法则吧！"
+        },
+        {
+          "id": "BV1ucjr6rETP:1",
+          "title": "杠杆原理【康胖大招】极限假设秒压轴",
+          "partTitle": "杠杆原理【康胖大招】极限假设秒压轴",
+          "description": ""
+        },
+        {
+          "id": "BV1bY411Z791:1",
+          "title": "2022年度中学物理教学创新展示交流活动-创新实验展示（三）",
+          "partTitle": "2022年度中学物理教学创新展示交流活动-创新实验展示（三）",
+          "description": ""
+        },
+        {
+          "id": "BV1cvpn6nEFV:1",
+          "title": "长度的测量：游标卡尺与螺旋测微器的原理及使用",
+          "partTitle": "长度的测量：游标卡尺与螺旋测微器的原理及使用",
+          "description": "长度的测量：游标卡尺与螺旋测微器的原理及使用"
+        }
+      ]
+    }
+  }
+}

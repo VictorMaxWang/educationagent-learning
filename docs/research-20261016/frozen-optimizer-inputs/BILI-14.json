@@ -1,0 +1,130 @@
+{
+  "id": "BILI-14",
+  "query": "过马路 交通安全演示",
+  "status": "features_ready",
+  "searchStatus": "ok",
+  "decision": {
+    "status": "ready",
+    "audit": {
+      "optimizerInput": {
+        "candidates": [
+          {
+            "id": "BV1npE2zfEiZ:1",
+            "durationSeconds": 296,
+            "goals": [
+              "观察过马路时的关键安全步骤和行为规范"
+            ],
+            "purpose": "observation",
+            "relevance": 0.58,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1npE2zfEiZ:1"
+          },
+          {
+            "id": "BV1cU9SBGEFj:1",
+            "durationSeconds": 432,
+            "goals": [
+              "观察过马路时的关键安全步骤和行为规范"
+            ],
+            "purpose": "observation",
+            "relevance": 0.451,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1cU9SBGEFj:1"
+          },
+          {
+            "id": "BV1rWab6wENQ:1",
+            "durationSeconds": 74,
+            "goals": [
+              "观察过马路时的关键安全步骤和行为规范"
+            ],
+            "purpose": "observation",
+            "relevance": 0.5565,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1rWab6wENQ:1"
+          },
+          {
+            "id": "BV1RgYe6uEGy:1",
+            "durationSeconds": 118,
+            "goals": [
+              "观察过马路时的关键安全步骤和行为规范"
+            ],
+            "purpose": "observation",
+            "relevance": 0.7358,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1RgYe6uEGy:1"
+          }
+        ],
+        "targetGoals": [
+          "观察过马路时的关键安全步骤和行为规范"
+        ],
+        "budgetSeconds": 600,
+        "preferenceAvailable": false,
+        "pairSimilarities": {
+          "BV1RgYe6uEGy:1\nBV1cU9SBGEFj:1": 0.4175,
+          "BV1RgYe6uEGy:1\nBV1npE2zfEiZ:1": 0.5996,
+          "BV1RgYe6uEGy:1\nBV1rWab6wENQ:1": 0.5732,
+          "BV1cU9SBGEFj:1\nBV1npE2zfEiZ:1": 0.4727,
+          "BV1cU9SBGEFj:1\nBV1rWab6wENQ:1": 0.4444,
+          "BV1npE2zfEiZ:1\nBV1rWab6wENQ:1": 0.6409
+        }
+      },
+      "metadata": [
+        {
+          "id": "BV1KENZeyEPo:1",
+          "title": "宝贝JOJO-宝宝过马路",
+          "partTitle": "宝宝过马路",
+          "description": "-"
+        },
+        {
+          "id": "BV1npE2zfEiZ:1",
+          "title": "儿童故事《在马路上乱跑的危险》教导孩子不要在马路上乱跑",
+          "partTitle": "儿童故事《在马路上乱跑的危险》教导孩子在马路上乱跑",
+          "description": "这个故事告诉小朋友们，过马路时一定要等绿灯，不可以在马路上乱跑。生命安全最重要，只有遵守交通规则，才能保护自己，快乐地享受生活！"
+        },
+        {
+          "id": "BV1h1421R7Y6:1",
+          "title": "安全过马路！儿童成长启蒙儿歌！安全防护儿歌！",
+          "partTitle": "studio_video_1713923234051.mp4",
+          "description": "-"
+        },
+        {
+          "id": "BV12S411c7x6:1",
+          "title": "安全过马路英文版！儿童经典热歌！",
+          "partTitle": "studio_video_1720475274127.mp4",
+          "description": "-"
+        },
+        {
+          "id": "BV1sK411d72A:1",
+          "title": "上下班途中交通事故预防",
+          "partTitle": "上下班途中交通事故预防",
+          "description": ""
+        },
+        {
+          "id": "BV1cU9SBGEFj:1",
+          "title": "2026年中小学生交通安全警示片",
+          "partTitle": "2026年中小学生交通安全警示片",
+          "description": ""
+        },
+        {
+          "id": "BV1rWab6wENQ:1",
+          "title": "孩子过马路总乱跑？看完这集动画，让他乖乖走斑马线！",
+          "partTitle": "孩子过马路总乱跑？看完这集动画，让他乖乖走斑马线！",
+          "description": ""
+        },
+        {
+          "id": "BV1RgYe6uEGy:1",
+          "title": "过马路教程",
+          "partTitle": "过马路教程",
+          "description": "-"
+        }
+      ]
+    }
+  }
+}

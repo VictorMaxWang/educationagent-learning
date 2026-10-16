@@ -1,0 +1,99 @@
+{
+  "id": "BILI-10",
+  "query": "植物蒸腾 实验",
+  "status": "features_ready",
+  "searchStatus": "ok",
+  "decision": {
+    "status": "ready",
+    "audit": {
+      "optimizerInput": {
+        "candidates": [
+          {
+            "id": "BV1fUPWewEMP:1",
+            "durationSeconds": 63,
+            "goals": [
+              "观察植物蒸腾实验的关键过程或表达方式"
+            ],
+            "purpose": "observation",
+            "relevance": 0.698,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1fUPWewEMP:1"
+          },
+          {
+            "id": "BV1QL411T7eD:1",
+            "durationSeconds": 47,
+            "goals": [
+              "观察植物蒸腾实验的关键过程或表达方式"
+            ],
+            "purpose": "observation",
+            "relevance": 0.7632,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1QL411T7eD:1"
+          }
+        ],
+        "targetGoals": [
+          "观察植物蒸腾实验的关键过程或表达方式"
+        ],
+        "budgetSeconds": 600,
+        "preferenceAvailable": false,
+        "pairSimilarities": {
+          "BV1QL411T7eD:1\nBV1fUPWewEMP:1": 0.7681
+        }
+      },
+      "metadata": [
+        {
+          "id": "BV1kK4y1e7XL:1",
+          "title": "绿色植物的蒸腾作用",
+          "partTitle": "绿色植物的蒸腾作用",
+          "description": "转自百度"
+        },
+        {
+          "id": "BV1fUPWewEMP:1",
+          "title": "蒸腾作用小实验",
+          "partTitle": "蒸腾作用小实验",
+          "description": "七年级下册蒸腾作用"
+        },
+        {
+          "id": "BV1Dc411e74J:1",
+          "title": "【中学生物】测定植物的蒸腾作用",
+          "partTitle": "【中学生物】测定植物的蒸腾作用",
+          "description": "www.zxxk.com\n视频源自网络，本着分享知识的出发点转载到此\n\n出发点是希望没有条件但有需求的孩子们能多了解一下相关知识，\n\n如感觉有冒犯或者侵权，联系后删除\n\n更多内容请访问 www.zxxk.com"
+        },
+        {
+          "id": "BV1ag411p7tm:1",
+          "title": "生物｜用蒸腾计测量植物的蒸腾速率｜Measurement of transpiration rate using a bubble potometer",
+          "partTitle": "生物｜用蒸腾计测量植物的蒸腾速率｜Measurement of transpiration rate using a bubble potometer",
+          "description": "https://youtu.be/FWxh28CTEcM\nMeasurement of the rate of transpiration using a bubble potometer"
+        },
+        {
+          "id": "BV1Vv4y187Mv:1",
+          "title": "蒸腾强度实验视频",
+          "partTitle": "蒸腾强度实验视频",
+          "description": ""
+        },
+        {
+          "id": "BV1QL411T7eD:1",
+          "title": "初中生物实验—观察植物的蒸腾作用",
+          "partTitle": "1637654166254.mp4",
+          "description": "-"
+        },
+        {
+          "id": "BV1PN4y1e7in:1",
+          "title": "184集全可分享 爆笑初中生物动画 植物的蒸腾作用 孩子一看就明白",
+          "partTitle": "184集全可分享 爆笑初中生物动画 植物的蒸腾作用 孩子一看就明白",
+          "description": ""
+        },
+        {
+          "id": "BV1wB4y177Nc:1",
+          "title": "1.4植物的蒸腾作用",
+          "partTitle": "1.4植物的蒸腾作用",
+          "description": ""
+        }
+      ]
+    }
+  }
+}

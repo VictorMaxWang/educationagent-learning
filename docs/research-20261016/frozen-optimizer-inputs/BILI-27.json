@@ -1,0 +1,165 @@
+{
+  "id": "BILI-27",
+  "query": "折纸 长方体",
+  "status": "features_ready",
+  "searchStatus": "ok",
+  "decision": {
+    "status": "ready",
+    "audit": {
+      "optimizerInput": {
+        "candidates": [
+          {
+            "id": "BV1GpRyBmE1H:1",
+            "durationSeconds": 183,
+            "goals": [
+              "观察折纸长方体的关键制作步骤与成型过程"
+            ],
+            "purpose": "procedure",
+            "relevance": 0.766,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1GpRyBmE1H:1"
+          },
+          {
+            "id": "BV1Xw2QYxEsa:1",
+            "durationSeconds": 87,
+            "goals": [
+              "观察折纸长方体的关键制作步骤与成型过程"
+            ],
+            "purpose": "procedure",
+            "relevance": 0.7309,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1Xw2QYxEsa:1"
+          },
+          {
+            "id": "BV1154X6oEYs:1",
+            "durationSeconds": 278,
+            "goals": [
+              "观察折纸长方体的关键制作步骤与成型过程"
+            ],
+            "purpose": "procedure",
+            "relevance": 0.6036,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1154X6oEYs:1"
+          },
+          {
+            "id": "BV11Z4wzvEhN:1",
+            "durationSeconds": 40,
+            "goals": [
+              "观察折纸长方体的关键制作步骤与成型过程"
+            ],
+            "purpose": "procedure",
+            "relevance": 0.8061,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV11Z4wzvEhN:1"
+          },
+          {
+            "id": "BV1Lr4y1572V:1",
+            "durationSeconds": 151,
+            "goals": [
+              "观察折纸长方体的关键制作步骤与成型过程"
+            ],
+            "purpose": "procedure",
+            "relevance": 0.5962,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1Lr4y1572V:1"
+          },
+          {
+            "id": "BV1Ja416AERG:1",
+            "durationSeconds": 455,
+            "goals": [
+              "观察折纸长方体的关键制作步骤与成型过程"
+            ],
+            "purpose": "procedure",
+            "relevance": 0.7365,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1Ja416AERG:1"
+          }
+        ],
+        "targetGoals": [
+          "观察折纸长方体的关键制作步骤与成型过程"
+        ],
+        "budgetSeconds": 600,
+        "preferenceAvailable": false,
+        "pairSimilarities": {
+          "BV1154X6oEYs:1\nBV11Z4wzvEhN:1": 0.683,
+          "BV1154X6oEYs:1\nBV1GpRyBmE1H:1": 0.6617,
+          "BV1154X6oEYs:1\nBV1Ja416AERG:1": 0.683,
+          "BV1154X6oEYs:1\nBV1Lr4y1572V:1": 0.6125,
+          "BV1154X6oEYs:1\nBV1Xw2QYxEsa:1": 0.7015,
+          "BV11Z4wzvEhN:1\nBV1GpRyBmE1H:1": 0.8526,
+          "BV11Z4wzvEhN:1\nBV1Ja416AERG:1": 0.8094,
+          "BV11Z4wzvEhN:1\nBV1Lr4y1572V:1": 0.6011,
+          "BV11Z4wzvEhN:1\nBV1Xw2QYxEsa:1": 0.8488,
+          "BV1GpRyBmE1H:1\nBV1Ja416AERG:1": 0.8196,
+          "BV1GpRyBmE1H:1\nBV1Lr4y1572V:1": 0.608,
+          "BV1GpRyBmE1H:1\nBV1Xw2QYxEsa:1": 0.8371,
+          "BV1Ja416AERG:1\nBV1Lr4y1572V:1": 0.6325,
+          "BV1Ja416AERG:1\nBV1Xw2QYxEsa:1": 0.8202,
+          "BV1Lr4y1572V:1\nBV1Xw2QYxEsa:1": 0.588
+        }
+      },
+      "metadata": [
+        {
+          "id": "BV1GpRyBmE1H:1",
+          "title": "长方体超详细折纸教程",
+          "partTitle": "长方体超详细折纸教程",
+          "description": "-"
+        },
+        {
+          "id": "BV1Xw2QYxEsa:1",
+          "title": "折法简单的折纸长方体教程来了",
+          "partTitle": "折法简单的折纸长方体教程来了",
+          "description": "-"
+        },
+        {
+          "id": "BV1KF411N7Wc:1",
+          "title": "UG建模篇-2-8-长方体",
+          "partTitle": "UG建模篇-2-8-长方体",
+          "description": "长方体命令里有三种不同绘制方法\n也可以用拉伸建立长方体~"
+        },
+        {
+          "id": "BV1154X6oEYs:1",
+          "title": "不剪不粘，1张纸折长方体礼物盒，简单有趣快来试试！",
+          "partTitle": "studio_video_1788076188155.mp4",
+          "description": "-"
+        },
+        {
+          "id": "BV11Z4wzvEhN:1",
+          "title": "怎么折长方体",
+          "partTitle": "怎么折长方体",
+          "description": ""
+        },
+        {
+          "id": "BV1Lr4y1572V:1",
+          "title": "卡纸制作长方体和圆柱",
+          "partTitle": "1659429556031.mp4",
+          "description": "-"
+        },
+        {
+          "id": "BV1Ja416AERG:1",
+          "title": "一张纸完成长方体折纸 @小折记 #折纸教程 #长方体 #折纸",
+          "partTitle": "lv_0_20260829225102",
+          "description": "-"
+        },
+        {
+          "id": "BV1rE411A7yd:1",
+          "title": "素描几何形体组合正方体+长方体",
+          "partTitle": "正方体+长方体剪辑",
+          "description": "素描正方体加长方体组合教学步骤"
+        }
+      ]
+    }
+  }
+}

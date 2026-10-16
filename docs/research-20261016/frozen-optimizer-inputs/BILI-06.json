@@ -1,0 +1,184 @@
+{
+  "id": "BILI-06",
+  "query": "英语家乡介绍 对话",
+  "status": "features_ready",
+  "searchStatus": "ok",
+  "decision": {
+    "status": "ready",
+    "audit": {
+      "optimizerInput": {
+        "candidates": [
+          {
+            "id": "BV13p4y1A74T:1",
+            "durationSeconds": 125,
+            "goals": [
+              "观察英语家乡介绍对话的关键过程或表达方式"
+            ],
+            "purpose": "observation",
+            "relevance": 0.5604,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV13p4y1A74T:1"
+          },
+          {
+            "id": "BV1Vw411Y736:1",
+            "durationSeconds": 172,
+            "goals": [
+              "观察英语家乡介绍对话的关键过程或表达方式"
+            ],
+            "purpose": "observation",
+            "relevance": 0.5162,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1Vw411Y736:1"
+          },
+          {
+            "id": "BV1oL41127JL:1",
+            "durationSeconds": 114,
+            "goals": [
+              "观察英语家乡介绍对话的关键过程或表达方式"
+            ],
+            "purpose": "observation",
+            "relevance": 0.4756,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1oL41127JL:1"
+          },
+          {
+            "id": "BV1Vm4y1M7Dk:1",
+            "durationSeconds": 141,
+            "goals": [
+              "观察英语家乡介绍对话的关键过程或表达方式"
+            ],
+            "purpose": "observation",
+            "relevance": 0.5433,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1Vm4y1M7Dk:1"
+          },
+          {
+            "id": "BV1LF41127XY:1",
+            "durationSeconds": 140,
+            "goals": [
+              "观察英语家乡介绍对话的关键过程或表达方式"
+            ],
+            "purpose": "observation",
+            "relevance": 0.5469,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1LF41127XY:1"
+          },
+          {
+            "id": "BV1ZC4y177xt:1",
+            "durationSeconds": 150,
+            "goals": [
+              "观察英语家乡介绍对话的关键过程或表达方式"
+            ],
+            "purpose": "observation",
+            "relevance": 0.5744,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1ZC4y177xt:1"
+          },
+          {
+            "id": "BV1wh4y1s7Rt:1",
+            "durationSeconds": 190,
+            "goals": [
+              "观察英语家乡介绍对话的关键过程或表达方式"
+            ],
+            "purpose": "observation",
+            "relevance": 0.4654,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1wh4y1s7Rt:1"
+          }
+        ],
+        "targetGoals": [
+          "观察英语家乡介绍对话的关键过程或表达方式"
+        ],
+        "budgetSeconds": 600,
+        "preferenceAvailable": false,
+        "pairSimilarities": {
+          "BV13p4y1A74T:1\nBV1LF41127XY:1": 0.6825,
+          "BV13p4y1A74T:1\nBV1Vm4y1M7Dk:1": 0.7114,
+          "BV13p4y1A74T:1\nBV1Vw411Y736:1": 0.6665,
+          "BV13p4y1A74T:1\nBV1ZC4y177xt:1": 0.7226,
+          "BV13p4y1A74T:1\nBV1oL41127JL:1": 0.5242,
+          "BV13p4y1A74T:1\nBV1wh4y1s7Rt:1": 0.4969,
+          "BV1LF41127XY:1\nBV1Vm4y1M7Dk:1": 0.7022,
+          "BV1LF41127XY:1\nBV1Vw411Y736:1": 0.6509,
+          "BV1LF41127XY:1\nBV1ZC4y177xt:1": 0.7073,
+          "BV1LF41127XY:1\nBV1oL41127JL:1": 0.4257,
+          "BV1LF41127XY:1\nBV1wh4y1s7Rt:1": 0.4647,
+          "BV1Vm4y1M7Dk:1\nBV1Vw411Y736:1": 0.6424,
+          "BV1Vm4y1M7Dk:1\nBV1ZC4y177xt:1": 0.6815,
+          "BV1Vm4y1M7Dk:1\nBV1oL41127JL:1": 0.5465,
+          "BV1Vm4y1M7Dk:1\nBV1wh4y1s7Rt:1": 0.5325,
+          "BV1Vw411Y736:1\nBV1ZC4y177xt:1": 0.7234,
+          "BV1Vw411Y736:1\nBV1oL41127JL:1": 0.5102,
+          "BV1Vw411Y736:1\nBV1wh4y1s7Rt:1": 0.4412,
+          "BV1ZC4y177xt:1\nBV1oL41127JL:1": 0.4928,
+          "BV1ZC4y177xt:1\nBV1wh4y1s7Rt:1": 0.486,
+          "BV1oL41127JL:1\nBV1wh4y1s7Rt:1": 0.5625
+        }
+      },
+      "metadata": [
+        {
+          "id": "BV13p4y1A74T:1",
+          "title": "用英语介绍自己的家乡——佛山【中英字幕】",
+          "partTitle": "用英语介绍自己的家乡——佛山【中英字幕】",
+          "description": "-"
+        },
+        {
+          "id": "BV1Vw411Y736:1",
+          "title": "用英语介绍自己的家乡——江门【中英字幕】",
+          "partTitle": "用英语介绍自己的家乡——江门【中英字幕】",
+          "description": "-"
+        },
+        {
+          "id": "BV1oL41127JL:1",
+          "title": "用英语介绍武汉，英语介绍家乡",
+          "partTitle": "用英语介绍武汉，英语介绍家乡",
+          "description": "武汉自古以来就有着独特的地理和文化背景，也因此成为了中国乃至世界的知识和文化传承的中心之一。武汉的文化资源非常丰富，这里有很多历史建筑和文化景点。"
+        },
+        {
+          "id": "BV1Vm4y1M7Dk:1",
+          "title": "用英语介绍自己的家乡——珠海【中英字幕】",
+          "partTitle": "用英语介绍自己的家乡——珠海【中英字幕】",
+          "description": "-"
+        },
+        {
+          "id": "BV1LF41127XY:1",
+          "title": "用英语介绍自己家乡——肇庆【中英字幕】",
+          "partTitle": "用英语介绍自己家乡——肇庆【中英字幕】",
+          "description": "-"
+        },
+        {
+          "id": "BV1ZC4y177xt:1",
+          "title": "用英语介绍自己的家乡——东莞【中英字幕】",
+          "partTitle": "用英语介绍自己的家乡——东莞【中英字幕】",
+          "description": "-"
+        },
+        {
+          "id": "BV1wh4y1s7Rt:1",
+          "title": "用英语介绍中国长沙，英语介绍家乡",
+          "partTitle": "用英语介绍中国长沙，英语介绍家乡",
+          "description": "用英语介绍中国长沙，英语介绍家乡。长沙，拥有千万人口的中国新一线城市。作为历史文化名城，在3000年的悠久历史中，有太多美丽的画面值得我们永远铭记和骄傲。长沙有许多著名的名胜古迹，包括橘子洲头和岳麓山。"
+        },
+        {
+          "id": "BV1Nm4y1t7pJ:1",
+          "title": "【用英语讲好中国故事】——大美新疆",
+          "partTitle": "studio_video_1685890273461.mp4",
+          "description": "-"
+        }
+      ]
+    }
+  }
+}

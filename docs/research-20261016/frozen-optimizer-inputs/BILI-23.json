@@ -1,0 +1,130 @@
+{
+  "id": "BILI-23",
+  "query": "太阳能发电 原理",
+  "status": "features_ready",
+  "searchStatus": "ok",
+  "decision": {
+    "status": "ready",
+    "audit": {
+      "optimizerInput": {
+        "candidates": [
+          {
+            "id": "BV1MPKn6XE7k:1",
+            "durationSeconds": 296,
+            "goals": [
+              "理解太阳能发电的基本工作原理"
+            ],
+            "purpose": "concept",
+            "relevance": 0.8766,
+            "complementarity": 0.8,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1MPKn6XE7k:1"
+          },
+          {
+            "id": "BV143KjewE6e:1",
+            "durationSeconds": 388,
+            "goals": [
+              "理解太阳能发电的基本工作原理"
+            ],
+            "purpose": "observation",
+            "relevance": 0.7459,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV143KjewE6e:1"
+          },
+          {
+            "id": "BV1eP4y1J7n4:1",
+            "durationSeconds": 313,
+            "goals": [
+              "理解太阳能发电的基本工作原理"
+            ],
+            "purpose": "procedure",
+            "relevance": 0.7271,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1eP4y1J7n4:1"
+          },
+          {
+            "id": "BV1UD4y1N7jM:1",
+            "durationSeconds": 109,
+            "goals": [
+              "理解太阳能发电的基本工作原理"
+            ],
+            "purpose": "concept",
+            "relevance": 0.9215,
+            "complementarity": 0.8,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1UD4y1N7jM:1"
+          }
+        ],
+        "targetGoals": [
+          "理解太阳能发电的基本工作原理"
+        ],
+        "budgetSeconds": 600,
+        "preferenceAvailable": false,
+        "pairSimilarities": {
+          "BV143KjewE6e:1\nBV1MPKn6XE7k:1": 0.7343,
+          "BV143KjewE6e:1\nBV1UD4y1N7jM:1": 0.7308,
+          "BV143KjewE6e:1\nBV1eP4y1J7n4:1": 0.7159,
+          "BV1MPKn6XE7k:1\nBV1UD4y1N7jM:1": 0.8713,
+          "BV1MPKn6XE7k:1\nBV1eP4y1J7n4:1": 0.7114,
+          "BV1UD4y1N7jM:1\nBV1eP4y1J7n4:1": 0.7249
+        }
+      },
+      "metadata": [
+        {
+          "id": "BV1MPKn6XE7k:1",
+          "title": "三分钟搞懂太阳能发电的完整原理",
+          "partTitle": "7.17太阳能发电",
+          "description": "三分钟搞懂太阳能发电的完整原理#太阳能发电 #光伏发电 #科普 #涨知识"
+        },
+        {
+          "id": "BV143KjewE6e:1",
+          "title": "太阳能电池板如何发电？3D动画了解它的工作原理",
+          "partTitle": "petal_20250206_153949",
+          "description": "-"
+        },
+        {
+          "id": "BV1sr4y1A7g6:1",
+          "title": "中国建造！全球最大太阳能发电厂",
+          "partTitle": "1.2 世界上最大太阳能发电厂",
+          "description": ""
+        },
+        {
+          "id": "BV1eP4y1J7n4:1",
+          "title": "科学风暴实验室55 太阳能电池为什么能够发电？",
+          "partTitle": "科学风暴实验室55 太阳能发电",
+          "description": "通过趣味实验，探索太阳能电池的原理！"
+        },
+        {
+          "id": "BV1UD4y1N7jM:1",
+          "title": "揭秘太阳能发电原理！",
+          "partTitle": "揭秘太阳能发电原理！",
+          "description": ""
+        },
+        {
+          "id": "BV1X94y1n72u:1",
+          "title": "CN3722工作原理：太阳能充电器的秘密！",
+          "partTitle": "studio_video_1700199138679.mp4",
+          "description": "-"
+        },
+        {
+          "id": "BV1cV4y1F7iX:1",
+          "title": "什么是MPPT太阳能控制器？它是如何有效提升太阳能发电功率的？",
+          "partTitle": "什么是MPPT太阳能控制器？它是如何有效提升太阳能发电功率的？",
+          "description": "-"
+        },
+        {
+          "id": "BV1EM4m1m7Mn:1",
+          "title": "很多人买太阳能灯被骗了，来看看一个非常简单的太阳能灯控制系统，比市面几百元的好很多",
+          "partTitle": "studio_video_1718619595349.mp4",
+          "description": "-"
+        }
+      ]
+    }
+  }
+}

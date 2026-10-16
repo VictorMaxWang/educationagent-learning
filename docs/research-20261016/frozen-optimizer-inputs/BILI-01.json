@@ -1,0 +1,130 @@
+{
+  "id": "BILI-01",
+  "query": "沁园春长沙 朗诵",
+  "status": "features_ready",
+  "searchStatus": "ok",
+  "decision": {
+    "status": "ready",
+    "audit": {
+      "optimizerInput": {
+        "candidates": [
+          {
+            "id": "BV1NE411o7P1:1",
+            "durationSeconds": 96,
+            "goals": [
+              "观察并模仿《沁园春·长沙》的标准朗诵节奏与情感表达"
+            ],
+            "purpose": "recitation",
+            "relevance": 0.5284,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1NE411o7P1:1"
+          },
+          {
+            "id": "BV1wT4y1Y76S:1",
+            "durationSeconds": 93,
+            "goals": [
+              "观察并模仿《沁园春·长沙》的标准朗诵节奏与情感表达"
+            ],
+            "purpose": "recitation",
+            "relevance": 0.6524,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1wT4y1Y76S:1"
+          },
+          {
+            "id": "BV1dGYDekEci:1",
+            "durationSeconds": 110,
+            "goals": [
+              "观察并模仿《沁园春·长沙》的标准朗诵节奏与情感表达"
+            ],
+            "purpose": "recitation",
+            "relevance": 0.605,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1dGYDekEci:1"
+          },
+          {
+            "id": "BV1pC4y1q7cP:1",
+            "durationSeconds": 122,
+            "goals": [
+              "观察并模仿《沁园春·长沙》的标准朗诵节奏与情感表达"
+            ],
+            "purpose": "recitation",
+            "relevance": 0.6202,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1pC4y1q7cP:1"
+          }
+        ],
+        "targetGoals": [
+          "观察并模仿《沁园春·长沙》的标准朗诵节奏与情感表达"
+        ],
+        "budgetSeconds": 600,
+        "preferenceAvailable": false,
+        "pairSimilarities": {
+          "BV1NE411o7P1:1\nBV1dGYDekEci:1": 0.4885,
+          "BV1NE411o7P1:1\nBV1pC4y1q7cP:1": 0.5511,
+          "BV1NE411o7P1:1\nBV1wT4y1Y76S:1": 0.5985,
+          "BV1dGYDekEci:1\nBV1pC4y1q7cP:1": 0.6045,
+          "BV1dGYDekEci:1\nBV1wT4y1Y76S:1": 0.7035,
+          "BV1pC4y1q7cP:1\nBV1wT4y1Y76S:1": 0.6421
+        }
+      },
+      "metadata": [
+        {
+          "id": "BV1NE411o7P1:1",
+          "title": "【康辉】方明、康辉朗诵《沁园春·长沙》",
+          "partTitle": "方明、康辉朗诵《沁园春·长沙》",
+          "description": "http://www.cctv.com/\n方明、康辉  两代国庆阅兵解说首次合作朗诵。"
+        },
+        {
+          "id": "BV1wT4y1Y76S:1",
+          "title": "诗词朗诵 | 高一必背篇目之《沁园春•长沙》",
+          "partTitle": "1649123946316.mp4",
+          "description": "-"
+        },
+        {
+          "id": "BV1F7BiBwE7E:1",
+          "title": "缅怀伟人！京剧歌曲·毛主席词《沁园春·长沙》李维康·赵葆秀·于魁智·孟广禄",
+          "partTitle": "TG-2025-12-26-192905579",
+          "description": "-"
+        },
+        {
+          "id": "BV1Fb7h6iEeD:1",
+          "title": "【1080P】《沁园春长沙》朗诵背景 康辉、方明版",
+          "partTitle": "【1080P】《沁园春长沙》朗诵背景 康辉、方明版",
+          "description": "《沁园春·长沙》朗诵:方明、康辉 原作视频：BV1NE411o7P1\n找的原作采用的曲子，经过剪辑后得到的配乐，近似原作卡点配乐。\n有需要伴奏/背景视频的可以来私我(*^_^*)，或者移步咸🐟（泠泠铃音BTG）\n4K，有/无字幕，字体更新无版权问题。"
+        },
+        {
+          "id": "BV1VE421j7LH:1",
+          "title": "学生诗朗诵背景——沁园春·长沙",
+          "partTitle": "学生诗朗诵背景——沁园春·长沙",
+          "description": "诗朗诵背景视频音乐，先做了个PPT然后录屏下来，充当了视频的开头和结尾，中间视频加诗词的时候一条条手搓上去。。。搞了一上午，求求给个三联吧！有需要素材的联系我"
+        },
+        {
+          "id": "BV1dGYDekEci:1",
+          "title": "朗诵《沁园春·长沙》获“诵读中国”经典朗诵比赛全国一等奖 朗诵视频伴奏网络正能量诵读作品 中华经典诵读大赛篇目推荐 情景诵读",
+          "partTitle": "朗诵《沁园春·长沙》获“诵读中国”经典朗诵比赛全国一等奖 朗诵视频伴奏网络正能量诵读作品 中华经典诵读大赛篇目推荐 情景诵读",
+          "description": "-"
+        },
+        {
+          "id": "BV1pC4y1q7cP:1",
+          "title": "问苍茫|橘子洲头诵《沁园春·长沙》，好听！",
+          "partTitle": "问苍茫|橘子洲头诵《沁园春·长沙》，好听！",
+          "description": "-"
+        },
+        {
+          "id": "BV1AJa66eENB:1",
+          "title": "朗诵一等奖《沁园春长沙》经典朗诵背景视频 音乐",
+          "partTitle": "朗诵一等奖《沁园春长沙》经典朗诵背景视频 音乐",
+          "description": ""
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,147 @@
+{
+  "id": "BILI-11",
+  "query": "浮力 实验演示",
+  "status": "features_ready",
+  "searchStatus": "ok",
+  "decision": {
+    "status": "ready",
+    "audit": {
+      "optimizerInput": {
+        "candidates": [
+          {
+            "id": "BV1WgHCerE8j:1",
+            "durationSeconds": 188,
+            "goals": [
+              "观察浮力实验的关键过程"
+            ],
+            "purpose": "observation",
+            "relevance": 0.7126,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1WgHCerE8j:1"
+          },
+          {
+            "id": "BV1wF41167NK:1",
+            "durationSeconds": 323,
+            "goals": [
+              "观察浮力实验的关键过程"
+            ],
+            "purpose": "observation",
+            "relevance": 0.4695,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1wF41167NK:1"
+          },
+          {
+            "id": "BV16J411c7h4:1",
+            "durationSeconds": 209,
+            "goals": [
+              "观察浮力实验的关键过程"
+            ],
+            "purpose": "observation",
+            "relevance": 0.6702,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV16J411c7h4:1"
+          },
+          {
+            "id": "BV1824y1C7xk:1",
+            "durationSeconds": 141,
+            "goals": [
+              "观察浮力实验的关键过程"
+            ],
+            "purpose": "observation",
+            "relevance": 0.525,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1824y1C7xk:1"
+          },
+          {
+            "id": "BV1754y1L7JW:1",
+            "durationSeconds": 306,
+            "goals": [
+              "观察浮力实验的关键过程"
+            ],
+            "purpose": "observation",
+            "relevance": 0.6043,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1754y1L7JW:1"
+          }
+        ],
+        "targetGoals": [
+          "观察浮力实验的关键过程"
+        ],
+        "budgetSeconds": 600,
+        "preferenceAvailable": false,
+        "pairSimilarities": {
+          "BV16J411c7h4:1\nBV1754y1L7JW:1": 0.6286,
+          "BV16J411c7h4:1\nBV1824y1C7xk:1": 0.6202,
+          "BV16J411c7h4:1\nBV1WgHCerE8j:1": 0.7047,
+          "BV16J411c7h4:1\nBV1wF41167NK:1": 0.5264,
+          "BV1754y1L7JW:1\nBV1824y1C7xk:1": 0.5877,
+          "BV1754y1L7JW:1\nBV1WgHCerE8j:1": 0.6648,
+          "BV1754y1L7JW:1\nBV1wF41167NK:1": 0.59,
+          "BV1824y1C7xk:1\nBV1WgHCerE8j:1": 0.5894,
+          "BV1824y1C7xk:1\nBV1wF41167NK:1": 0.4981,
+          "BV1WgHCerE8j:1\nBV1wF41167NK:1": 0.5414
+        }
+      },
+      "metadata": [
+        {
+          "id": "BV1CmXmBgEWy:1",
+          "title": "【莱点装备】普凡浮力vs普凡浮力改：玉玉症浮力啥情况？",
+          "partTitle": "【莱点装备】普凡浮力vs普凡浮力改：玉玉症浮力啥情况？",
+          "description": "-"
+        },
+        {
+          "id": "BV1WgHCerE8j:1",
+          "title": "浮力的几个课堂小实验",
+          "partTitle": "浮力的几个课堂小实验",
+          "description": "-"
+        },
+        {
+          "id": "BV1HW4y197B6:1",
+          "title": "土壤浮力仪土颗粒比重测定公路土工试验浮力法试验仪",
+          "partTitle": "土壤浮力仪土颗粒比重测定公路土工试验浮力法试验仪",
+          "description": "浮力仪用来测定土颗粒的比重。适用于粒径大于或等于5mm的土，且其中粒径大于或等于20mm的土质量应小于总土质量的10%。符合JTG3430-2020《公路土工试验规程》中T0169-2007浮力法的标准要求。"
+        },
+        {
+          "id": "BV1wF41167NK:1",
+          "title": "【自制教具】探究浮力产生原因",
+          "partTitle": "1639499534009.mp4",
+          "description": "好久之前的存货，发出来吧"
+        },
+        {
+          "id": "BV16J411c7h4:1",
+          "title": "感受浮力",
+          "partTitle": "感受浮力",
+          "description": ""
+        },
+        {
+          "id": "BV1Yc1pY6EEb:1",
+          "title": "【UE进阶笔记】15 水系统 浮力",
+          "partTitle": "【UE进阶笔记】15 水系统 浮力",
+          "description": ""
+        },
+        {
+          "id": "BV1824y1C7xk:1",
+          "title": "测量重物浸没水中所受的浮力-国语720P",
+          "partTitle": "测量重物浸没水中所受的浮力-国语720P",
+          "description": ""
+        },
+        {
+          "id": "BV1754y1L7JW:1",
+          "title": "教科版五年级科学1-5：浮力  泡沫塑料块在水中受到的浮力",
+          "partTitle": "1621001275508.mp4",
+          "description": "-"
+        }
+      ]
+    }
+  }
+}

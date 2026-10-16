@@ -1,0 +1,114 @@
+{
+  "id": "BILI-07",
+  "query": "英语问路 对话",
+  "status": "features_ready",
+  "searchStatus": "ok",
+  "decision": {
+    "status": "ready",
+    "audit": {
+      "optimizerInput": {
+        "candidates": [
+          {
+            "id": "BV1BJ411d76L:1",
+            "durationSeconds": 402,
+            "goals": [
+              "观察英语问路对话的关键过程或表达方式"
+            ],
+            "purpose": "observation",
+            "relevance": 0.6717,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1BJ411d76L:1"
+          },
+          {
+            "id": "BV1i9WAzjEdb:1",
+            "durationSeconds": 672,
+            "goals": [
+              "观察英语问路对话的关键过程或表达方式"
+            ],
+            "purpose": "observation",
+            "relevance": 0.542,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1i9WAzjEdb:1"
+          },
+          {
+            "id": "BV12U4y1N7nv:1",
+            "durationSeconds": 75,
+            "goals": [
+              "观察英语问路对话的关键过程或表达方式"
+            ],
+            "purpose": "observation",
+            "relevance": 0.5808,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV12U4y1N7nv:1"
+          }
+        ],
+        "targetGoals": [
+          "观察英语问路对话的关键过程或表达方式"
+        ],
+        "budgetSeconds": 600,
+        "preferenceAvailable": false,
+        "pairSimilarities": {
+          "BV12U4y1N7nv:1\nBV1BJ411d76L:1": 0.5576,
+          "BV12U4y1N7nv:1\nBV1i9WAzjEdb:1": 0.4967,
+          "BV1BJ411d76L:1\nBV1i9WAzjEdb:1": 0.5635
+        }
+      },
+      "metadata": [
+        {
+          "id": "BV1BJ411d76L:1",
+          "title": "日常生活英语——问路和指路",
+          "partTitle": "日常生活英语——问路和指路",
+          "description": "https://www.youtube.com/watch?v=DPYJQSA-x50"
+        },
+        {
+          "id": "BV1is411y74q:1",
+          "title": "【简单英语会话练习】 打招呼",
+          "partTitle": "",
+          "description": "搬运 www.youtube.com 原名：Greetings | Feeling Good | Easy English Conversation Practice | ESL， 作者：Mark Kulek."
+        },
+        {
+          "id": "BV1JE421M77c:1",
+          "title": "【2024最新 海关英語】13个过海关必问英语问答👍｜影子跟读 告别哑巴英语｜出国生存必备 ｜机场英語｜常速→慢速→中文",
+          "partTitle": "【2024最新 海關英語】13個過海關必問英文問答👍｜影子跟讀，告別啞巴英文｜出國生存必備 ｜機場英語｜常速→慢速→中文｜美式英語【收藏永久有用】Englis",
+          "description": "YouTube\n【2024最新 海关英語】13个过海关必问英语问答👍｜影子跟读 告别哑巴英语｜出国生存必备 ｜机场英語｜常速→慢速→中文"
+        },
+        {
+          "id": "BV1i9WAzjEdb:1",
+          "title": "🚦【慢速英语】如何用英语问路和指路 | 初学者轻松会话练习",
+          "partTitle": "Frq4TZf0F1s",
+          "description": "当你身处一个陌生的城市，是不是最怕找不到路？别担心！今天的动画小剧场，帮你轻松搞定“问路”这个大难题！\n\n跟着视频，你将学会：\n✅ 如何用 \"Excuse me, I am lost.\" 礼貌地寻求帮助。\n✅ 如何清晰地表达你的目的地：\"I want to go to the train station.\"\n✅ 如何听懂关键的指路信息，比如 \"Walk straight\" \"Turn left\" 和 \"across from\"。\n✅ 如何礼貌地再次确认路线：\"Excuse me, can I ask again?\"\n\n希望这个视频对你有帮助！"
+        },
+        {
+          "id": "BV1A541197ZZ:1",
+          "title": "高考英语听力场景高频词——问路",
+          "partTitle": "【5】高考听力场景（五）：问路_V2.4_220728",
+          "description": ""
+        },
+        {
+          "id": "BV1jE411q7Ru:1",
+          "title": "英语版《敢问路在何方》",
+          "partTitle": "英语版《敢问路在何方》",
+          "description": "西游记片尾曲"
+        },
+        {
+          "id": "BV1RdJQ6sEns:1",
+          "title": "第三集  交通问路篇",
+          "partTitle": "第三集  交通问路篇",
+          "description": "我是mia，非日专在职9个月过N1\n留日3年，日语教研教学翻译11年\n日语口语合集，省去废话让学生直接开口练听力和口语\n想学日语口语的学生练起来\n▷合集持续更新：问候｜购物｜问路｜餐厅｜高频易错短句\n想学的日语句子，欢迎写在评论区！\n喜欢记得【点赞+收藏+关注】\n\n#日语 #日语自学 #零基础日语 #日语口语 #JLPT"
+        },
+        {
+          "id": "BV12U4y1N7nv:1",
+          "title": "《602学习日常之英语视频作业——“问路”》",
+          "partTitle": "《602学习日常之英语视频作业——“问路”》",
+          "description": "在笑场二十多次后 我们终于录完了英语问路对话的视频作业 1min14s的视频 敲字幕敲得我好累\n（黑色大衣是我 咖色风衣是李敏）"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,165 @@
+{
+  "id": "BILI-21",
+  "query": "勾股定理 验证",
+  "status": "features_ready",
+  "searchStatus": "ok",
+  "decision": {
+    "status": "ready",
+    "audit": {
+      "optimizerInput": {
+        "candidates": [
+          {
+            "id": "BV1RDe3eTERF:1",
+            "durationSeconds": 451,
+            "goals": [
+              "观察勾股定理验证的关键几何过程"
+            ],
+            "purpose": "observation",
+            "relevance": 0.5855,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1RDe3eTERF:1"
+          },
+          {
+            "id": "BV14wGjzgEsQ:1",
+            "durationSeconds": 1638,
+            "goals": [
+              "观察勾股定理验证的关键几何过程"
+            ],
+            "purpose": "observation",
+            "relevance": 0.6919,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV14wGjzgEsQ:1"
+          },
+          {
+            "id": "BV1pr4y187cW:1",
+            "durationSeconds": 38,
+            "goals": [
+              "观察勾股定理验证的关键几何过程"
+            ],
+            "purpose": "observation",
+            "relevance": 0.6883,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1pr4y187cW:1"
+          },
+          {
+            "id": "BV1tA411z7Mm:1",
+            "durationSeconds": 86,
+            "goals": [
+              "观察勾股定理验证的关键几何过程"
+            ],
+            "purpose": "observation",
+            "relevance": 0.5398,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1tA411z7Mm:1"
+          },
+          {
+            "id": "BV1yp4y1H7EZ:1",
+            "durationSeconds": 879,
+            "goals": [
+              "观察勾股定理验证的关键几何过程"
+            ],
+            "purpose": "observation",
+            "relevance": 0.5432,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1yp4y1H7EZ:1"
+          },
+          {
+            "id": "BV1Qruu6BEoG:1",
+            "durationSeconds": 1074,
+            "goals": [
+              "观察勾股定理验证的关键几何过程"
+            ],
+            "purpose": "observation",
+            "relevance": 0.5551,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1Qruu6BEoG:1"
+          }
+        ],
+        "targetGoals": [
+          "观察勾股定理验证的关键几何过程"
+        ],
+        "budgetSeconds": 600,
+        "preferenceAvailable": false,
+        "pairSimilarities": {
+          "BV14wGjzgEsQ:1\nBV1Qruu6BEoG:1": 0.6798,
+          "BV14wGjzgEsQ:1\nBV1RDe3eTERF:1": 0.5809,
+          "BV14wGjzgEsQ:1\nBV1pr4y187cW:1": 0.7037,
+          "BV14wGjzgEsQ:1\nBV1tA411z7Mm:1": 0.5577,
+          "BV14wGjzgEsQ:1\nBV1yp4y1H7EZ:1": 0.5251,
+          "BV1Qruu6BEoG:1\nBV1RDe3eTERF:1": 0.6588,
+          "BV1Qruu6BEoG:1\nBV1pr4y187cW:1": 0.6257,
+          "BV1Qruu6BEoG:1\nBV1tA411z7Mm:1": 0.5608,
+          "BV1Qruu6BEoG:1\nBV1yp4y1H7EZ:1": 0.6238,
+          "BV1RDe3eTERF:1\nBV1pr4y187cW:1": 0.6108,
+          "BV1RDe3eTERF:1\nBV1tA411z7Mm:1": 0.5489,
+          "BV1RDe3eTERF:1\nBV1yp4y1H7EZ:1": 0.7241,
+          "BV1pr4y187cW:1\nBV1tA411z7Mm:1": 0.5997,
+          "BV1pr4y187cW:1\nBV1yp4y1H7EZ:1": 0.5737,
+          "BV1tA411z7Mm:1\nBV1yp4y1H7EZ:1": 0.5818
+        }
+      },
+      "metadata": [
+        {
+          "id": "BV1RDe3eTERF:1",
+          "title": "勾股定理三大证明",
+          "partTitle": "勾股定理三大证明",
+          "description": "-"
+        },
+        {
+          "id": "BV14wGjzgEsQ:1",
+          "title": "勾股定理第二课时，如何验证其正确性",
+          "partTitle": "mmexport1751936980858",
+          "description": "-"
+        },
+        {
+          "id": "BV1XQ4y1a7rj:1",
+          "title": "【废物利用】瓦楞纸制作勾股定理趣味教具",
+          "partTitle": "1639921714977.mp4",
+          "description": "-"
+        },
+        {
+          "id": "BV1pr4y187cW:1",
+          "title": "初中数学自制教具：验证勾股定理",
+          "partTitle": "初中数学自制教具：验证勾股定理",
+          "description": "-"
+        },
+        {
+          "id": "BV1tA411z7Mm:1",
+          "title": "勾股定理-张景中证法1",
+          "partTitle": "勾股定理-张景中证法1",
+          "description": ""
+        },
+        {
+          "id": "BV1BY411d7aq:1",
+          "title": "3小时“肝”完《勾股定理》【初二数学200讲】【八年级数学全集】",
+          "partTitle": "1、勾股定理的简单计算",
+          "description": "大家好呀，每天学一点，进步大一点。\r\n【初二数学200讲】《勾股定理》录制更新中，欢迎大家点赞+投币，点赞、投币越多，更新越快哟！！！\r\n\r\n弹幕、点赞、投币各满5000时，发布讲义（通过b站专栏发布）\r\n所有教材版本都适用哈，各版本之间只是学习顺序不同。"
+        },
+        {
+          "id": "BV1yp4y1H7EZ:1",
+          "title": "10种勾股定理的证明方法，你最喜欢哪一种呢？",
+          "partTitle": "10种勾股定理的证明方法，你最喜欢哪一种呢？",
+          "description": ""
+        },
+        {
+          "id": "BV1Qruu6BEoG:1",
+          "title": "《十分钟速通教材》之初二数学下册第二十章勾股定理！勾股定理的证明和勾股定理的应用！",
+          "partTitle": "《十分钟速通教材》之初二数学下册第二十章勾股定理！勾股定理的证明和勾股定理的应用！",
+          "description": "《十分钟速通教材》之初二数学下册第二十章勾股定理！勾股定理的证明和勾股定理的应用！"
+        }
+      ]
+    }
+  }
+}

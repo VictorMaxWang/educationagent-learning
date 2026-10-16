@@ -1,0 +1,99 @@
+{
+  "id": "BILI-22",
+  "query": "地球自转公转 模型",
+  "status": "features_ready",
+  "searchStatus": "ok",
+  "decision": {
+    "status": "ready",
+    "audit": {
+      "optimizerInput": {
+        "candidates": [
+          {
+            "id": "BV1fQ4y1R7Si:1",
+            "durationSeconds": 125,
+            "goals": [
+              "观察地球自转与公转的关键过程及模型表达方式"
+            ],
+            "purpose": "observation",
+            "relevance": 0.603,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1fQ4y1R7Si:1"
+          },
+          {
+            "id": "BV1oKyaYNEuD:1",
+            "durationSeconds": 57,
+            "goals": [
+              "观察地球自转与公转的关键过程及模型表达方式"
+            ],
+            "purpose": "observation",
+            "relevance": 0.5953,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1oKyaYNEuD:1"
+          }
+        ],
+        "targetGoals": [
+          "观察地球自转与公转的关键过程及模型表达方式"
+        ],
+        "budgetSeconds": 600,
+        "preferenceAvailable": false,
+        "pairSimilarities": {
+          "BV1fQ4y1R7Si:1\nBV1oKyaYNEuD:1": 0.6588
+        }
+      },
+      "metadata": [
+        {
+          "id": "BV1fQ4y1R7Si:1",
+          "title": "地球自转围绕太阳公转",
+          "partTitle": "地球自转围绕太阳公转",
+          "description": ""
+        },
+        {
+          "id": "BV1Uu4y1G7sN:1",
+          "title": "Unity制作星球自转公转运行",
+          "partTitle": "Unity制作星球自转公转运行",
+          "description": "使用unity模拟月球和人造卫星围绕地球转动，以及地球进行公转的这么一个小的案例分享。\n代码是极少部分内容，大部分是Unity这个软件的基础操作，如旋转，添加脚本，添加音效，创建物体并施加材质。\n其中两个人造卫星的模型，不是unity做的，unity做不了这种。模型是3Dmax做的。"
+        },
+        {
+          "id": "BV1Ty4y1A7VQ:1",
+          "title": "初中地理学懵了！！！——这节课带你搞定（地球运动与太阳光照图）",
+          "partTitle": "初中地理学懵了！！！——这节课带你搞定（地球运动与太阳光照图）",
+          "description": "期中考试，期末考试，地理会考 这是地理学习绕不过去的坑，来，老师帮你填上。"
+        },
+        {
+          "id": "BV1EFfpYEEj1:1",
+          "title": "地理教学必备神器",
+          "partTitle": "1月24日地球运动小程序",
+          "description": "地球运动很难讲\n那你试试这个小程序\n轻松搞定地球运动相关重难点"
+        },
+        {
+          "id": "BV1Cg4y1G7NB:1",
+          "title": "地球大小、形状、运动、地轴、俯视、侧视、自转、中心、方向、周期、意义、麦哲伦环球航行、观看、推理、实践、测量（5分）",
+          "partTitle": "地球大小、形状、运动、地轴、俯视、侧视、自转、中心、方向、周期、意义、麦哲伦环球航行、观看、推理、实践、测量（5分）",
+          "description": ""
+        },
+        {
+          "id": "BV1514y1e7VC:1",
+          "title": "【模型制作】地球公转的意义——正午太阳高度和昼夜长短变化",
+          "partTitle": "1662691473603.mp4",
+          "description": "有没有被地球运动的各种影响绕晕呢，这个模型会解答你的困惑哦，自己动手尝试下吧"
+        },
+        {
+          "id": "BV1oKyaYNEuD:1",
+          "title": "为了更直观了解地球自转和公转 我让地球转动了起来",
+          "partTitle": "为了更直观了解地球自转和公转 我让地球转动了起来",
+          "description": "-"
+        },
+        {
+          "id": "BV1ua4y167EU:1",
+          "title": "Scratch - 地球自转与公转",
+          "partTitle": "Scratch - 地球自转与公转",
+          "description": "Scratch - 地球自转与公转"
+        }
+      ]
+    }
+  }
+}

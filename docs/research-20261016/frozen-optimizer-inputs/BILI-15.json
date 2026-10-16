@@ -1,0 +1,165 @@
+{
+  "id": "BILI-15",
+  "query": "七步洗手法 示范",
+  "status": "features_ready",
+  "searchStatus": "ok",
+  "decision": {
+    "status": "ready",
+    "audit": {
+      "optimizerInput": {
+        "candidates": [
+          {
+            "id": "BV1fD421W76d:1",
+            "durationSeconds": 77,
+            "goals": [
+              "观察七步洗手法的关键过程或表达方式"
+            ],
+            "purpose": "procedure",
+            "relevance": 0.6894,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1fD421W76d:1"
+          },
+          {
+            "id": "BV1uxfvBbEae:1",
+            "durationSeconds": 213,
+            "goals": [
+              "观察七步洗手法的关键过程或表达方式"
+            ],
+            "purpose": "procedure",
+            "relevance": 0.6885,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1uxfvBbEae:1"
+          },
+          {
+            "id": "BV1HF411o7xA:1",
+            "durationSeconds": 111,
+            "goals": [
+              "观察七步洗手法的关键过程或表达方式"
+            ],
+            "purpose": "procedure",
+            "relevance": 0.7245,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1HF411o7xA:1"
+          },
+          {
+            "id": "BV1Rx4y1m7Cz:1",
+            "durationSeconds": 140,
+            "goals": [
+              "观察七步洗手法的关键过程或表达方式"
+            ],
+            "purpose": "procedure",
+            "relevance": 0.5907,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1Rx4y1m7Cz:1"
+          },
+          {
+            "id": "BV1SG4y1v7GR:1",
+            "durationSeconds": 206,
+            "goals": [
+              "观察七步洗手法的关键过程或表达方式"
+            ],
+            "purpose": "procedure",
+            "relevance": 0.5773,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1SG4y1v7GR:1"
+          },
+          {
+            "id": "BV1G741157f1:1",
+            "durationSeconds": 579,
+            "goals": [
+              "观察七步洗手法的关键过程或表达方式"
+            ],
+            "purpose": "procedure",
+            "relevance": 0.624,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1G741157f1:1"
+          }
+        ],
+        "targetGoals": [
+          "观察七步洗手法的关键过程或表达方式"
+        ],
+        "budgetSeconds": 600,
+        "preferenceAvailable": false,
+        "pairSimilarities": {
+          "BV1G741157f1:1\nBV1HF411o7xA:1": 0.8706,
+          "BV1G741157f1:1\nBV1Rx4y1m7Cz:1": 0.7271,
+          "BV1G741157f1:1\nBV1SG4y1v7GR:1": 0.6791,
+          "BV1G741157f1:1\nBV1fD421W76d:1": 0.7166,
+          "BV1G741157f1:1\nBV1uxfvBbEae:1": 0.7964,
+          "BV1HF411o7xA:1\nBV1Rx4y1m7Cz:1": 0.784,
+          "BV1HF411o7xA:1\nBV1SG4y1v7GR:1": 0.7368,
+          "BV1HF411o7xA:1\nBV1fD421W76d:1": 0.7814,
+          "BV1HF411o7xA:1\nBV1uxfvBbEae:1": 0.8702,
+          "BV1Rx4y1m7Cz:1\nBV1SG4y1v7GR:1": 0.6164,
+          "BV1Rx4y1m7Cz:1\nBV1fD421W76d:1": 0.6923,
+          "BV1Rx4y1m7Cz:1\nBV1uxfvBbEae:1": 0.7446,
+          "BV1SG4y1v7GR:1\nBV1fD421W76d:1": 0.6322,
+          "BV1SG4y1v7GR:1\nBV1uxfvBbEae:1": 0.6919,
+          "BV1fD421W76d:1\nBV1uxfvBbEae:1": 0.8062
+        }
+      },
+      "metadata": [
+        {
+          "id": "BV1fD421W76d:1",
+          "title": "标准七步洗手法操作视频！",
+          "partTitle": "标准七步洗手法操作视频！",
+          "description": ""
+        },
+        {
+          "id": "BV1uxfvBbEae:1",
+          "title": "7-1 操作 七步洗手法",
+          "partTitle": "7-1 操作 七步洗手法",
+          "description": ""
+        },
+        {
+          "id": "BV1HF411o7xA:1",
+          "title": "七步洗手法",
+          "partTitle": "七步洗手法",
+          "description": ""
+        },
+        {
+          "id": "BV1Rx4y1m7Cz:1",
+          "title": "儿童版-七步洗手法",
+          "partTitle": "儿童版-七步洗手法",
+          "description": "儿童版-七步洗手法"
+        },
+        {
+          "id": "BV1SG4y1v7GR:1",
+          "title": "七步洗手法——郭培淇",
+          "partTitle": "七步洗手法——郭培淇",
+          "description": ""
+        },
+        {
+          "id": "BV135411P7hX:1",
+          "title": "幼儿园中班健康七步洗手《怎么洗手》健康领域活动微课视频",
+          "partTitle": "中班健康《我爱洗手》微视频",
+          "description": "幼儿怎么洗手？洗手更健康，这个是健康领域活动课程，幼儿园大班中班小班优秀公开课视频_微课素材，微课视频，资源长期更新，点击头像关注"
+        },
+        {
+          "id": "BV1G741157f1:1",
+          "title": "安全卫生《七步洗手法》",
+          "partTitle": "安全卫生《七步洗手法》",
+          "description": "-"
+        },
+        {
+          "id": "BV1da4y1i74o:1",
+          "title": "【科普】【为改善国外疫情出一份力】当七步洗手法变成英文会是什么样？",
+          "partTitle": "FinalVideo_1588591137.538102",
+          "description": "视频都会上传Youtube，希望让国外友人多多了解国内的方法！科普小视频系列在火热制作中！如果喜欢还请多多关注！"
+        }
+      ]
+    }
+  }
+}

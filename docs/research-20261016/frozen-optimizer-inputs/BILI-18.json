@@ -1,0 +1,130 @@
+{
+  "id": "BILI-18",
+  "query": "分数约分 讲解",
+  "status": "features_ready",
+  "searchStatus": "ok",
+  "decision": {
+    "status": "hidden",
+    "audit": {
+      "optimizerInput": {
+        "candidates": [
+          {
+            "id": "BV1W3411f7YN:1",
+            "durationSeconds": 1560,
+            "goals": [
+              "观察分数约分的关键过程和表达方式"
+            ],
+            "purpose": "worked_example",
+            "relevance": 0.6856,
+            "complementarity": 0.8,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1W3411f7YN:1"
+          },
+          {
+            "id": "BV19V411t7th:1",
+            "durationSeconds": 625,
+            "goals": [
+              "观察分数约分的关键过程和表达方式"
+            ],
+            "purpose": "worked_example",
+            "relevance": 0.5833,
+            "complementarity": 0.8,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV19V411t7th:1"
+          },
+          {
+            "id": "BV1NZ4y1W7L7:1",
+            "durationSeconds": 833,
+            "goals": [
+              "观察分数约分的关键过程和表达方式"
+            ],
+            "purpose": "worked_example",
+            "relevance": 0.6959,
+            "complementarity": 0.8,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1NZ4y1W7L7:1"
+          },
+          {
+            "id": "BV1zm4y1P7ej:1",
+            "durationSeconds": 936,
+            "goals": [
+              "观察分数约分的关键过程和表达方式"
+            ],
+            "purpose": "worked_example",
+            "relevance": 0.659,
+            "complementarity": 0.8,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1zm4y1P7ej:1"
+          }
+        ],
+        "targetGoals": [
+          "观察分数约分的关键过程和表达方式"
+        ],
+        "budgetSeconds": 600,
+        "preferenceAvailable": false,
+        "pairSimilarities": {
+          "BV19V411t7th:1\nBV1NZ4y1W7L7:1": 0.7067,
+          "BV19V411t7th:1\nBV1W3411f7YN:1": 0.6737,
+          "BV19V411t7th:1\nBV1zm4y1P7ej:1": 0.5929,
+          "BV1NZ4y1W7L7:1\nBV1W3411f7YN:1": 0.8089,
+          "BV1NZ4y1W7L7:1\nBV1zm4y1P7ej:1": 0.7524,
+          "BV1W3411f7YN:1\nBV1zm4y1P7ej:1": 0.8825
+        }
+      },
+      "metadata": [
+        {
+          "id": "BV1n6wJzyEyd:1",
+          "title": "《十分钟速通教材》之初二数学上册第十八章分式！分式的定义、性质和分式的约分与通分！",
+          "partTitle": "《十分钟速通教材》之初二数学上册第十八章分式！分式的定义、性质和分式的约分与通分！",
+          "description": "《十分钟速通教材》之初二数学上册第十八章分式！分式的定义、性质和分式的约分与通分！"
+        },
+        {
+          "id": "BV1GTvWBzEjw:1",
+          "title": "C语言程序设计——既约分数",
+          "partTitle": "mmexport1767010119537",
+          "description": "-"
+        },
+        {
+          "id": "BV1W3411f7YN:1",
+          "title": "分数通分及约分！！！",
+          "partTitle": "分数通分及约分！！！",
+          "description": "-"
+        },
+        {
+          "id": "BV1UT4y1f7HE:1",
+          "title": "六年级：分数简便计算，有带分数情况如何考虑",
+          "partTitle": "六年级：分数简便计算，有带分数情况如何考虑",
+          "description": "-"
+        },
+        {
+          "id": "BV19V411t7th:1",
+          "title": "人教版小学数学同步精讲课程，五年级下册，分数的约分",
+          "partTitle": "人教版小学数学同步精讲课程，五年级下册，分数的约分",
+          "description": "人教版小学数学同步精讲课程，五年级下册，分数的约分"
+        },
+        {
+          "id": "BV1wz4y1M7kS:1",
+          "title": "数字推理复盘：反约分怎么想",
+          "partTitle": "数字推理复盘：反约分怎么想",
+          "description": "-"
+        },
+        {
+          "id": "BV1NZ4y1W7L7:1",
+          "title": "约分",
+          "partTitle": "约分",
+          "description": ""
+        },
+        {
+          "id": "BV1zm4y1P7ej:1",
+          "title": "分数计算中的约分通分技巧",
+          "partTitle": "分数计算中的约分通分技巧",
+          "description": "-"
+        }
+      ]
+    }
+  }
+}

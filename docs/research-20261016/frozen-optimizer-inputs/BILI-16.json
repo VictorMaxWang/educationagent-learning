@@ -1,0 +1,99 @@
+{
+  "id": "BILI-16",
+  "query": "长方形面积 演示",
+  "status": "features_ready",
+  "searchStatus": "ok",
+  "decision": {
+    "status": "ready",
+    "audit": {
+      "optimizerInput": {
+        "candidates": [
+          {
+            "id": "BV1bHVd6kEez:1",
+            "durationSeconds": 328,
+            "goals": [
+              "结合长方形面积 演示，观察其关键过程或表达方式。"
+            ],
+            "purpose": "observation",
+            "relevance": 0.6796,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1bHVd6kEez:1"
+          },
+          {
+            "id": "BV1cftje1ETN:1",
+            "durationSeconds": 92,
+            "goals": [
+              "结合长方形面积 演示，观察其关键过程或表达方式。"
+            ],
+            "purpose": "observation",
+            "relevance": 0.628,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1cftje1ETN:1"
+          }
+        ],
+        "targetGoals": [
+          "结合长方形面积 演示，观察其关键过程或表达方式。"
+        ],
+        "budgetSeconds": 600,
+        "preferenceAvailable": false,
+        "pairSimilarities": {
+          "BV1bHVd6kEez:1\nBV1cftje1ETN:1": 0.7072
+        }
+      },
+      "metadata": [
+        {
+          "id": "BV1BR4y1s7pD:1",
+          "title": "零基础C语言编程入门-第6集： 计算长方形的面积。",
+          "partTitle": "零基础C语言编程入门-第6集： 计算长方形的面积。",
+          "description": "视频搬运自互联网"
+        },
+        {
+          "id": "BV1v14y1w7Ue:1",
+          "title": "c++编程第10课：长方形的面积",
+          "partTitle": "c++编程第10课：长方形的面积",
+          "description": "乐博星际C++编程，第10课：长方形的面积\n快来和@大雄老师教编程  一起学习吧🙋"
+        },
+        {
+          "id": "BV1P14y197hz:1",
+          "title": "用长方形面积公式计算圆的面积，生动通俗的动画！",
+          "partTitle": "用长方形面积公式计算圆的面积，生动通俗的动画！",
+          "description": "素材来自youtube：mathematicsonline"
+        },
+        {
+          "id": "BV1zbyNYeEof:1",
+          "title": "B3834 [GESP202303 一级] 长方形面积",
+          "partTitle": "B3834 [GESP202303 一级] 长方形面积",
+          "description": ""
+        },
+        {
+          "id": "BV1pKm4Y6EYa:1",
+          "title": "四年级上册：长方形——长或宽增加后的面积变化（490012）",
+          "partTitle": "四年级上册：长方形——长或宽增加后的面积变化（490012）",
+          "description": "必考题型或易错题型，每个视频4分钟左右，适合碎片化学习和精准学习"
+        },
+        {
+          "id": "BV1dB4y1U7pH:1",
+          "title": "6.计算长方形面积",
+          "partTitle": "6.计算长方形面积",
+          "description": "中小学C语言教学"
+        },
+        {
+          "id": "BV1bHVd6kEez:1",
+          "title": "1.《长方形的面积公式》",
+          "partTitle": "1.《长方形的面积公式》",
+          "description": ""
+        },
+        {
+          "id": "BV1cftje1ETN:1",
+          "title": "29-1 正方形、长方形面积计算",
+          "partTitle": "29-1 正方形、长方形面积计算",
+          "description": ""
+        }
+      ]
+    }
+  }
+}

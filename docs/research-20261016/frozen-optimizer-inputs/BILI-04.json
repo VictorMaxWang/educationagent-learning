@@ -1,0 +1,130 @@
+{
+  "id": "BILI-04",
+  "query": "观沧海 朗诵",
+  "status": "features_ready",
+  "searchStatus": "ok",
+  "decision": {
+    "status": "ready",
+    "audit": {
+      "optimizerInput": {
+        "candidates": [
+          {
+            "id": "BV1BV411d7Lw:1",
+            "durationSeconds": 63,
+            "goals": [
+              "观察《观沧海》朗诵的关键过程或表达方式"
+            ],
+            "purpose": "recitation",
+            "relevance": 0.703,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1BV411d7Lw:1"
+          },
+          {
+            "id": "BV1iz4y1w7Zh:1",
+            "durationSeconds": 76,
+            "goals": [
+              "观察《观沧海》朗诵的关键过程或表达方式"
+            ],
+            "purpose": "recitation",
+            "relevance": 0.5455,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1iz4y1w7Zh:1"
+          },
+          {
+            "id": "BV1vtkEYREek:1",
+            "durationSeconds": 74,
+            "goals": [
+              "观察《观沧海》朗诵的关键过程或表达方式"
+            ],
+            "purpose": "recitation",
+            "relevance": 0.6675,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1vtkEYREek:1"
+          },
+          {
+            "id": "BV1hG411J75f:1",
+            "durationSeconds": 57,
+            "goals": [
+              "观察《观沧海》朗诵的关键过程或表达方式"
+            ],
+            "purpose": "recitation",
+            "relevance": 0.6608,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1hG411J75f:1"
+          }
+        ],
+        "targetGoals": [
+          "观察《观沧海》朗诵的关键过程或表达方式"
+        ],
+        "budgetSeconds": 600,
+        "preferenceAvailable": false,
+        "pairSimilarities": {
+          "BV1BV411d7Lw:1\nBV1hG411J75f:1": 0.6897,
+          "BV1BV411d7Lw:1\nBV1iz4y1w7Zh:1": 0.5933,
+          "BV1BV411d7Lw:1\nBV1vtkEYREek:1": 0.7332,
+          "BV1hG411J75f:1\nBV1iz4y1w7Zh:1": 0.5199,
+          "BV1hG411J75f:1\nBV1vtkEYREek:1": 0.5856,
+          "BV1iz4y1w7Zh:1\nBV1vtkEYREek:1": 0.5336
+        }
+      },
+      "metadata": [
+        {
+          "id": "BV1mj421d7fF:1",
+          "title": "七年级诗歌《观沧海》",
+          "partTitle": "七年级诗歌《观沧海》",
+          "description": "这首诗歌是七年级语文上册第4课《古代诗歌四首》中的第一首，朋友们可以跟着视频读，跟着视频唱。每日一首诗，日积月累，腹有诗书气自华！"
+        },
+        {
+          "id": "BV1p84y1H7Vj:1",
+          "title": "经典咏流传《观沧海》诵读+吟唱，初中必背古诗词 曹操",
+          "partTitle": "经典咏流传《观沧海》诵读+吟唱，初中必背古诗词 曹操",
+          "description": "-"
+        },
+        {
+          "id": "BV1BV411d7Lw:1",
+          "title": "曹操《观沧海》赵岭朗诵",
+          "partTitle": "曹操观沧海赵岭朗诵",
+          "description": "曹操《观沧海》赵岭朗诵。"
+        },
+        {
+          "id": "BV1iz4y1w7Zh:1",
+          "title": "中华经典资源库 11 观沧海 诵读",
+          "partTitle": "中华经典资源库 11 观沧海 诵读",
+          "description": "方明，中央人民广播电台播音指导。他的播音风格大气稳健、遒劲潇洒。方明的播音生涯始于新闻播报，却横跨文艺播报、电视专题片、舞台朗诵等多个领域，是一名全能播音员。他的古文造诣了得，曾播送超过500期《阅读与欣赏》。“中华经典资源库”邀请方明老师为大家朗诵文质兼美的中华经典诗文，深入体味其丰富的画面感，饱满的抒情性，流畅的韵律美。"
+        },
+        {
+          "id": "BV1vtkEYREek:1",
+          "title": "2-观沧海-一起听“曹操”扮演者鲍国安朗诵《观沧海》",
+          "partTitle": "2-观沧海-一起听“曹操”扮演者鲍国安朗诵《观沧海》",
+          "description": ""
+        },
+        {
+          "id": "BV12P4y167xt:1",
+          "title": "94版三国演义 观沧海",
+          "partTitle": "94版三国演义 观沧海",
+          "description": "有兴趣的可以看下【【合集】经典咏流传-滚滚长江东逝水变奏-哔哩哔哩】 https://b23.tv/oYiTQ4Y\n个人觉得做的很用心，非常好"
+        },
+        {
+          "id": "BV1hG411J75f:1",
+          "title": "《观沧海》：东临碣石，以观沧海，水何澹澹，山岛竦峙。",
+          "partTitle": "《观沧海》：东临碣石，以观沧海，水何澹澹，山岛竦峙。",
+          "description": "《观沧海》是东汉末年诗人曹操创作的一首四言诗，《步出夏门行》的第一章 。这首诗是曹操在碣石山登山望海时，用饱蘸浪漫主义激情的大笔，所勾勒出的大海吞吐日月、包蕴万千的壮丽景象；描绘了祖国河山的雄伟壮丽，既刻画了高山大海的壮阔，更表达了诗人以景托志，胸怀天下的进取精神。全诗语言质朴，想象丰富，气势磅礴，苍凉悲壮。"
+        },
+        {
+          "id": "BV1WvMTerEQy:1",
+          "title": "《观沧海》古筝：侯奕， 钢琴：栾景旭， 作曲：王瑞",
+          "partTitle": "《观沧海》古筝：侯奕， 钢琴：栾景旭， 作曲：王瑞",
+          "description": "曹操在他的诗作《观沧海》中写道：“东临碣石，以观沧海。  水何澹澹，山岛竦峙。  树木丛生，百草丰茂。  秋风萧瑟，洪波涌起。  日月之行，若出其中；  星汉灿烂，若出其里。  幸甚至哉，歌以咏志。”本曲以“观沧海”为题，描绘曹操战天斗地的一生。该曲共分为五个部分——“序”、“初露峥嵘”、“驰骋千里”、“铁面柔情”、“盖世英雄”。\n\n侯奕，青年古筝演奏家，中央音乐学院古筝硕士毕业，师从周望教授和苏畅副教授。她六岁习筝，十岁拜师著名古筝演奏家、教育家、博士生导师周望教授。2014年以优异成绩考入中央音乐学院本科，跟随著名古筝演奏家、硕士生导师苏畅副教授学习，而后继续攻读硕士研究生。在校期间，参与中央音乐学院第二届弹拨音乐节开幕式及闭幕式庆典音乐会；中央音乐学院首届中国民族音乐节 “琴瑟诗咏——弹拨专场音乐会” ；中央音乐学院建校75周年庆 “名师高徒” 专场音乐会等多场演出活动。曾多次参与CCTV“风华国乐”和“文明之旅”的节目录制，2017、2018曾连续两年参与CCTV“中秋戏曲晚会”和“中央广播电视总台中秋晚会”的演出，2021年荣幸参演了庆祝中国共产党成立100周年《伟大征程》文艺演出。她在国内外古筝赛事曾屡获大奖，2014年起先后荣获美国普林斯顿国际音乐大赛专业青年组金奖，并应邀在美国纽约卡内基音乐厅演出；韩国亚洲音乐艺术节专业青年组金奖，并应邀参加开幕式独奏演出；第四届国际古筝比赛青年专业组金奖等。2021、2022年研究生期间成功举办两场古筝独奏音乐会，2023年6月成功首演古筝协奏曲《观沧海》。"
+        }
+      ]
+    }
+  }
+}

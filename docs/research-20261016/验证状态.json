@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-10-16",
+  "asOf": "2026-10-16T13:21:34.766006+00:00",
   "core": {
     "status": "PASS",
     "tests": 24,
@@ -22,7 +22,8 @@
     "modelCalledCases": 48,
     "rulesOnlyCases": 24,
     "humanReviewed": false,
-    "evidence": "docs/research-20261016/工程评测结果.json"
+    "evidence": "docs/research-20261016/工程评测结果.json",
+    "scope": "r1冻结版本的工程预期符合性；最终v3另以单元边界和正式站3正例1排除情境验证，未把r1改称最终v3的72例泛化成绩"
   },
   "realQueries30": {
     "status": "LIVE_PARTIAL_READY23_HIDDEN6_ERROR1",
@@ -62,10 +63,14 @@
   "frontend": {
     "status": "PASS",
     "files": 19,
-    "tests": 178,
+    "tests": 179,
     "typecheck": "PASS",
-    "build": "PASS",
-    "evidence": "target/research-upgrade-20261016/frontend-tests-release.log"
+    "publicBuild": "PASS",
+    "evidence": "target/research-upgrade-20261016/frontend-tests-final-layout.log",
+    "buildEvidence": "target/research-upgrade-20261016/frontend-build-v14.log",
+    "prior178NotAddedAgain": true,
+    "staticDeploymentAndLayout": "PASS_V15_STATIC_AND_LAYOUT",
+    "build": "PASS_PUBLIC_CLASSROOM"
   },
   "fullBackend": {
     "status": "FAILED_LOCAL_DATABASE_AUTHENTICATION",
@@ -77,14 +82,17 @@
     "evidence": "target/research-upgrade-20261016/backend-full-final.log"
   },
   "online": {
-    "status": "V12_PARTIAL_V13_FINAL_PENDING",
+    "status": "PASS_V15_WITH_RETAINED_INITIAL_FAILURES",
     "codeRunner": {
-      "status": "PASS",
+      "status": "PASS_V15",
       "languages": 4,
       "foreignIdentity404Checks": 8,
       "cancellationJobs": 1,
       "cancellationStabilityReads": 3,
-      "preservedCancellationTraceSteps": 43
+      "preservedCancellationTraceSteps": 35,
+      "evidence": "target/research-upgrade-20261016/public-code-api-report-v15.json",
+      "cancellationEvidence": "target/research-upgrade-20261016/cancellation-final.json",
+      "localReceiptLockFailureRetained": true
     },
     "feedback": {
       "firstStatement": "PASS",
@@ -121,11 +129,94 @@
       "activeServices": 6,
       "CherryHealth": "PASS"
     },
-    "finalV13": "PENDING"
+    "videoV13": {
+      "status": "PASS",
+      "cases": 4,
+      "positiveCases": 3,
+      "positiveReady": 3,
+      "excludedCases": 1,
+      "excludedHiddenWithoutExternalSearch": 1,
+      "firstRoundRetained": true,
+      "metadataCacheBoundaryStillApplies": true,
+      "evidence": "target/research-upgrade-20261016/live-video-smoke-v13/report.json"
+    },
+    "generationReview": {
+      "status": "PASS_CONTENT_ONLY_AFTER_GUIDED_REGENERATION",
+      "phasesRetained": 3,
+      "earlierFailures": [
+        "v12 invalid revision patch",
+        "v13 content beyond source scope"
+      ],
+      "finalPages": 4,
+      "finalPassedPages": 4,
+      "runtimeVerified": false,
+      "evidence": "target/research-upgrade-20261016/live-generation-review-v13-r2.json"
+    },
+    "growthReadback": {
+      "status": "PASS",
+      "groups": 4,
+      "messagesPerGroup": 2,
+      "mistakesAtReadback": 16,
+      "evidence": "target/research-upgrade-20261016/live-existing-readback.json"
+    },
+    "freshCherryAudio": {
+      "status": "PASS",
+      "voiceId": "Cherry",
+      "audioBytes": 22797,
+      "evidence": "target/research-upgrade-20261016/live-existing-readback.json"
+    },
+    "exports": {
+      "html": {
+        "status": "PASS",
+        "actualDownloadedBytes": 3318735,
+        "privateTraceExcluded": true
+      },
+      "pptx": {
+        "status": "PASS_STRUCTURE",
+        "bytes": 90581,
+        "supplementaryLinkInNotes": true,
+        "officeVisualRenderingVerified": false
+      },
+      "evidence": "target/research-upgrade-20261016/live-export-verification.json"
+    },
+    "v13Cutover": {
+      "status": "PASS",
+      "originalCourseDocumentsIdentical": true,
+      "coursesAtCutover": 15,
+      "papersAtCutover": 13,
+      "answersAtCutover": 38,
+      "questionsAtCutover": 30,
+      "activeServices": 6,
+      "codeCommit": "bd6ac420525c14967645b5f3a5aef59976729994",
+      "evidence": "target/research-upgrade-20261016/activate-release13.log"
+    },
+    "finalPreservation": {
+      "checkedAt": "2026-10-16T13:21:13.332902+00:00",
+      "originalCourseCount": 12,
+      "allOriginalCoursesPresent": true,
+      "oldProgressUnchanged": true,
+      "progressDifferences": [],
+      "oldMistakeIdsUnchanged": true,
+      "currentMistakeCount": 16,
+      "currentCourseCount": 15,
+      "engineReady": true,
+      "activeJobs": 0,
+      "voiceId": "Cherry",
+      "voiceConfigured": true,
+      "status": "PASS"
+    }
   },
-  "release": "PENDING_V13_FINAL",
+  "release": {
+    "status": "PASS_ONLINE",
+    "release": "20261016-xiaotao-15",
+    "sourceCommit": "d28e4a9abf185e5467639b9f16397340a4e6a12c",
+    "repository": "https://github.com/VictorMaxWang/educationagent-learning",
+    "visibility": "PRIVATE",
+    "jarSha256": "8a0f0ac00889a431898e9f4cd3c0dae006f50444ad07823cb855c705fcc4d8f8",
+    "sourcePublication": "源代码提交已推送并读回；最终文档提交号另见本地交付回执"
+  },
   "labelBoundary": "工程夹具及代理标签不声称教师评审或真实学生教学效果",
-  "updateInstruction": "主任务完成后用真实日志更新本文件，再运行索引校验脚本生成总览。",
+  "updateInstruction": "最终回执按各原始运行证据汇总；失败分母与历史状态不得用后续修复覆盖。",
   "engine": {
     "status": "PASS",
     "tests": 27,
@@ -133,18 +224,25 @@
     "evidence": "target/research-upgrade-20261016/engine-test-final.log"
   },
   "postPatchTargeted": {
-    "status": "PASS_COMPLETED_BATCHES_V13_ADDITIONS_PENDING",
-    "completedTests": 284,
+    "status": "PASS",
+    "latestBatch": "v13",
+    "tests": 296,
     "failures": 0,
     "errors": 0,
-    "conceptGateSupplementalTests": 7,
-    "conceptGateSupplementalStatus": "PASS",
+    "skipped": 0,
+    "priorBatches": [
+      {
+        "tests": 284,
+        "status": "PASS"
+      },
+      {
+        "tests": 7,
+        "scope": "concept-gate supplement",
+        "status": "PASS"
+      }
+    ],
     "batchCountsMayOverlap": true,
-    "finalV13Checks": "PENDING_ROOT_FINAL_COUNTS",
-    "evidence": [
-      "target/research-upgrade-20261016/backend-postpatch.log",
-      "target/research-upgrade-20261016/backend-concept-gate-final.log"
-    ]
+    "evidence": "target/research-upgrade-20261016/backend-v13.log"
   },
   "fixedInputAlgorithms": {
     "status": "24_VERIFIED_OPTIMA_NO_GREEDY_ADVANTAGE",
@@ -180,5 +278,53 @@
     },
     "evidence": "docs/research-20261016/工程评测结果.json"
   },
-  "testReport": "docs/测试报告_20261016.md"
+  "testReport": "docs/测试报告_20261016.md",
+  "overallStatus": "PASS_ACCEPTANCE_WITH_RETAINED_FAILURES",
+  "backendPackage": {
+    "status": "PASS_ON_RETRY",
+    "firstFailureRetained": true,
+    "firstFailureReason": "运行时百度云临时cfg文件竞态",
+    "repair": "排除该临时文件后重新打包",
+    "evidence": "target/research-upgrade-20261016/backend-package-v13-retry.log"
+  },
+  "postLayoutRelease": {
+    "status": "PASS",
+    "release": "20261016-xiaotao-15",
+    "backendSameAsV13": true,
+    "servicesRestarted": false,
+    "oldOverflowScreenshotRetained": true,
+    "oldMobileSpacingScreenshotRetained": true,
+    "layout": {
+      "status": "PASS",
+      "release": "20261016-xiaotao-15",
+      "checkedAt": "2026-10-16T13:21:07.826Z",
+      "desktop": {
+        "scrollWidth": 1102,
+        "width": 1102
+      },
+      "mobile": {
+        "actionButtonHeights": [
+          38,
+          38
+        ],
+        "scrollWidth": 390,
+        "width": 390
+      },
+      "videoMobile": {
+        "width": 390,
+        "scrollWidth": 390
+      },
+      "publicMode": true,
+      "exportHtmlDownloaded": true,
+      "exportPptxDownloaded": true,
+      "videoOpenedInNewTab": true,
+      "originalVideoCourseStayedOpen": true
+    },
+    "validation": {
+      "tests": 179,
+      "files": 19,
+      "typecheck": "PASS",
+      "publicBuild": "PASS"
+    }
+  }
 }

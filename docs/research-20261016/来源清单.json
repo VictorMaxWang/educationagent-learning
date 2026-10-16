@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "edition": "20261016",
-  "codeCommit": null,
+  "codeCommit": "d28e4a9abf185e5467639b9f16397340a4e6a12c",
   "availability": "全文和真实裁图保存在项目本地团队成果参考库/本轮算法深化_20261016；此目录仅提供便携定位清单。",
   "sources": [
     {

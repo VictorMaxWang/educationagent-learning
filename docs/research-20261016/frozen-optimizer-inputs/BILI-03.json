@@ -1,0 +1,99 @@
+{
+  "id": "BILI-03",
+  "query": "静夜思 朗读",
+  "status": "features_ready",
+  "searchStatus": "ok",
+  "decision": {
+    "status": "ready",
+    "audit": {
+      "optimizerInput": {
+        "candidates": [
+          {
+            "id": "BV1ZRNiezEXt:1",
+            "durationSeconds": 69,
+            "goals": [
+              "观察并模仿《静夜思》的标准诵读节奏与情感表达"
+            ],
+            "purpose": "recitation",
+            "relevance": 0.682,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1ZRNiezEXt:1"
+          },
+          {
+            "id": "BV1rR4y1E7Hm:1",
+            "durationSeconds": 83,
+            "goals": [
+              "观察并模仿《静夜思》的标准诵读节奏与情感表达"
+            ],
+            "purpose": "recitation",
+            "relevance": 0.6023,
+            "complementarity": 1.0,
+            "preference": 0.0,
+            "eligible": true,
+            "duplicateGroup": "BV1rR4y1E7Hm:1"
+          }
+        ],
+        "targetGoals": [
+          "观察并模仿《静夜思》的标准诵读节奏与情感表达"
+        ],
+        "budgetSeconds": 600,
+        "preferenceAvailable": false,
+        "pairSimilarities": {
+          "BV1ZRNiezEXt:1\nBV1rR4y1E7Hm:1": 0.5986
+        }
+      },
+      "metadata": [
+        {
+          "id": "BV1654y1L7qN:1",
+          "title": "静夜思·唐·李白【朗诵】【部编一下】",
+          "partTitle": "静夜思·唐·李白【朗诵】【部编一下】",
+          "description": "-"
+        },
+        {
+          "id": "BV1st421t7ro:1",
+          "title": "S1387李昕融《静夜思》#原唱mv 水墨儿童歌曲节日晚会舞蹈演出舞台高清LED视频背景素材#可替换伴奏",
+          "partTitle": "S1387李昕融《静夜思》#原唱mv 水墨儿童歌曲节日晚会舞蹈演出舞台高清LED视频背景素材#可替换伴奏",
+          "description": ""
+        },
+        {
+          "id": "BV1ZRNiezEXt:1",
+          "title": "《静夜思》儿童朗读-小学生必背古诗词75首",
+          "partTitle": "《静夜思》儿童朗读-小学生必背古诗词75首",
+          "description": "《静夜思》描绘静夜望月思乡的情景。“床前明月光，疑是地上霜”以月光似霜营造清冷氛围。“举头望明月，低头思故乡”通过动作对比，抒发深切乡愁。语言简练，意境深远，情感真挚，是唐代五绝经典。"
+        },
+        {
+          "id": "BV15J411q7jL:1",
+          "title": "日语诵读静夜思",
+          "partTitle": "日语诵读静夜思",
+          "description": "u2"
+        },
+        {
+          "id": "BV1re411s7Tm:1",
+          "title": "教你用闽南语读古诗《静夜思》",
+          "partTitle": "静夜思",
+          "description": "闽南语朗诵《静夜思》\n泉州市区府城腔，注音为台罗拼音，声调标号为阴阳分立，声调标红处为变调。"
+        },
+        {
+          "id": "BV1hi421i7kA:1",
+          "title": "小学音乐人教版五年级下册唱歌课《静夜思》范唱",
+          "partTitle": "studio_video_1717744901282.mp4",
+          "description": "-"
+        },
+        {
+          "id": "BV1Eh4y1i7om:1",
+          "title": "【双语中国】用英语朗诵《静夜思》是这种感觉哦~",
+          "partTitle": "【双语中国】用英语朗诵《静夜思》是这种感觉哦~",
+          "description": "素材来源于网络，如有侵权，请联系后台"
+        },
+        {
+          "id": "BV1rR4y1E7Hm:1",
+          "title": "《静夜思》【唐】李白 戴学忱吟诵 来源：中央电视台 2011年 中华长歌行 中秋",
+          "partTitle": "18.《静夜思》【唐】李白 戴学忱 来源：中央电视台 2011年 中华长歌行 中秋",
+          "description": ""
+        }
+      ]
+    }
+  }
+}

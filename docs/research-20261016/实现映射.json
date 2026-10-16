@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "edition": "20261016",
-  "codeCommit": null,
-  "codeCommitStatus": "PENDING_RELEASE",
+  "codeCommit": "d28e4a9abf185e5467639b9f16397340a4e6a12c",
+  "codeCommitStatus": "RELEASE_COMMIT_SUPPLIED",
   "mapping": [
     {
       "id": "ALG-COMBINATION",
@@ -39,8 +39,9 @@
           "anchor": "void hardConstraintsExcludeIneligibleUnknownDurationDuplicateAndOverBudget()"
         }
       ],
-      "resultEvidence": "target/recommendation-core-check/test-results.log",
-      "resultStatus": "CORE_24_PASS"
+      "resultEvidence": "docs/测试报告_20261016.md",
+      "resultStatus": "FINITE_MODEL_24_VERIFIED_V13_LIVE_VIDEO_4_PASS",
+      "resultDetails": "24组独立最优验证，与贪心24组相同；v13现场3正1负均通过；不宣称教学收益或胜过贪心。"
     },
     {
       "id": "ALG-VERIFY-REUSE",
@@ -76,8 +77,9 @@
           "anchor": "void reuseRecomputesOldFeasibilityAndAppliesGapInCurrentModel()"
         }
       ],
-      "resultEvidence": "target/recommendation-core-check/test-results.log",
-      "resultStatus": "CORE_24_PASS_INTEGRATION_PENDING"
+      "resultEvidence": "docs/测试报告_20261016.md",
+      "resultStatus": "UNIT_AND_FINITE_MODEL_VERIFICATION_PASS_REUSE_GAIN_NOT_MEASURED",
+      "resultDetails": "296项针对性批次通过；独立重算24组最优，旧组合差额由边界测试核对，未测复用对学生的收益。"
     },
     {
       "id": "ALG-FIRST-HIT",
@@ -108,8 +110,9 @@
           "anchor": "void sourceFailureNeverBecomesIrrelevanceEvidence()"
         }
       ],
-      "resultEvidence": "target/recommendation-core-check/test-results.log",
-      "resultStatus": "CORE_24_PASS"
+      "resultEvidence": "docs/测试报告_20261016.md",
+      "resultStatus": "EXACT_24_SHARED_LABEL_INTERVALS_ZERO_INCLUDED",
+      "resultDetails": "两种同池排序对比24组都可精确枚举，区间均含0，未证明严格查看成本节省。"
     },
     {
       "id": "LEARNER-FIRST",
@@ -148,7 +151,9 @@
           "anchor": "void realSubmissionScoresOnceAndCannotMutateCourseOrInitialUnderstanding()"
         }
       ],
-      "resultStatus": "PENDING"
+      "resultStatus": "LIVE_FLOW_PASS_REGRESSION_38_CONFIRMED_2_UNKNOWN_RETAINED",
+      "resultDetails": "正式站首次表述/核对/4层提示/新版本通过；自动自检中止与后续公开题意答对两份回执保留；40例回归仍保留2未知。",
+      "resultEvidence": "docs/测试报告_20261016.md"
     },
     {
       "id": "RESOURCE-GATE",
@@ -184,7 +189,9 @@
           "anchor": "void changedVideoIdentityDoesNotCreateLink()"
         }
       ],
-      "resultStatus": "PENDING"
+      "resultStatus": "R1_72_EXPECTATIONS_MATCH_V3_LIVE_3_POSITIVE_1_EXCLUDED_PASS_PRIOR_FAILURES_RETAINED",
+      "resultDetails": "v13沁园春/th发音/种子3正例可展示，身心成长排除不外搜；固定输入及首轮错误保留，详情412的24小时缓存边界不隐藏。",
+      "resultEvidence": "docs/测试报告_20261016.md"
     },
     {
       "id": "MIGRATE-DEADLINE",
@@ -225,7 +232,9 @@
           "anchor": "export async function vivoJsonRequest"
         }
       ],
-      "resultStatus": "PENDING"
+      "resultStatus": "TARGETED_296_PASS_LIVE_BOUNDED_FAILURES_RETAINED",
+      "resultDetails": "有界调用单元检查通过，真实契约失败停止并保留；不把网络/格式未知计为成功。",
+      "resultEvidence": "docs/测试报告_20261016.md"
     },
     {
       "id": "MIGRATE-REVIEW",
@@ -267,7 +276,9 @@
           "anchor": "    def _should_replace_best("
         }
       ],
-      "resultStatus": "PENDING"
+      "resultStatus": "UNIT_PASS_LIVE_4_PAGES_PASSED_AFTER_SOURCE_REVIEW_GUIDED_REGENERATION",
+      "resultDetails": "v12非法patch与v13来源超范围失败均保留；按原因引导再生成4页passed，scope=content-only、runtimeVerified=false。",
+      "resultEvidence": "docs/测试报告_20261016.md"
     },
     {
       "id": "MIGRATE-TRACE",
@@ -304,7 +315,9 @@
           "anchor": "export function normalizeAiCapabilityMode(input:"
         }
       ],
-      "resultStatus": "PENDING"
+      "resultStatus": "LIVE_RESPONSE_MODEL_USAGE_RECORDED_UNKNOWN_FIELDS_RETAINED",
+      "resultDetails": "真实文本/embedding响应模型与已返回用量可回查；缺失provider保留null，缓存历史不重复计费，公开文档脱敏。",
+      "resultEvidence": "docs/测试报告_20261016.md"
     },
     {
       "id": "MIGRATE-FEEDBACK",
@@ -354,7 +367,9 @@
           "anchor": "export function selectStructuredFeedback("
         }
       ],
-      "resultStatus": "PENDING"
+      "resultStatus": "LIVE_BOUND_FEEDBACK_PASS_CONTROLLED_TARGET_NO_OBSERVED_CHANGE",
+      "resultDetails": "正式站同课程/版本核对及历史保留通过；控制目标24组0选择变化，不宣称真实学生反馈收益。",
+      "resultEvidence": "docs/测试报告_20261016.md"
     },
     {
       "id": "EXISTING-EVIDENCE",

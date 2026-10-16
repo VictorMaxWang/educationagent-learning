@@ -1,6 +1,86 @@
 {
   "edition": "20261016",
-  "runtimeResults": "PENDING",
+  "runtimeResults": {
+    "status": "PASS_ACCEPTANCE_WITH_RETAINED_FAILURES",
+    "finalRelease": "PASS_V15_STATIC_AND_LAYOUT",
+    "textInference": {
+      "responseModel": "qwen3.8-flash",
+      "classificationEngineeringAgreement": "72/72",
+      "feedbackInitialAgreement": "35/40",
+      "feedbackRepairRegression": {
+        "total": 40,
+        "confirmedAgreement": 38,
+        "failedOrUnknown": 2
+      },
+      "humanReviewed": false
+    },
+    "embedding": {
+      "responseModel": "qwen3.7-text-embedding-flash",
+      "dimension": 1024,
+      "actualProvider": null,
+      "adapterNameIsNotProviderProof": true,
+      "semanticRankMeanFiniteObjective": 0.747248,
+      "lexicalRankMeanFiniteObjective": 0.75242,
+      "interpretation": "本批不证明单项语义排序优于词面排序；有限目标分不是客观教学质量"
+    },
+    "optimizer": {
+      "independentlyVerifiedInputs": 24,
+      "sameSelectionAsGreedy": 24,
+      "serverRealP95Ms": 0.832518,
+      "serverCapacity20P95Ms": 8.018594,
+      "timingSamplesEachScenario": 500,
+      "noLearningBenefitClaim": true
+    },
+    "site": {
+      "release": "v13",
+      "videoPositiveReady": "3/3",
+      "excludedWithoutSearch": "1/1",
+      "teachingReviewPassedPages": 4,
+      "teachingReviewScope": "content-only",
+      "runtimeVerified": false,
+      "CherryFreshAudioBytes": 22797,
+      "htmlExport": "actual-download verified",
+      "pptxExport": "ZIP/notes verified; no Office visual"
+    },
+    "tests": {
+      "frontend": {
+        "files": 19,
+        "tests": 179,
+        "typecheck": "PASS",
+        "publicBuild": "PASS",
+        "finalLayoutAndDeployment": "PASS_V15_STATIC_AND_LAYOUT",
+        "prior178NotAddedAgain": true
+      },
+      "engine": {
+        "tests": 27,
+        "build": "PASS"
+      },
+      "backendTargetedV13": {
+        "tests": 296,
+        "failures": 0,
+        "errors": 0
+      },
+      "backendFull": {
+        "tests": 752,
+        "failures": 0,
+        "errors": 14,
+        "skipped": 1,
+        "status": "FAILED_LOCAL_MYSQL_AUTHENTICATION"
+      }
+    },
+    "evidence": [
+      "docs/测试报告_20261016.md",
+      "docs/research-20261016/工程评测结果.json"
+    ],
+    "limits": [
+      "全后端环境失败保留",
+      "反馈2例未知与初测错误保留",
+      "Bilibili详情412依赖严格24小时有效核验缓存，过期不可用则隐藏",
+      "没有真实学生/教师评审或训练基础模型的主张"
+    ],
+    "finalLayout": "PASS_V15",
+    "sourceCommit": "d28e4a9abf185e5467639b9f16397340a4e6a12c"
+  },
   "noTrainingClaim": true,
   "choices": [
     {
@@ -19,7 +99,13 @@
         "actualTokenUsage"
       ],
       "failure": "unknown；不展示不可靠推荐、不写未知错题",
-      "actualModel": "以运行响应evidence.model为准"
+      "actualModel": "qwen3.8-flash（来自实际响应）",
+      "runtimeResult": {
+        "classificationEngineeringAgreement": "72/72",
+        "feedbackRegressionConfirmed": "38/40",
+        "feedbackRegressionUnknown": 2,
+        "status": "ENGINEERING_ACCEPTANCE_WITH_UNKNOWN_RETAINED"
+      }
     },
     {
       "task": "资源语义相关",
@@ -35,7 +121,13 @@
         "semanticRankVsBaseline",
         "embeddingElapsedMs"
       ],
-      "failure": "拒绝无效/零向量与身份变化，不能将缺向量解释为零相关"
+      "failure": "拒绝无效/零向量与身份变化，不能将缺向量解释为零相关",
+      "runtimeResult": {
+        "actualModel": "qwen3.7-text-embedding-flash",
+        "dimension": 1024,
+        "status": "LIVE_FEATURES_VERIFIED",
+        "comparisonLimit": "本批单项语义排序没有优于词面排序，不将模型名当作效果证明"
+      }
     },
     {
       "task": "有限组合选择",
@@ -53,7 +145,13 @@
         "greedyGap",
         "optimizerP95Ms"
       ],
-      "failure": "无可行项返回空；结构坏输入拒绝"
+      "failure": "无可行项返回空；结构坏输入拒绝",
+      "runtimeResult": {
+        "status": "24_FINITE_OPTIMA_VERIFIED",
+        "sameAsGreedy": 24,
+        "serverRealP95Ms": 0.832518,
+        "serverCapacity20P95Ms": 8.018594
+      }
     },
     {
       "task": "业务接口和状态",
@@ -69,7 +167,13 @@
         "rollback",
         "crossCourseBinding"
       ],
-      "failure": "原始课程和首次表述不原位覆盖"
+      "failure": "原始课程和首次表述不原位覆盖",
+      "runtimeResult": {
+        "targetedTestsV13": 296,
+        "siteDataPreservation": "PASS",
+        "firstAttemptAndRevision": "PASS",
+        "fullLocalDatabaseTestErrors": 14
+      }
     },
     {
       "task": "既有资料检索",
@@ -82,7 +186,11 @@
       "metrics": [
         "legacyRegression"
       ],
-      "failure": "推荐异常不重建旧知识库"
+      "failure": "推荐异常不重建旧知识库",
+      "runtimeResult": {
+        "status": "REGRESSION_CHECKS_PASS",
+        "newClaim": "未重新计为本轮算法创新"
+      }
     },
     {
       "task": "页面交互",
@@ -98,7 +206,18 @@
         "hiddenFailureState",
         "progressPreservation"
       ],
-      "failure": "非ready整体隐藏，学习保持可继续"
+      "failure": "非ready整体隐藏，学习保持可继续",
+      "runtimeResult": {
+        "frontendTests": 179,
+        "videoV13CasesPass": 4,
+        "htmlExport": "PASS",
+        "pptxStructureAndNotes": "PASS",
+        "officeVisual": "NOT_RUN",
+        "feedbackLayoutFinal": "PASS_V15_STATIC_AND_LAYOUT",
+        "frontendVersion": "v14",
+        "typecheck": "PASS",
+        "publicBuild": "PASS"
+      }
     }
   ]
 }

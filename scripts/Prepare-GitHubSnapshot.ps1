@@ -78,6 +78,8 @@ function Get-ManagedSnapshotFiles([string]$Directory) {
     # 既不遍历/跟随其中的链接，也不复制、删除或改写其中任何文件。
     foreach ($entry in Get-ChildItem -LiteralPath $Directory -Force) {
         if ($entry.Name -eq '.git') { continue }
+        # 同步客户端临时标记不属于受管理源码；保留现场但不复制、删除或提交。
+        if (-not $entry.PSIsContainer -and $entry.Name.EndsWith('.baiduyun.uploading.cfg', [StringComparison]::OrdinalIgnoreCase)) { continue }
         if ($entry.PSIsContainer -and $entry.Name -in $snapshotIgnoredDirectories) { continue }
         if ($entry.LinkType -in @('SymbolicLink', 'Junction')) { throw '旧快照受管理源码范围内存在文件系统链接，拒绝覆盖。' }
         if ($entry.PSIsContainer) { Get-ManagedSnapshotFiles $entry.FullName }
@@ -239,6 +241,7 @@ try {
 /runtime/
 **/test-results/
 **/playwright-report/
+**/*.baiduyun.uploading.cfg
 # Local credentials and machine settings
 **/.env
 **/.env.*
