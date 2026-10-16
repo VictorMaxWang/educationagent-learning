@@ -21,6 +21,11 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.Instant;
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.CodingErrorAction;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Supplier;
@@ -585,11 +590,35 @@ public class ClassroomCourseService {
         if (bytes == null || bytes.length == 0 || bytes.length > 10 * 1024 * 1024) throw bad("请上传不超过 10 MB 的资料");
         String name = required(fileName, "文件名", 200).replace('\\', '/');
         name = name.substring(name.lastIndexOf('/') + 1);
-        if (!name.toLowerCase(Locale.ROOT).matches(".*\\.(pdf|docx?|txt|md)$")) throw bad("支持 PDF、Word、TXT 和 Markdown 资料");
-        String text = files.extractContent(bytes, 20001);
-        if (text == null || text.isBlank()) throw new ClassroomException(422, "未提取到正文；扫描版 PDF 请先转换为文字");
+        String lowerName=name.toLowerCase(Locale.ROOT);
+        if (!lowerName.matches(".*\\.(pdf|docx?|txt|md)$")) throw bad("支持 PDF、Word、TXT 和 Markdown 资料");
+        boolean plainText=lowerName.endsWith(".txt")||lowerName.endsWith(".md");
+        // 明确的文本扩展名按编码读取，不依赖二进制 magic 对短中文 UTF-8 的猜测。
+        String text = plainText ? decodeMaterialText(bytes) : files.extractContent(bytes, 20001);
+        if (text == null || text.isBlank()) throw new ClassroomException(422, plainText?"文字资料没有可读取的正文":"未提取到正文；扫描版 PDF 请先转换为文字");
         boolean truncated = text.length() > 20000;
-        return json.createObjectNode().put("text", truncate(text, 20000)).put("fileName", name).put("truncated", truncated);
+        int end=Math.min(text.length(),20000);
+        // 不在 UTF-16 代理对中间切开一个字形；长度上限仍与既有接口保持一致。
+        if(end<text.length()&&end>0&&Character.isHighSurrogate(text.charAt(end-1))&&Character.isLowSurrogate(text.charAt(end))) end--;
+        return json.createObjectNode().put("text", text.substring(0,end)).put("fileName", name).put("truncated", truncated);
+    }
+
+    /** 仅接受严格 UTF-8，或带 BOM 的 UTF-16；无 BOM 时不猜测 GBK 等本地编码。 */
+    private static String decodeMaterialText(byte[] bytes) {
+        Charset charset=StandardCharsets.UTF_8;int offset=0;
+        if(bytes.length>=3&&(bytes[0]&255)==0xef&&(bytes[1]&255)==0xbb&&(bytes[2]&255)==0xbf) offset=3;
+        else if(bytes.length>=2&&(bytes[0]&255)==0xff&&(bytes[1]&255)==0xfe) {charset=StandardCharsets.UTF_16LE;offset=2;}
+        else if(bytes.length>=2&&(bytes[0]&255)==0xfe&&(bytes[1]&255)==0xff) {charset=StandardCharsets.UTF_16BE;offset=2;}
+        String text;
+        try {
+            text=charset.newDecoder().onMalformedInput(CodingErrorAction.REPORT).onUnmappableCharacter(CodingErrorAction.REPORT)
+                    .decode(ByteBuffer.wrap(bytes,offset,bytes.length-offset)).toString();
+        } catch(CharacterCodingException invalidEncoding) {
+            throw new ClassroomException(422,"文字资料编码无效，请另存为 UTF-8，或使用带 BOM 的 UTF-16 文本后重试");
+        }
+        if(text.codePoints().anyMatch(point->Character.isISOControl(point)&&point!='\t'&&point!='\n'&&point!='\r'))
+            throw new ClassroomException(422,"文字资料含 NUL 或二进制控制字符，请上传纯文本文件");
+        return text;
     }
 
     public Map<String, Object> health() {

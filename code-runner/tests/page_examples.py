@@ -18,6 +18,18 @@ def main():
         assert len(result['trace'])>1,(example['language'],example['id'],'missing real steps')
         assert any(step['frames'] and step['frames'][0]['locals'] for step in result['trace']),'missing variables'
         if example['id']=='recursion': assert max(len(s['frames']) for s in result['trace'])>1,'missing call stack'
+        if example['language']=='cpp' and example['id']=='sort':
+            # 排序的 stdout 正确不代表堆快照正确；最后一步必须仍是对象存活时采集的真实数组。
+            first=result['trace'][0]['frames'][0]['locals'].get('numbers')
+            assert isinstance(first,dict) and '$unavailable' in first,('cpp/sort','read numbers before its declaration',first)
+            last=result['trace'][-1]; numbers=last['frames'][0]['locals'].get('numbers')
+            assert isinstance(numbers,dict) and '$ref' in numbers,('cpp/sort','missing live final numbers',numbers)
+            items=last['heap'][numbers['$ref']].get('items')
+            assert items==[1,3,6,8],('cpp/sort','final array lifetime corrupted',last['line'],items)
+            source=example['code'].splitlines()[last['line']-1].strip()
+            assert source not in ('}', '};'),('cpp/sort','teardown used as final step',last['line'])
+        if example['language']=='cpp' and example['id']=='sum':
+            assert result['trace'][-1]['frames'][0]['locals'].get('total')==15,'cpp loop final total corrupted'
         entry={'language':example['language'],'example':example['id'],'changedInput':stdin is not None,'status':'PASS','steps':len(result['trace']),'stdout':actual,'seconds':round(time.monotonic()-started,2)}
         report.append(entry);Path(args.report).write_text(json.dumps(report,ensure_ascii=False,indent=2));print(json.dumps(entry,ensure_ascii=False),flush=True)
     for example in examples:

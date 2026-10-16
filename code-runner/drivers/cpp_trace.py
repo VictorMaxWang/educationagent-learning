@@ -18,6 +18,25 @@ trace_bytes = 0
 token = 0
 started = time.monotonic()
 checkpoint_time = 0
+
+
+def source_statements(code):
+    # 保留字符串/字符字面量，只移除注释；跨行块注释保留换行以保持一基源码行号。
+    tokens = re.compile(r'"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'|/\*.*?\*/|//[^\n]*', re.S)
+    def strip_comment(match):
+        token = match.group(0)
+        return "\n" * token.count("\n") if token.startswith(("//", "/*")) else token
+    return tokens.sub(strip_comment, code).splitlines()
+
+
+statements = source_statements((job / "main.cpp").read_text(encoding="utf-8"))
+
+
+def closing_only(line):
+    statement = statements[line - 1].strip() if 0 < line <= len(statements) else ""
+    return not statement or re.fullmatch(r'(?:}\s*;?\s*)+', statement) is not None
+
+
 gdb_binary = "gdb"
 process = subprocess.Popen([gdb_binary, "--quiet", "--nx", "--interpreter=mi2", str(job / "program")], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding="utf-8", errors="replace", bufsize=1, cwd=job)
 
@@ -101,14 +120,22 @@ try:
         top_file = re.search(r'(?:^|[,{}])file="([^"]+)"', event)
         if not top_file or not top_file.group(1).endswith("main.cpp"):
             # 标准库内部仍能看到下层 main 栈，不能把它误算成重复的学生步骤。
+            if any(name in event for name in ("::vector", "::~vector", "::basic_string", "::~basic_string")):
+                command("-interpreter-exec console " + quote("xtrace-track-lifetime"))
             command("-exec-finish")
+            continue
+        current_line = re.search(r'(?:^|[,{}])line="(\d+)"', event)
+        if current_line and closing_only(int(current_line.group(1))):
+            # 纯闭括号常对应编译器的局部对象析构/函数尾声，不再读取其中已失效的内存。
+            command("-exec-step")
             continue
         if len(trace) >= limits["steps"]:
             reason = "step_limit"
             break
         command("-interpreter-exec console " + quote("xtrace-snapshot " + str(job / "snapshot.json")))
         snapshot = json.loads((job / "snapshot.json").read_text(encoding="utf-8"))
-        if snapshot["frames"] and snapshot["line"] > 0:
+        lifetime_ended = snapshot.pop("lifetimeEnded", False)
+        if not lifetime_ended and snapshot["frames"] and snapshot["line"] > 0:
             snapshot.update(index=len(trace), event="line", stdout=read_output("program.stdout"))
             size = len(json.dumps(snapshot, ensure_ascii=False).encode("utf-8"))
             if trace_bytes + size > limits["traceBytes"]:

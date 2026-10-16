@@ -1,6 +1,6 @@
 {
   "Producer": "educationagent/Prepare-GitHubSnapshot.ps1",
-  "CreatedAtUtc": "2026-10-16T09:10:06.0619247Z",
+  "CreatedAtUtc": "2026-10-16T09:56:32.8834736Z",
   "SecretCheck": "PASS",
   "Files": [
     ".gitattributes",
@@ -23,6 +23,7 @@
     "code-runner/tests/page_examples.py",
     "code-runner/tests/smoke.py",
     "code-runner/tests/test_broker.py",
+    "code-runner/tests/test_cpp_lifetime.py",
     "course-engine/.gitignore",
     "course-engine/package.json",
     "course-engine/README.md",
@@ -768,6 +769,7 @@
     "src/test/java/com/demo/edu/classroom/ClassroomDocumentValidatorTest.java",
     "src/test/java/com/demo/edu/classroom/ClassroomEditingSupportTest.java",
     "src/test/java/com/demo/edu/classroom/ClassroomEvidenceOutcomeTest.java",
+    "src/test/java/com/demo/edu/classroom/ClassroomMaterialsTest.java",
     "src/test/java/com/demo/edu/classroom/ClassroomMediaControllerTest.java",
     "src/test/java/com/demo/edu/classroom/ClassroomMediaRepairTest.java",
     "src/test/java/com/demo/edu/classroom/ClassroomMediaServiceTest.java",

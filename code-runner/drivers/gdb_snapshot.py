@@ -3,12 +3,39 @@ import json
 import gdb
 
 
+# GDB 的 DWARF 作用域可能覆盖到函数收尾，此时栈上 vector 对象仍可见而堆已释放。
+# 只记录真实构造/析构停点的对象地址，不通过“看起来合理”的数据猜测生命周期。
+DESTROYED = set()
+
+
+class TrackLifetime(gdb.Command):
+    def __init__(self):
+        super().__init__("xtrace-track-lifetime", gdb.COMMAND_USER)
+
+    def invoke(self, argument, from_tty):
+        try:
+            frame = gdb.newest_frame()
+            name = (frame.name() or "").rsplit("::", 1)[-1].split("(", 1)[0].split("<", 1)[0]
+            if name not in ("vector", "basic_string", "~vector", "~basic_string"):
+                return
+            address = hex(int(frame.read_var("this")))
+            if name.startswith("~"):
+                DESTROYED.add(address)
+            else:
+                # 循环内对象可能复用同一个栈地址，观察到新构造后才允许重新读取。
+                DESTROYED.discard(address)
+        except BaseException:
+            # 标准库缺少 this 的调试信息时不推断；后续作用域/声明行检查仍保守降级。
+            pass
+
+
 class Snapshot(gdb.Command):
     def __init__(self):
         super().__init__("xtrace-snapshot", gdb.COMMAND_USER)
 
     def invoke(self, argument, from_tty):
         heap, seen, frames = {}, set(), []
+        lifetime_ended = False
 
         def serialize(value, depth=0):
             try:
@@ -16,6 +43,9 @@ class Snapshot(gdb.Command):
                     return {"$unavailable": "值已被编译器优化"}
                 kind = value.type.strip_typedefs().code
                 typename = str(value.type.strip_typedefs())
+                address = hex(int(value.address)) if value.address else None
+                if address in DESTROYED:
+                    return {"$unavailable": "对象生命周期已结束"}
                 if kind == gdb.TYPE_CODE_BOOL:
                     return bool(value)
                 if kind in (gdb.TYPE_CODE_INT, gdb.TYPE_CODE_ENUM):
@@ -34,7 +64,11 @@ class Snapshot(gdb.Command):
                         heap[identity] = {"type": str(value.type.target()), "value": serialize(value.dereference(), depth + 1)} if depth < 3 and len(heap) < 128 else {"$unavailable": "最大展开深度或对象数量"}
                     return {"$ref": identity}
                 if "basic_string<char" in typename or typename in ("std::string", "std::__cxx11::string"):
-                    return value["_M_dataplus"]["_M_p"].string(length=min(int(value["_M_string_length"]), 500), errors="replace")
+                    length = int(value["_M_string_length"])
+                    pointer = value["_M_dataplus"]["_M_p"]
+                    if length < 0 or length > 10000000 or (length > 0 and int(pointer) == 0):
+                        return {"$unavailable": "字符串状态不可确认"}
+                    return pointer.string(length=min(length, 500), errors="replace")
                 identity = str(value.address) if value.address else "value:" + str(len(heap))
                 if identity in seen:
                     return {"$ref": identity}
@@ -47,7 +81,13 @@ class Snapshot(gdb.Command):
                     heap[identity] = {"type": typename, "length": length, "items": [serialize(value[i], depth + 1) for i in range(lower, min(upper + 1, lower + 50))], "truncated": length > 50}
                 elif "std::vector<" in typename:
                     begin, end = value["_M_impl"]["_M_start"], value["_M_impl"]["_M_finish"]
-                    length = max(0, int(end - begin))
+                    capacity = value["_M_impl"]["_M_end_of_storage"]
+                    addresses = [int(begin), int(end), int(capacity)]
+                    if not all(pointer == 0 for pointer in addresses) and (any(pointer == 0 for pointer in addresses) or not addresses[0] <= addresses[1] <= addresses[2]):
+                        return {"$unavailable": "数组对象状态不可确认"}
+                    length = int(end - begin) if int(begin) else 0
+                    if length < 0 or length > 10000000:
+                        return {"$unavailable": "数组对象长度不可确认"}
                     heap[identity] = {"type": typename, "length": length, "items": [serialize((begin + i).dereference(), depth + 1) for i in range(min(length, 50))], "truncated": length > 50}
                 elif kind in (gdb.TYPE_CODE_STRUCT, gdb.TYPE_CODE_UNION):
                     fields = {}
@@ -73,7 +113,21 @@ class Snapshot(gdb.Command):
                     while block:
                         for symbol in block:
                             if (symbol.is_argument or symbol.is_variable) and symbol.name and symbol.name not in locals_map:
-                                locals_map[symbol.name] = serialize(frame.read_var(symbol))
+                                declaration_line = getattr(symbol, "line", 0) or 0
+                                # 行级调试停在该行执行前。禁止提前读取尚未构造的局部对象；
+                                # 同行循环声明保守显示未知，循环体的后续行仍可读取真实变量。
+                                if not symbol.is_argument and declaration_line >= location.line:
+                                    locals_map[symbol.name] = {"$unavailable": "尚未执行变量声明"}
+                                elif not symbol.is_argument and declaration_line <= 0:
+                                    locals_map[symbol.name] = {"$unavailable": "变量声明位置未知"}
+                                else:
+                                    value = frame.read_var(symbol)
+                                    address = hex(int(value.address)) if value.address else None
+                                    if address in DESTROYED:
+                                        lifetime_ended = True
+                                        locals_map[symbol.name] = {"$unavailable": "对象生命周期已结束"}
+                                    else:
+                                        locals_map[symbol.name] = serialize(value)
                         if block.function:
                             break
                         block = block.superblock
@@ -82,7 +136,8 @@ class Snapshot(gdb.Command):
                 pass
             frame = frame.older()
         with open(argument.strip(), "w", encoding="utf-8") as output:
-            json.dump({"line": line, "frames": frames, "heap": heap}, output, ensure_ascii=False)
+            json.dump({"line": line, "frames": frames, "heap": heap, "lifetimeEnded": lifetime_ended}, output, ensure_ascii=False)
 
 
+TrackLifetime()
 Snapshot()
