@@ -131,6 +131,16 @@ class QuizMySqlIntegrationTest {
                 while(index.find())if(!indexes.contains(index.group(1)))jdbc.execute("ALTER TABLE edu_classroom_study_state ADD "+index.group());
             }
         }
+        // 仅构造本测试拥有的隔离库：模拟旧表0900、新表继承unicode的生产升级组合，不能全用同一collation掩盖跨表比较错误。
+        jdbc.execute("ALTER DATABASE `"+database+"` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+        Map<String,String> collations=Map.of("quiz_answer","utf8mb4_0900_ai_ci","quiz_attempt_request","utf8mb4_unicode_ci","quiz_mistake_resolution","utf8mb4_unicode_ci");
+        for(var entry:collations.entrySet()) {
+            String actual=jdbc.queryForObject("SELECT COLLATION_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=? AND COLUMN_NAME='user_id'",String.class,entry.getKey());
+            if(!entry.getValue().equals(actual))jdbc.execute("ALTER TABLE "+entry.getKey()+" CONVERT TO CHARACTER SET utf8mb4 COLLATE "+entry.getValue());
+            assertEquals(entry.getValue(),jdbc.queryForObject("SELECT COLLATION_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=? AND COLUMN_NAME='user_id'",String.class,entry.getKey()));
+        }
+        report.put("databaseCollation",jdbc.queryForObject("SELECT DEFAULT_COLLATION_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME=DATABASE()",String.class));
+        report.put("quizUserIdCollations",collations);
         manager=new DataSourceTransactionManager(data);
         var configuration=new MybatisConfiguration();configuration.setMapUnderscoreToCamelCase(true);configuration.setLogImpl(NoLoggingImpl.class);
         var factory=new MybatisSqlSessionFactoryBean();factory.setDataSource(data);factory.setConfiguration(configuration);
@@ -177,6 +187,26 @@ class QuizMySqlIntegrationTest {
         assertEquals(2,stats.confirmedCount());assertEquals(1,stats.pendingCount());assertEquals(50,stats.accuracy());
         assertEquals(solved,quiz.mistakeRedo("classroom",lesson.paperId(),lesson.questionId(),"两块地一样大","native-correct"));
         assertEquals(3,jdbc.queryForObject("SELECT COUNT(*) FROM quiz_answer",Integer.class));verify(model,times(2)).chat(any(ChatRequest.class));
+    }
+
+    @Test void nativeMixedCollationMistakesBindEachUserColumnAndPreserveOriginalHistory() {
+        Lesson lesson=lesson("fill","24");
+        jdbc.update("INSERT INTO quiz_answer(user_id,paper_id,question_id,user_answer,is_correct,answered_at) VALUES('classroom',?,?,'旧错误答案',0,'2026-10-16 12:00:00'),('collation-other',?,?,'另一人的原答卷',0,'2026-10-16 12:00:00')",lesson.paperId(),lesson.questionId(),lesson.paperId(),lesson.questionId());
+        Map<String,Object> old=jdbc.queryForMap("SELECT * FROM quiz_answer WHERE user_id='classroom'");
+        var legacyFailure=assertThrows(org.springframework.dao.DataAccessException.class,()->jdbc.queryForList(
+                "SELECT a.id FROM quiz_answer a WHERE a.user_id=? AND a.is_correct=0 AND NOT EXISTS(SELECT 1 FROM quiz_mistake_resolution r WHERE r.user_id=a.user_id AND r.question_id=a.question_id AND r.resolved=1)","classroom"));
+        boolean collation1267=false;
+        for(Throwable cause=legacyFailure;cause!=null;cause=cause.getCause())if(cause instanceof java.sql.SQLException sqlError&&sqlError.getErrorCode()==1267)collation1267=true;
+        assertTrue(collation1267,"夹具必须真实复现原跨collation列比较的1267，不能用统一排序规则绕过问题");
+        assertEquals(1,quiz.mistakes("classroom").size());assertEquals(1,answerMapper.selectUnresolvedMistakes("collation-other").size());
+        var solved=quiz.mistakeRedo("classroom",lesson.paperId(),lesson.questionId(),"24","native-mixed-collation");
+        assertTrue(solved.correct());assertTrue(solved.removed());assertTrue(quiz.mistakes("classroom").isEmpty());
+        assertEquals(1,answerMapper.selectUnresolvedMistakes("collation-other").size(),"别人的同题错题不能被移出");
+        assertEquals(old,jdbc.queryForMap("SELECT * FROM quiz_answer WHERE id=?",old.get("id")));
+        assertEquals(solved,quiz.mistakeRedo("classroom",lesson.paperId(),lesson.questionId(),"24","native-mixed-collation"));
+        assertEquals(3,jdbc.queryForObject("SELECT COUNT(*) FROM quiz_answer",Integer.class));
+        assertEquals(50,quiz.knowledgeAgg("classroom").getFirst().accuracy());verifyNoInteractions(model);
+        report.put("mixedCollationRegression",Map.of("legacyErrorCode",1267,"fixedMistakeReads","PASS","originalAnswerUnchanged",true,"otherLearnerUnchanged",true));
     }
 
     @Test void nativeRequestSequencePreventsLateOldAnswerFromReopeningResolvedMistake() {

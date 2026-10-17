@@ -9,8 +9,12 @@
 		respond @foreignOrigin 403
 		# 30 MiB 文件的 Base64 JSON约40 MiB；先限制请求体，再进入Java解码与有界缓存。
 		@desktopUpload path /api/desktop/file/upload
-		request_body @desktopUpload {
-			max_size 42MB
+		@uploadDeclaredTooLarge expression `header({'Content-Length': '*'}) && int({header.Content-Length}) > 42000000`
+		route @desktopUpload {
+			respond @uploadDeclaredTooLarge "请求内容超过允许大小，请缩小后重试" 413
+			request_body {
+				max_size 42MB
+			}
 		}
 		# JSON 在进入 Java 解析前设独立预算；multipart 资料仍沿用既有 10MiB 规则。
 		@courseImportJson {
@@ -18,16 +22,24 @@
 			path /api/classroom/courses/import
 			header_regexp importJsonType Content-Type "(?i)^application/(json|[^;[:space:]]+[+]json)([[:space:]]*;|[[:space:]]*$)"
 		}
-		request_body @courseImportJson {
-			max_size 67108864
+		@importDeclaredTooLarge expression `header({'Content-Length': '*'}) && int({header.Content-Length}) > 67108864`
+		route @courseImportJson {
+			respond @importDeclaredTooLarge "请求内容超过允许大小，请缩小后重试" 413
+			request_body {
+				max_size 67108864
+			}
 		}
 		@sceneRuntimeJson {
 			method PUT PATCH
 			path_regexp sceneJsonPath ^/api/classroom/courses/[^/]+/(scenes/[^/]+|runtime)/?$
 			header_regexp sceneJsonType Content-Type "(?i)^application/(json|[^;[:space:]]+[+]json)([[:space:]]*;|[[:space:]]*$)"
 		}
-		request_body @sceneRuntimeJson {
-			max_size 8388608
+		@sceneDeclaredTooLarge expression `header({'Content-Length': '*'}) && int({header.Content-Length}) > 8388608`
+		route @sceneRuntimeJson {
+			respond @sceneDeclaredTooLarge "请求内容超过允许大小，请缩小后重试" 413
+			request_body {
+				max_size 8388608
+			}
 		}
 		@ordinaryPublicJson {
 			method POST PUT PATCH DELETE
@@ -35,8 +47,14 @@
 			header_regexp ordinaryJsonType Content-Type "(?i)^application/(json|[^;[:space:]]+[+]json)([[:space:]]*;|[[:space:]]*$)"
 			expression `!(method('POST') && path('/api/classroom/courses/import')) && !((method('PUT') || method('PATCH')) && path_regexp('^/api/classroom/courses/[^/]+/(scenes/[^/]+|runtime)/?$'))`
 		}
-		request_body @ordinaryPublicJson {
-			max_size 1048576
+		# 已知长度提前拒绝，避免代理上传遇到 MaxBytesReader 错误后把 413 包装成 502。
+		# 未知长度/chunked 仍由 request_body 与 Java 的实际字节计数共同保护。
+		@ordinaryDeclaredTooLarge expression `header({'Content-Length': '*'}) && int({header.Content-Length}) > 1048576`
+		route @ordinaryPublicJson {
+			respond @ordinaryDeclaredTooLarge "请求内容超过允许大小，请缩小后重试" 413
+			request_body {
+				max_size 1048576
+			}
 		}
 		header {
 			X-Content-Type-Options nosniff

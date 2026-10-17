@@ -31,9 +31,12 @@ public interface QuizAnswerMapper extends BaseMapper<QuizAnswerEntity> {
             "GROUP BY a.paper_id,q.knowledge_point")
     List<Map<String, Object>> selectKnowledgeStats(@Param("userId") String userId);
 
-    /** 历史作答只读；是否仍在错题队列由独立状态决定，不把旧错误改成正确或删除答卷。 */
+    /**
+     * 历史作答只读；是否仍在错题队列由独立状态决定，不改写旧答卷。
+     * 两表可能继承不同排序规则；各自绑定同一userId，避免跨表文本列比较触发MySQL 1267。
+     */
     @Select("SELECT a.* FROM quiz_answer a WHERE a.user_id=#{userId} AND a.is_correct=0 " +
-            "AND NOT EXISTS(SELECT 1 FROM quiz_mistake_resolution r WHERE r.user_id=a.user_id " +
+            "AND NOT EXISTS(SELECT 1 FROM quiz_mistake_resolution r WHERE r.user_id=#{userId} " +
             "AND r.question_id=a.question_id AND r.resolved=1) ORDER BY a.answered_at DESC,a.id DESC")
     List<QuizAnswerEntity> selectUnresolvedMistakes(@Param("userId") String userId);
 
