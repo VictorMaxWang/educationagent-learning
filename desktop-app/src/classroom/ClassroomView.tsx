@@ -2,7 +2,7 @@ import { lazy, Suspense, useCallback, useEffect, useRef, useState, type FormEven
 import MistakeView from '../study/MistakeView';
 import GrowthClassroom from './GrowthClassroom';
 import { cancelCourse, createCourse, generateCourse, getCourse, listCourses, pairWechat, resumeCourse, saveOutline, saveProgress, uploadMaterial, wechatStatus } from './api';
-import { courseHash, courseIdFromHash } from './navigation';
+import { courseHash, courseIdFromHash, resolveEntryScene, sceneIdFromHash } from './navigation';
 import { GRADE_LABELS, STATUS_LABELS, type Course, type CourseDirection, type Domain, type Outline } from './types';
 import PremiumSelect from './PremiumSelect';
 import OutlineEditor from './OutlineEditor';
@@ -84,6 +84,9 @@ export default function ClassroomView({ onOpenNavigation }: { onOpenNavigation?(
   const [tab, setTab] = useState<'learn' | 'review' | 'growth'>('learn');
   const [courses, setCourses] = useState<Course[]>([]);
   const [courseId, setCourseId] = useState<string | null>(() => courseIdFromHash(window.location.hash));
+  const [requestedSceneId, setRequestedSceneId] = useState<string | null>(() => sceneIdFromHash(window.location.hash));
+  const [entrySceneId, setEntrySceneId] = useState<string | null>(requestedSceneId);
+  const [entryVersion, setEntryVersion] = useState(0);
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -92,9 +95,17 @@ export default function ClassroomView({ onOpenNavigation }: { onOpenNavigation?(
   const [pollRevision, setPollRevision] = useState(0);
   const pendingProgress = useRef<Promise<unknown>>(Promise.resolve());
   const navigationRun = useRef(0);
+  const operationRun = useRef(0);
+  const listRun = useRef(0);
+  const mounted = useRef(true);
+  const prefetchedAlias = useRef<Course | null>(null);
   const editorDirty = useRef(false);
   const activeCourseId = useRef(courseId);
+  const activeSceneId = useRef(requestedSceneId);
+  const currentCourse = useRef(course);
   activeCourseId.current = courseId;
+  currentCourse.current = course;
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; operationRun.current++; listRun.current++; }; }, []);
   const reportEditorDirty = useCallback((dirty: boolean) => { editorDirty.current = dirty; }, []);
   const waitForProgress = useCallback(() => pendingProgress.current, []);
   const acceptCourseChange = useCallback((next: Course) => {
@@ -108,24 +119,35 @@ export default function ClassroomView({ onOpenNavigation }: { onOpenNavigation?(
   }, []);
   const persistProgress = useCallback((id: string, sceneIndex: number, actionIndex: number) => {
     setCourse(previous => previous?.id === id ? { ...previous, progress: { sceneIndex, actionIndex } } : previous);
+    const scene = currentCourse.current?.id === id ? currentCourse.current.scenes[sceneIndex] : undefined;
+    if (activeCourseId.current === id && scene) {
+      activeSceneId.current = scene.id;
+      const hash = courseHash(id, scene.id); if (window.location.hash !== hash) window.history.replaceState(null, '', hash);
+    }
     // 按操作顺序落库，慢的旧请求不能覆盖快的新位置；返回课堂会等待这一条保存链。
     const write = pendingProgress.current.catch(() => undefined).then(() => saveProgress(id, sceneIndex, actionIndex));
     pendingProgress.current = write;
-    void write.catch(error => setError(`学习进度暂未同步：${error instanceof Error ? error.message : '请稍后重试'}`));
+    void write.catch(error => { if (mounted.current && activeCourseId.current === id) setError(`学习进度暂未同步：${error instanceof Error ? error.message : '请稍后重试'}`); });
   }, []);
   const refreshCourses = useCallback(() => {
+    const run = ++listRun.current;
     setListLoading(true);
-    return listCourses().then(setCourses).catch(error => setError(error instanceof Error ? error.message : '课堂列表加载失败')).finally(() => setListLoading(false));
+    return listCourses().then(value => { if (mounted.current && run === listRun.current) setCourses(value); })
+      .catch(error => { if (mounted.current && run === listRun.current) setError(error instanceof Error ? error.message : '课堂列表加载失败'); })
+      .finally(() => { if (mounted.current && run === listRun.current) setListLoading(false); });
   }, []);
   useEffect(() => { void refreshCourses(); }, [refreshCourses]);
   useEffect(() => {
     const onHash = () => {
       const nextId = courseIdFromHash(window.location.hash);
-      if (nextId !== activeCourseId.current && !canLeaveEditor()) {
-        window.history.replaceState(null, '', courseHash(activeCourseId.current));
+      const nextScene = sceneIdFromHash(window.location.hash);
+      if (nextId === activeCourseId.current && nextScene === activeSceneId.current) { setTab('learn'); return; }
+      if (!canLeaveEditor()) {
+        window.history.replaceState(null, '', courseHash(activeCourseId.current, activeSceneId.current));
         return;
       }
-      navigationRun.current++; activeCourseId.current = nextId; setCourseId(nextId); setTab('learn');
+      navigationRun.current++; operationRun.current++; activeCourseId.current = nextId; activeSceneId.current = nextScene;
+      setBusy(false); setCourseId(nextId); setRequestedSceneId(nextScene); setEntrySceneId(nextScene); setEntryVersion(value => value + 1); setTab('learn');
     };
     const beforeUnload = (event: BeforeUnloadEvent) => {
       if (!editorDirty.current) return;
@@ -142,12 +164,26 @@ export default function ClassroomView({ onOpenNavigation }: { onOpenNavigation?(
     if (!courseId) { setCourse(null); setLoading(false); return; }
     const controller = new AbortController();
     let timer: ReturnType<typeof setTimeout> | undefined;
-    setLoading(true); setCourse(null); setError('');
+    let first = true;
+    const cached = prefetchedAlias.current?.id === courseId ? prefetchedAlias.current : null;
+    prefetchedAlias.current = null;
+    if (!cached) { setLoading(true); setCourse(null); }
+    setError('');
     const load = async () => {
       try {
-        const value = await getCourse(courseId, controller.signal);
+        const value = first && cached ? cached : await getCourse(courseId, controller.signal);
         if (controller.signal.aborted) return;
-        setCourse(value); setLoading(false);
+        if (!value?.id || !Array.isArray(value.scenes)) throw new Error('课堂内容暂时无法读取，请刷新后继续。');
+        const entry = resolveEntryScene(value, first ? requestedSceneId : activeSceneId.current); first = false;
+        activeSceneId.current = entry; setEntrySceneId(entry);
+        const hash = courseHash(value.id, entry); if (window.location.hash !== hash) window.history.replaceState(null, '', hash);
+        setCourse(previous => previous?.id === value.id && (previous.revision ?? 0) > (value.revision ?? 0) ? previous : value); setLoading(false);
+        if (value.id !== courseId) {
+          // 服务端解析旧别名后的正文已经是当前内容；下一次effect复用这份回读，不重复请求或闪回旧课。
+          prefetchedAlias.current = value; activeCourseId.current = value.id;
+          navigationRun.current++; operationRun.current++; setBusy(false); setCourseId(value.id); setRequestedSceneId(entry);
+          return;
+        }
         if (value.status === 'outlining' || value.status === 'generating') timer = setTimeout(() => void load(), 1800);
       } catch (error) {
         if (!controller.signal.aborted) { setError(error instanceof Error ? error.message : '课堂加载失败'); setLoading(false); }
@@ -155,49 +191,62 @@ export default function ClassroomView({ onOpenNavigation }: { onOpenNavigation?(
     };
     void load();
     return () => { controller.abort(); if (timer) clearTimeout(timer); };
-  }, [courseId, pollRevision]);
-  const openCourse = (id: string | null) => {
-    if (id !== courseId && !canLeaveEditor()) return;
-    navigationRun.current++;
-    activeCourseId.current = id;
-    setTab('learn'); setCourseId(id); setError('');
-    window.location.hash = courseHash(id);
+  }, [courseId, requestedSceneId, pollRevision]);
+  const openCourse = (id: string | null, sceneId: string | null = null) => {
+    if ((id !== activeCourseId.current || sceneId !== activeSceneId.current) && !canLeaveEditor()) return;
+    navigationRun.current++; operationRun.current++;
+    activeCourseId.current = id; activeSceneId.current = sceneId;
+    setBusy(false); setTab('learn'); setCourseId(id); setRequestedSceneId(sceneId); setEntrySceneId(sceneId); setEntryVersion(value => value + 1); setError('');
+    window.location.hash = courseHash(id, sceneId);
     if (!id) void refreshCourses();
   };
   const startGeneration = async (outlines: Outline[]) => {
     if (!course) return;
+    const owner = course.id, navigation = navigationRun.current, run = ++operationRun.current;
+    const current = () => mounted.current && activeCourseId.current === owner && navigationRun.current === navigation && operationRun.current === run;
     setBusy(true);
     try {
-      await saveOutline(course.id, outlines);
-      const result = await generateCourse(course.id);
+      await saveOutline(owner, outlines);
+      const result = await generateCourse(owner);
+      if (!current()) return;
       setCourse(result);
       // 让同一个有卸载清理的 effect 接管轮询，避免换课后留下后台定时器。
       setPollRevision(previous => previous + 1);
-    } finally { setBusy(false); }
+    } catch (error) { if (current()) throw error; }
+    finally { if (current()) setBusy(false); }
   };
   const stopGenerating = async () => {
     if (!course) return;
+    const owner = course.id, navigation = navigationRun.current, run = ++operationRun.current;
+    const current = () => mounted.current && activeCourseId.current === owner && navigationRun.current === navigation && operationRun.current === run;
     setBusy(true); setError('');
-    try { setCourse(await cancelCourse(course.id)); setPollRevision(previous => previous + 1); }
-    catch (error) { setError(error instanceof Error ? error.message : '停止失败'); }
-    finally { setBusy(false); }
+    try { const next = await cancelCourse(owner); if (current()) { setCourse(next); setPollRevision(previous => previous + 1); } }
+    catch (error) { if (current()) setError(error instanceof Error ? error.message : '停止失败'); }
+    finally { if (current()) setBusy(false); }
   };
   const retryGeneration = async () => {
     if (!course) return;
+    const owner = course.id, navigation = navigationRun.current, run = ++operationRun.current;
+    const current = () => mounted.current && activeCourseId.current === owner && navigationRun.current === navigation && operationRun.current === run;
     setBusy(true); setError('');
-    try { setCourse(await generateCourse(course.id)); setPollRevision(previous => previous + 1); }
-    catch (error) { setError(error instanceof Error ? error.message : '继续生成失败'); }
-    finally { setBusy(false); }
+    try { const next = await generateCourse(owner); if (current()) { setCourse(next); setPollRevision(previous => previous + 1); } }
+    catch (error) { if (current()) setError(error instanceof Error ? error.message : '继续生成失败'); }
+    finally { if (current()) setBusy(false); }
   };
   const selectTab = async (value: typeof tab) => {
     if (value === tab || !canLeaveEditor()) return;
     const run = ++navigationRun.current;
+    operationRun.current++; setBusy(false);
     setTab(value);
     if (value !== 'learn' || tab === 'learn' || !courseId) return;
     setLoading(true); setError('');
     try {
       const fresh = await resumeCourse(courseId, pendingProgress.current);
-      if (run === navigationRun.current) setCourse(fresh);
+      if (run === navigationRun.current) {
+        if (fresh.id !== courseId) { prefetchedAlias.current = fresh; activeCourseId.current = fresh.id; setCourseId(fresh.id); }
+        const entry = resolveEntryScene(fresh, activeSceneId.current); activeSceneId.current = entry; setEntrySceneId(entry);
+        window.history.replaceState(null, '', courseHash(fresh.id, entry)); setCourse(fresh);
+      }
     } catch (error) {
       if (run === navigationRun.current) setError(error instanceof Error ? error.message : '课堂恢复失败，请稍后重试');
     } finally { if (run === navigationRun.current) setLoading(false); }
@@ -217,7 +266,7 @@ export default function ClassroomView({ onOpenNavigation }: { onOpenNavigation?(
       {course.status === 'outline_ready' && <OutlineEditor key={`${course.id}-outline`} initial={course.outlines} busy={busy} onConfirm={startGeneration} />}
       {(course.status === 'cancelled' || course.status === 'error') && <div className="cr-empty"><p>这堂课的生成已停止。已完成的内容仍可以学习。</p><button className="cr-button secondary" disabled={busy} onClick={() => void retryGeneration()}>{busy ? '正在继续…' : '继续准备未完成的内容'}</button></div>}
       {(course.sourceName || course.sources?.length || course.retrievalNote) && <details className="cr-sources"><summary>课程参考资料</summary>{course.sourceName && <p>你提供的资料：{course.sourceName}</p>}{course.sources?.map((source, index) => <p key={index}>{source.file || source.source || '专题资料'}</p>)}{course.retrievalNote && <p>{course.retrievalNote}</p>}</details>}
-      {course.scenes.length > 0 && <><CourseExportMenu course={course} disabled={busy || course.status === 'generating'} /><Suspense fallback={<div className="cr-empty">正在打开学习内容…</div>}><CoursePlayer key={course.id} course={course} onProgress={persistProgress} onCourseChange={acceptCourseChange} onEditorDirtyChange={reportEditorDirty} waitForProgress={waitForProgress} /></Suspense></>}
+      {course.scenes.length > 0 && <><CourseExportMenu course={course} disabled={busy || course.status === 'generating'} /><Suspense fallback={<div className="cr-empty">正在打开学习内容…</div>}><CoursePlayer key={`${course.id}:${entryVersion}`} course={course} initialSceneId={entrySceneId || undefined} onProgress={persistProgress} onCourseChange={acceptCourseChange} onEditorDirtyChange={reportEditorDirty} waitForProgress={waitForProgress} /></Suspense></>}
     </>}</div>}
     {tab === 'review' && <div className="cr-embedded-page"><div className="cr-section-heading"><div><p className="cr-eyebrow">学过，再试一次</p><h1>把不会的，慢慢变成会的。</h1><p>这里收集新课堂中的错题。重新练习，会继续使用原有的判题与错题功能。</p></div></div><MistakeView userId="classroom" embedded /></div>}
     {tab === 'growth' && <GrowthClassroom />}

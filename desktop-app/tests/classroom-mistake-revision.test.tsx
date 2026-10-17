@@ -16,7 +16,7 @@ it('错误原题的历史作答保留展示，改由修订版入口继续学习'
     revision: { newCourseId: 'corrected-course', reason: '原题选项缺少480。' } }]);
   const root = createRoot(document.getElementById('root')!);
   await act(async () => { root.render(<MistakeView userId="classroom" embedded />); });
-  expect(document.body.textContent).toContain('历史题目已修订');
+  expect(document.body.textContent).toContain('内容已更新');
   expect(document.body.textContent).toContain('当时的作答：A');
   expect(document.querySelector('a')?.getAttribute('href')).toBe('#/classroom/corrected-course');
   expect(Array.from(document.querySelectorAll('button')).some(button => button.textContent?.includes('重做'))).toBe(false);

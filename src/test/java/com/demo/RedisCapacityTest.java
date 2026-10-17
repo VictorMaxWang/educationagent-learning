@@ -12,7 +12,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import com.demo.testsupport.IsolatedSpringBootTest;
+import com.demo.testsupport.IsolatedTestEnvironment;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
 import java.nio.charset.StandardCharsets;
@@ -31,13 +35,13 @@ import java.util.Properties;
  *   D4. 单会话在 Redis 中的真实内存占用（INFO memory 差值）
  *   D5. TTL 是否正确设置、evict 是否生效
  *
- * 运行：mvnw test -Dtest=RedisCapacityTest
+ * 默认跳过；显式设置 RUN_CAPACITY_BENCHMARKS=true、TEST_MYSQL_* 和 TEST_REDIS_HOST/PORT 后才可运行。
+ * 报告写入 target/test-isolated 本轮专属目录，不覆盖历史容量报告。
  */
-@SpringBootTest(properties = {
-        "memory.store.index-path=target/test-memory-index",
-        "memory.chroma.enabled=false",
-        "bot.auto-start-count=0"
-})
+@IsolatedSpringBootTest
+@TestPropertySource(properties = "test.isolation.real-redis=true")
+@Tag("capacity-benchmark")
+@EnabledIfEnvironmentVariable(named = "RUN_CAPACITY_BENCHMARKS", matches = "(?i)true")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class RedisCapacityTest {
@@ -265,7 +269,7 @@ class RedisCapacityTest {
         cleanup();
         out();
         out("探针 key 已清理（" + PROBE + " 前缀）");
-        java.nio.file.Path p = java.nio.file.Path.of("target", "redis-capacity-report.txt");
+        java.nio.file.Path p = IsolatedTestEnvironment.reportPath("redis-capacity-report.txt");
         java.nio.file.Files.createDirectories(p.getParent());
         java.nio.file.Files.writeString(p, String.join(System.lineSeparator(), REPORT), StandardCharsets.UTF_8);
         System.out.println("[报告已写入] " + p.toAbsolutePath());

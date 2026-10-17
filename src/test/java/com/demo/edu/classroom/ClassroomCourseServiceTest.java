@@ -38,6 +38,7 @@ class ClassroomCourseServiceTest {
         executor=new ManualExecutor(); documents=new HashMap<>();
         when(mapper.find(anyString())).thenAnswer(i -> documents.get(i.getArgument(0)));
         when(mapper.list()).thenAnswer(i -> new ArrayList<>(documents.values()));
+        when(mapper.listSummaries()).thenAnswer(i -> new ArrayList<>(documents.values()));
         when(mapper.save(anyString(), anyString())).thenAnswer(i -> { documents.put(i.getArgument(0), i.getArgument(1)); return 1; });
         when(tutor.precheck(anyString())).thenReturn(Optional.empty());
         when(tutor.unsafeReplacement(anyString())).thenReturn(Optional.empty());
@@ -128,11 +129,14 @@ class ClassroomCourseServiceTest {
         quiz.putObject("content").put("type","quiz").putArray("questions").addObject().put("answer","A").put("analysis","hidden");
         documents.put(id,stored.toString());
         var result=new QuizService.SubmitResult(42L,1,1,List.of(new QuizService.ResultItem(1,true,"A","A","说明")));
-        when(quizzes.submit(any(),any())).thenReturn(result);
         var request=new ClassroomCourseService.AnswerRequest("quiz","request-1",List.of(new QuizService.AnswerSubmission(1,"A")));
+        var prepared=new QuizService.PreparedSubmission("classroom",42L,"request-1",1,"submit","payload","question",List.of(),request.answers(),null);
+        var evaluated=new QuizService.EvaluatedSubmission(1,"question","evaluation",result);
+        when(quizzes.prepare(any(),anyList(),anyString())).thenReturn(prepared);when(quizzes.evaluate(prepared)).thenReturn(evaluated);
+        when(quizzes.commit(any(),eq(prepared),eq(evaluated))).thenReturn(result);
         assertEquals(result,service.answer(id,request));
         assertEquals(result,service.answer(id,request));
-        verify(quizzes,times(1)).submit(any(),any());
+        verify(quizzes,times(1)).commit(any(),eq(prepared),eq(evaluated));verify(quizzes,times(1)).evaluate(prepared);
         assertThrows(ClassroomException.class,() -> service.answer(id,new ClassroomCourseService.AnswerRequest("quiz","request-1",List.of(new QuizService.AnswerSubmission(1,"B")))));
         assertFalse(service.get(id).path("scenes").get(0).path("content").path("questions").get(0).has("answer"));
     }

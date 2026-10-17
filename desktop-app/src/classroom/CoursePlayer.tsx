@@ -40,14 +40,18 @@ const ACTION_LABELS: Record<string, string> = {
   widget_setState: '调整互动参数', widget_highlight: '强调互动对象', widget_annotation: '添加互动提示', widget_reveal: '展示互动对象',
 };
 
-export default function CoursePlayer({ course, onProgress, onCourseChange, onEditorDirtyChange, waitForProgress }: {
+export default function CoursePlayer({ course, initialSceneId, onProgress, onCourseChange, onEditorDirtyChange, waitForProgress }: {
   course: Course; onProgress(courseId: string, sceneIndex: number, actionIndex: number): void;
+  initialSceneId?: string;
   onCourseChange?(course: Course): void;
   onEditorDirtyChange?(dirty: boolean): void;
   waitForProgress?(): Promise<unknown>;
 }) {
-  const [index, setIndex] = useState(() => clampIndex(course.progress?.sceneIndex || 0, course.scenes.length));
-  const [actionIndex, setActionIndex] = useState(course.progress?.actionIndex || 0);
+  const [index, setIndex] = useState(() => {
+    const requested = course.scenes.findIndex(scene => scene.id === initialSceneId);
+    return requested >= 0 ? requested : clampIndex(course.progress?.sceneIndex || 0, course.scenes.length);
+  });
+  const [actionIndex, setActionIndex] = useState(index === course.progress?.sceneIndex ? course.progress?.actionIndex || 0 : 0);
   const [playback, setPlayback] = useState<PlaybackStatus>('idle');
   const [caption, setCaption] = useState('');
   const [captionRole, setCaptionRole] = useState<Speaker>('teacher');
@@ -124,7 +128,7 @@ export default function CoursePlayer({ course, onProgress, onCourseChange, onEdi
     try {
       const next = await write(async () => { await waitForProgress?.(); return saveScene(live.current.course.id, active.id, editRevision.current, { ...active.content, type: 'slide', canvas }); });
       editRevision.current = next.revision ?? 0;
-      applyCourse(next); setEditorDirty(false); setSelection(null); setActionIndex(0); setEffects({}); setCaption(''); setLocalReceipts([]);
+      applyCourse(next); setSelection(null); setActionIndex(0); setEffects({}); setCaption(''); setLocalReceipts([]);
     } catch (error) { setError(error instanceof Error ? error.message : '课件未保存'); throw error; }
     finally { setMutationBusy(false); }
   };
@@ -134,7 +138,7 @@ export default function CoursePlayer({ course, onProgress, onCourseChange, onEdi
     setMutationBusy(true); setError('');
     try {
       const next = await commitRuntime(active.id, { whiteboard: nextBoard }, boardEditing ? boardRevision.current : undefined);
-      boardRevision.current = next.revision ?? 0; setBoardDirty(false);
+      boardRevision.current = next.revision ?? 0;
     } catch (error) { setError(error instanceof Error ? error.message : '白板未保存'); throw error; }
     finally { setMutationBusy(false); }
   };

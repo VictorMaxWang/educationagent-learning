@@ -10,8 +10,10 @@ export async function classroomRequest<T>(path: string, options: RequestInit = {
   });
   const data = await response.json().catch(() => ({}));
   if (!response.ok || data.success === false) {
-    const error = new Error(data.error || data.message || `请求失败（${response.status}）`) as Error & { status: number };
+    const error = new Error(data.error || data.message || `请求失败（${response.status}）`) as Error & { status: number; code?: string };
     error.status = response.status;
+    // 业务回执已封存和传输结果未知需要不同的幂等恢复策略，不能只按 HTTP 状态判断。
+    if (typeof data.code === 'string') error.code = data.code;
     throw error;
   }
   return data as T;
@@ -30,7 +32,8 @@ export const generateCourse = (id: string) => post<Course>(`/courses/${encodeURI
 export const cancelCourse = (id: string) => post<Course>(`/courses/${encodeURIComponent(id)}/cancel`);
 export const retrySceneMedia = (id: string, sceneId: string, expectedRevision: number) => post<Course>(`/courses/${encodeURIComponent(id)}/scenes/${encodeURIComponent(sceneId)}/retry-media`, { expectedRevision });
 export const saveProgress = (id: string, sceneIndex: number, actionIndex: number) => classroomRequest<unknown>(`/courses/${encodeURIComponent(id)}/progress`, { method: 'PUT', body: JSON.stringify({ sceneIndex, actionIndex }) });
-export const submitAnswers = (id: string, sceneId: string, submissionId: string, answers: { no: number; answer: string }[]) => post<QuizResult>(`/courses/${encodeURIComponent(id)}/answer`, { sceneId, submissionId, answers });
+/** 旧课程没有题面版本时省略可选字段，保持原三字段答卷协议。 */
+export const submitAnswers = (id: string, sceneId: string, submissionId: string, answers: { no: number; answer: string }[], expectedQuestionVersion?: string) => post<QuizResult>(`/courses/${encodeURIComponent(id)}/answer`, { sceneId, submissionId, answers, expectedQuestionVersion });
 export interface QuizRevision { sceneId: string; newCourseId: string; newSceneId: string; reason: string; createdAt: string }
 export const getQuizRevisions = (id: string, signal?: AbortSignal) => classroomRequest<{ courseId: string; revisions: QuizRevision[] }>(`/courses/${encodeURIComponent(id)}/quiz-revisions`, { signal });
 export interface ClassroomQuestionOptions { elementReference?: ElementReference; interactiveState?: Record<string, unknown>; intent?: 'question' | 'edit' }

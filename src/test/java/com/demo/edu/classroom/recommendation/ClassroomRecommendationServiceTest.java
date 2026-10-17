@@ -26,6 +26,7 @@ class ClassroomRecommendationServiceTest {
         when(store.list(anyString(),anyString(),anyInt())).thenReturn(List.of());
         when(store.listForScene(anyString(),anyString(),anyString(),anyInt())).thenReturn(List.of());
         doAnswer(c->{saved.put(c.getArgument(0)+":"+c.getArgument(1),((ObjectNode)c.getArgument(3)).deepCopy());return null;}).when(store).save(anyString(),anyString(),anyString(),any());
+        doAnswer(c->{for(ClassroomStudyStore.Write write:(List<ClassroomStudyStore.Write>)c.getArgument(0))store.save(write.kind(),write.entryId(),write.courseId(),write.document());return null;}).when(store).saveBatch(anyList());
         when(store.create(anyString(),anyString(),anyString(),any())).thenAnswer(c->saved.putIfAbsent(c.getArgument(0)+":"+c.getArgument(1),((ObjectNode)c.getArgument(3)).deepCopy())==null);
         service=new ClassroomRecommendationService(courses,store,json,classifier,catalog,semantic,ai,false);}
     @AfterEach void cleanup(){service.close();}
@@ -45,6 +46,47 @@ class ClassroomRecommendationServiceTest {
         assertTrue(service.feedback("course",request).path("saved").asBoolean());assertTrue(service.feedback("course",request).path("saved").asBoolean());
         assertThrows(ClassroomException.class,()->service.feedback("course",new ClassroomRecommendationService.FeedbackRequest("decision","BV1r3411q7mV:1","tried","request-1")));
         verify(courses,times(3)).studySnapshot("course");verifyNoMoreInteractions(courses);}
+    @Test void rapidBudgetChangesKeepOnlyLatestQueuedRequestAndDoNotPayForSupersededOnes(){
+        when(classifier.classify(any(),any())).thenReturn(new VideoTeachingClassifier.Classification("uncertain","","资料待核对",List.of(),"",json.createObjectNode(),json.createObjectNode()));
+        String first=service.refresh("course",new ClassroomRecommendationService.RefreshRequest("scene",10,null)).path("decisionId").asText();
+        service.refresh("course",new ClassroomRecommendationService.RefreshRequest("scene",5,null));
+        service.refresh("course",new ClassroomRecommendationService.RefreshRequest("scene",20,null));service.tick();service.tick();
+        assertEquals(20,service.get("course","scene").path("budgetMinutes").asInt());verify(classifier,times(1)).classify(any(),any());
+        assertEquals("NEWER_PAGE_REQUEST",saved.get(ClassroomRecommendationService.DECISION+":"+first).path("audit").path("failureKind").asText());
+    }
+    @Test void fullQueueRejectsWithoutChangingTheRequestedPageSettings(){
+        for(int index=0;index<32;index++){String id="queued-"+index;course.withArray("scenes").addObject().put("id",id).put("title","朗诵"+index).put("type","slide").putObject("content");service.refresh("course",new ClassroomRecommendationService.RefreshRequest(id,10,null));}
+        String settings=ClassroomStudyContext.hash(json.valueToTree(List.of("course","scene")));saved.put(ClassroomRecommendationService.SETTINGS+":"+settings,json.createObjectNode().put("budgetMinutes",5).put("preference",""));
+        assertEquals(429,assertThrows(ClassroomException.class,()->service.refresh("course",new ClassroomRecommendationService.RefreshRequest("scene",20,null))).status());
+        assertEquals(5,saved.get(ClassroomRecommendationService.SETTINGS+":"+settings).path("budgetMinutes").asInt());verifyNoInteractions(classifier,catalog,ai);
+    }
+    @Test void restartRetainsUnknownIntentAndOnlyManualRequestCanDispatchAgain(){
+        String first=service.refresh("course",new ClassroomRecommendationService.RefreshRequest("scene",10,null)).path("decisionId").asText();service.close();
+        service=new ClassroomRecommendationService(courses,store,json,classifier,catalog,semantic,ai,false);
+        assertEquals("error",service.get("course","scene").path("status").asText());
+        assertEquals(first,service.refresh("course",new ClassroomRecommendationService.RefreshRequest("scene",10,null)).path("decisionId").asText());verifyNoInteractions(classifier,catalog,ai);
+        var manual=service.refresh("course",new ClassroomRecommendationService.RefreshRequest("scene",10,null,true));assertEquals("queued",manual.path("status").asText());assertNotEquals(first,manual.path("decisionId").asText());
+    }
+    @Test void queueDeadlineExpiresEvenWhileClassroomGenerationNeverFinishes(){
+        service.refresh("course",new ClassroomRecommendationService.RefreshRequest("scene",10,null));
+        org.springframework.test.util.ReflectionTestUtils.setField(service,"clock",java.time.Clock.fixed(java.time.Instant.now().plusSeconds(301),java.time.ZoneOffset.UTC));
+        when(courses.hasActiveGeneration()).thenReturn(true);service.tick();assertEquals("error",service.get("course","scene").path("status").asText());
+        assertEquals("error",service.refresh("course",new ClassroomRecommendationService.RefreshRequest("scene",10,null)).path("status").asText());verifyNoInteractions(classifier,catalog,ai);
+    }
+    @Test void changingModelIdentityAfterRestartCannotHideAnUnknownPageCallBehindANewCacheKey(){
+        service.refresh("course",new ClassroomRecommendationService.RefreshRequest("scene",10,null));service.close();
+        when(semantic.identity()).thenReturn(json.createObjectNode().put("model","new-model").put("dimension",2));
+        service=new ClassroomRecommendationService(courses,store,json,classifier,catalog,semantic,ai,false);
+        assertEquals("error",service.get("course","scene").path("status").asText());
+        assertEquals("error",service.refresh("course",new ClassroomRecommendationService.RefreshRequest("scene",10,null)).path("status").asText());verifyNoInteractions(classifier,catalog,ai);
+        assertEquals("queued",service.refresh("course",new ClassroomRecommendationService.RefreshRequest("scene",10,null,true)).path("status").asText());
+    }
+    @Test void persistenceFailureDoesNotDiscardPreviousQueuedBudget(){
+        service.refresh("course",new ClassroomRecommendationService.RefreshRequest("scene",5,null));doThrow(new ClassroomException(503,"store unavailable")).when(store).saveBatch(anyList());
+        assertThrows(ClassroomException.class,()->service.refresh("course",new ClassroomRecommendationService.RefreshRequest("scene",20,null)));
+        assertEquals(5,service.get("course","scene").path("budgetMinutes").asInt());assertEquals("queued",service.get("course","scene").path("status").asText());verifyNoInteractions(classifier,catalog,ai);
+    }
+
     @Test void candidateMustBeCompatibleAndEvidenceMustActuallyExist(){var video=new BilibiliVideoCatalog.Video("v","BV1r3411q7mV",1,"url","沁园春朗诵","有节奏的朗诵","示范","up",100,"now",json.createObjectNode());
         ObjectNode response=json.createObjectNode();ObjectNode candidate=response.putArray("candidates").addObject().put("id","v").put("eligible",true).put("gradeCompatibility","compatible")
                 .put("purpose","recitation").put("reason","补充节奏示范").put("metadataQuote","有节奏的朗诵").put("preferenceMatch",false);candidate.putArray("goals").add("朗诵节奏");

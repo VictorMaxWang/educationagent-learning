@@ -49,9 +49,9 @@ describe('五题型真实作答控件',()=>{
     const root=createRoot(document.getElementById('root')!);
     await act(async()=>{root.render(createElement(QuizScene,{courseId:'old-course',scene}));});
     expect(document.body.textContent).toContain('保留的旧题面');
-    expect(document.body.textContent).toContain('这组练习已修订');
+    expect(document.body.textContent).toContain('内容已更新');
     expect(document.querySelector('fieldset')?.disabled).toBe(true);
-    expect(document.querySelector('a')?.getAttribute('href')).toBe('#/classroom/corrected-course');
+    expect(document.querySelector('a')?.getAttribute('href')).toBe('#/classroom/corrected-course?scene=corrected-scene');
     expect(document.body.textContent).not.toContain('提交这组练习');
     expect(submitAnswers).not.toHaveBeenCalled();
     await act(async()=>{root.unmount();});dom.window.close();

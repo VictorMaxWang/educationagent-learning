@@ -412,6 +412,12 @@ body {
   background: var(--bg);
 }
 
+/* 工具分块加载期间保持返回入口；弹层加载不挤动课堂布局。 */
+.tool-load-state { flex: 1; min-height: 0; padding: 28px; color: var(--text); background: var(--surface); }
+.tool-load-state p { margin-bottom: 16px; line-height: 1.7; }
+.tool-load-state button { border: 1px solid var(--border); border-radius: 8px; background: var(--primary-faint); color: var(--text); padding: 8px 12px; margin-right: 8px; cursor: pointer; font: inherit; }
+.more-tools-overlay > .tool-load-state { flex: none; width: min(420px, 100%); border-radius: 16px; }
+
 /* ===== 对话标题 ===== */
 .chat-header {
   position: relative;

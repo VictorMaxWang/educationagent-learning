@@ -33,7 +33,9 @@ public class QuizController {
     /** 修订指针必须让所有旧判分入口一致返回409，不落回普通400或泛化500。 */
     @ExceptionHandler(ClassroomException.class)
     public ResponseEntity<Map<String,String>> classroomBoundary(ClassroomException error) {
-        return ResponseEntity.status(error.status()).body(Map.of("error",error.getMessage()));
+        Map<String,String> body=new java.util.LinkedHashMap<>();body.put("error",error.getMessage());
+        if(error.code()!=null)body.put("code",error.code());
+        return ResponseEntity.status(error.status()).body(body);
     }
 
     @Resource
@@ -46,13 +48,17 @@ public class QuizController {
     private TtsService ttsService;
 
     /** 提交请求体 */
-    public record SubmitRequest(Long quizId, String userId, List<QuizService.AnswerSubmission> answers) {}
+    public record SubmitRequest(Long quizId, String userId, List<QuizService.AnswerSubmission> answers,String requestId) {
+        public SubmitRequest(Long quizId,String userId,List<QuizService.AnswerSubmission> answers){this(quizId,userId,answers,null);}
+    }
 
     /** 单题即时判请求体 */
     public record GradeOneRequest(Long quizId, String userId, Integer no, String answer) {}
 
     /** 错题重做请求体 */
-    public record MistakeRedoRequest(String userId, Long quizId, Long questionId, String answer) {}
+    public record MistakeRedoRequest(String userId, Long quizId, Long questionId, String answer,String requestId) {
+        public MistakeRedoRequest(String userId,Long quizId,Long questionId,String answer){this(userId,quizId,questionId,answer,null);}
+    }
 
     /** 知识点 toggle 请求体 */
     public record KnowledgeToggleRequest(String userId, String knowledgePoint) {}
@@ -118,8 +124,9 @@ public class QuizController {
         }
         String userId = (req.userId() == null || req.userId().isBlank()) ? "desktop_user" : req.userId();
         try {
-            QuizService.SubmitResult result = quizService.submit(userId, req.quizId(),
-                    req.answers() == null ? List.of() : req.answers());
+            List<QuizService.AnswerSubmission> answers=req.answers()==null?List.of():req.answers();
+            QuizService.SubmitResult result=req.requestId()==null?quizService.submit(userId,req.quizId(),answers)
+                    :quizService.submit(userId,req.quizId(),answers,req.requestId());
             return ResponseEntity.ok(result);
         } catch (ClassroomException boundary) {
             throw boundary;
@@ -127,7 +134,7 @@ public class QuizController {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             log.error("刷题判分异常", e);
-            return ResponseEntity.internalServerError().body(Map.of("error", "服务器异常：" + e.getMessage()));
+            return ResponseEntity.internalServerError().body(Map.of("error", "判分服务暂时不可用，请保留原答案和请求编号后重试"));
         }
     }
 
@@ -152,7 +159,7 @@ public class QuizController {
         }
     }
 
-    /** 删除试卷（级联删题目/材料/做题记录） */
+    /** 从试卷列表隐藏，保留题目、材料与所有历史答卷。 */
     @PostMapping("/paper-delete")
     public ResponseEntity<?> paperDelete(@RequestBody Map<String, String> payload) {
         String userId = payload.getOrDefault("userId", "desktop_user");
@@ -204,12 +211,13 @@ public class QuizController {
     /** 错题重做：判分 → 答对自动移出错题本 */
     @PostMapping("/mistake-redo")
     public ResponseEntity<?> mistakeRedo(@RequestBody MistakeRedoRequest req) {
-        if (req == null || req.questionId() == null) {
-            return ResponseEntity.badRequest().body(Map.of("error", "缺少 questionId"));
+        if (req == null || req.questionId() == null || req.quizId()==null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "缺少 questionId 或 quizId"));
         }
         try {
             String userId = (req.userId() == null || req.userId().isBlank()) ? "desktop_user" : req.userId();
-            return ResponseEntity.ok(quizService.mistakeRedo(userId, req.quizId(), req.questionId(), req.answer()));
+            return ResponseEntity.ok(req.requestId()==null?quizService.mistakeRedo(userId,req.quizId(),req.questionId(),req.answer())
+                    :quizService.mistakeRedo(userId,req.quizId(),req.questionId(),req.answer(),req.requestId()));
         } catch (QuizException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }

@@ -28,11 +28,13 @@ export default function SlideEditor({ canvas, title = '编辑课件', saving, on
   const [mode, setMode] = useState<CanvasInteractionMode>(initialCanvasMode);
   const [inkColor, setInkColor] = useState('#376951');
   const [inkWidth, setInkWidth] = useState(6);
-  const saved = useRef<SlideContent>(history.present);
+  const [saved, setSaved] = useState<SlideContent>(history.present);
+  const editorRoot = useRef<HTMLElement>(null);
+  const [focusWithin, setFocusWithin] = useState(false);
   const busy = Boolean(saving || localSaving);
-  const dirty = history.present !== saved.current;
+  const dirty = history.present !== saved;
   useEffect(() => { onDirtyChange?.(dirty); }, [dirty, onDirtyChange]);
-  const host = useMemo<EditorHostCapabilities>(() => ({ locale: 'zh-CN', createElementId: () => newLocalId(), onError: event => setError(event.message), shortcutsEnabled: !busy && mode === 'select', renderAssetPicker: request => <ClassroomImagePicker request={request} /> }), [busy, mode]);
+  const host = useMemo<EditorHostCapabilities>(() => ({ locale: 'zh-CN', createElementId: () => newLocalId(), onError: event => setError(event.message), shortcutsEnabled: !busy && mode === 'select' && focusWithin, renderAssetPicker: request => <ClassroomImagePicker request={request} /> }), [busy, mode, focusWithin]);
   const displayCanvas = useMemo(() => resolveSlideAssets(history.present.canvas), [history.present.canvas]);
   const transact = useCallback((transaction: EditorTransaction) => {
     setHistory(current => applyEditorTransaction(current, transaction));
@@ -53,11 +55,20 @@ export default function SlideEditor({ canvas, title = '编辑课件', saving, on
   const save = async () => {
     setLocalSaving(true); setError('');
     const snapshot = history.present;
-    try { await onSave(snapshot.canvas); saved.current = snapshot; onDirtyChange?.(false); }
+    // 只确认实际发出的快照；在途粘贴等产生的新事务仍与saved不同，保持离开保护。
+    try { await onSave(snapshot.canvas); setSaved(snapshot); }
     catch (error) { setError(error instanceof Error ? error.message : '保存失败，编辑内容仍保留在这里。'); }
     finally { setLocalSaving(false); }
   };
-  return <section className="ce-editor" aria-label={title} onKeyDown={event => {
+  return <section ref={editorRoot} tabIndex={-1} className="ce-editor" aria-label={title}
+    onFocusCapture={() => setFocusWithin(true)}
+    onBlurCapture={event => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setFocusWithin(false); }}
+    onPointerDownCapture={event => {
+      const target = event.target as HTMLElement;
+      // 画布对象通常不是可聚焦元素，点击后将快捷键归属给这个编辑器；不抢输入框和按钮的焦点。
+      if (mode === 'select' && !busy && !target.closest('input,textarea,select,button,a[href],[contenteditable="true"],.ProseMirror'))
+        editorRoot.current?.focus({ preventScroll: true });
+    }} onKeyDown={event => {
     const target = event.target as HTMLElement;
     if (busy || target.isContentEditable || target.closest('input,textarea,select,.ProseMirror')) return;
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') {
@@ -69,7 +80,7 @@ export default function SlideEditor({ canvas, title = '编辑课件', saving, on
     {mode === 'draw' ? <div className="ce-ink-tools"><label>画笔颜色<input type="color" value={inkColor} disabled={busy} onChange={event => setInkColor(event.target.value)} /></label><label>粗细<select value={inkWidth} disabled={busy} onChange={event => setInkWidth(Number(event.target.value))}><option value={3}>细</option><option value={6}>中</option><option value={10}>粗</option><option value={16}>特粗</option></select></label><button type="button" disabled={busy || !history.present.canvas.elements.some(isFreehandElement)} onClick={() => { transact({ origin: 'toolbar', history: 'record', operations: [{ type: 'element.deleteMany', elementIds: history.present.canvas.elements.filter(isFreehandElement).map(element => element.id) }] }); setSelection(EMPTY_SELECTION); }}>清除涂画</button><small>一笔一撤销；清除涂画保留原来的文字与图形。</small></div>
       : mode === 'select' && <div className="ce-shape-tools"><span>形状</span><button disabled={busy} onClick={() => insertShape('rectangle')}>▭ 矩形</button><button disabled={busy} onClick={() => insertShape('circle')}>○ 圆形</button><button disabled={busy} onClick={() => insertShape('triangle')}>△ 三角形</button><small>选择对象可拖动、缩放或旋转；双击文字可直接编辑。</small></div>}
     {error && <p className="cr-error" role="alert">{error}</p>}
-    <div className={`ce-editor-canvas ce-canvas-${mode} ${busy ? 'is-saving' : ''}`} aria-busy={busy}>
+    <div className={`ce-editor-canvas ce-canvas-${mode} ${busy ? 'is-saving' : ''}`} aria-busy={busy} inert={busy}>
       {mode === 'select' ? <EditableSlideCanvasWithUI slide={displayCanvas} documentSlide={history.present.canvas} selection={selection} onSelectionChange={changeSelection} onTransaction={transact} host={host} insertItems={['text', 'image', 'table', 'chart', 'line', 'background', 'latex']} snapping grid={50} ruler elementIdPrefix="educationagent-edit-" />
         : mode === 'browse' ? <SlideCanvas slide={displayCanvas} elementIdPrefix="educationagent-browse-" />
         : <FreehandSurface slide={displayCanvas} color={inkColor} width={inkWidth} disabled={busy} onError={setError} onStroke={element => {

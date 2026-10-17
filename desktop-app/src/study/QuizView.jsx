@@ -513,6 +513,10 @@ function QuizView({ userId, embedded }) {
   if (phase === 'finished') {
     const correctCount = result?.results?.filter(r => r.correct === true).length ?? 0;
     const selfCount = result?.results?.filter(r => r.correct == null).length ?? 0;
+    // 新接口将未知判分单列，分数只除以已确认题数；缺少字段时保留旧接口显示。
+    const hasConfirmedCount = result?.confirmedCount != null;
+    const confirmedCount = hasConfirmedCount ? result.confirmedCount : (result?.total ?? 0);
+    const pendingCount = result?.pendingCount ?? selfCount;
     return (
       <div className="quiz-container quiz-scroll">
         {/* 吸顶返回栏：回到"添加试卷"页面 */}
@@ -521,14 +525,18 @@ function QuizView({ userId, embedded }) {
           <div className="quiz-progress">刷题结果</div>
         </div>
         <div className="quiz-result">
-          <h3>📊 得分：{result?.score ?? 0} / {result?.total ?? 0}</h3>
-          <div className="quiz-score-sub">✅ 做对 {correctCount} 题{selfCount > 0 ? ` · 📖 AI 未判 ${selfCount} 题` : ''}</div>
+          <h3>{hasConfirmedCount && confirmedCount === 0 ? '📊 结果待确认' : `📊 得分：${result?.score ?? 0} / ${confirmedCount}`}</h3>
+          <div className="quiz-score-sub">{hasConfirmedCount ? <>
+            共 {result?.total ?? 0} 题 · 已确认 {confirmedCount} 题
+            {confirmedCount > 0 && ` · ✅ 做对 ${correctCount} 题`}
+            {pendingCount > 0 && ` · ⏳ 待确认 ${pendingCount} 题（不计为答错）`}
+          </> : <>✅ 做对 {correctCount} 题{selfCount > 0 ? ` · 📖 AI 未判 ${selfCount} 题` : ''}</>}</div>
           <div className="quiz-result-list">
             {result?.results?.map(r => (
               <div key={r.no} className={`quiz-r-item ${r.correct === true ? 'correct' : r.correct === false ? 'wrong' : 'self'}`}>
                 <div className="quiz-r-head">
                   <span>第 {r.no} 题</span>
-                  <span>{r.correct === true ? '✅ 正确' : r.correct === false ? '❌ 错误' : '📖 自查'}</span>
+                  <span>{r.correct === true ? '✅ 正确' : r.correct === false ? '❌ 错误' : hasConfirmedCount ? '⏳ 待确认' : '📖 自查'}</span>
                 </div>
                 <div className="quiz-r-line">你的答案：{r.userAnswer || '（未作答）'}</div>
                 {r.correctAnswer && <div className="quiz-r-line">参考答案：{r.correctAnswer}</div>}

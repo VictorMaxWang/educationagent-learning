@@ -1,6 +1,8 @@
 package com.demo.edu.classroom;
 
 import com.demo.config.AiChatProperties;
+import com.demo.edu.classroom.ai.ClassroomModelAdmission;
+import com.demo.edu.classroom.ai.ClassroomModelAdmissionProperties;
 import com.demo.edu.safety.CrisisGuard;
 import com.demo.edu.safety.EduContentSafetyJudge;
 import com.demo.edu.safety.EduContentSafetyProperties;
@@ -9,6 +11,7 @@ import dev.langchain4j.data.message.*;
 import dev.langchain4j.model.chat.request.ChatRequest;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,16 +30,23 @@ public class ClassroomTutorModel {
     private final EduContentSafetyProperties safetyProperties;
     private final AiChatProperties chatProperties;
     private final ClassroomQuizReviewProperties quizReviewProperties;
+    private final ClassroomModelAdmission admission;
 
     public ClassroomTutorModel(OpenAiChatModel model, CrisisGuard crisisGuard, EduContentSafetyJudge safetyJudge,
                                EduContentSafetyProperties safetyProperties, AiChatProperties chatProperties,
                                ClassroomQuizReviewProperties quizReviewProperties) {
+        this(model,crisisGuard,safetyJudge,safetyProperties,chatProperties,quizReviewProperties,new ClassroomModelAdmission(new ClassroomModelAdmissionProperties()));
+    }
+    @Autowired public ClassroomTutorModel(OpenAiChatModel model, CrisisGuard crisisGuard, EduContentSafetyJudge safetyJudge,
+                               EduContentSafetyProperties safetyProperties, AiChatProperties chatProperties,
+                               ClassroomQuizReviewProperties quizReviewProperties,ClassroomModelAdmission admission) {
         this.model = model;
         this.crisisGuard = crisisGuard;
         this.safetyJudge = safetyJudge;
         this.safetyProperties = safetyProperties;
         this.chatProperties = chatProperties;
         this.quizReviewProperties = quizReviewProperties;
+        this.admission=admission;
         this.reviewModel = buildReviewModel();
     }
 
@@ -84,6 +94,14 @@ public class ClassroomTutorModel {
      *                {@code quiz-review} 路由到 0 温度复核模型，其余（含重生成）走生成模型。
      */
     public String complete(JsonNode messages, String purpose) {
+        return complete(messages,purpose,PURPOSE_REVIEW.equals(purpose)?quizReviewProperties.getTimeoutMs():150_000,null);
+    }
+
+    public String complete(JsonNode messages,String purpose,long budgetMs){return complete(messages,purpose,budgetMs,null);}
+
+    /** Node提供剩余总预算；仅实际chat占用许可，调用方中断不允许自动重发未知请求。 */
+    public String complete(JsonNode messages,String purpose,long budgetMs,ClassroomCancellation cancellation) {
+        if(budgetMs<=0)throw new ClassroomException(504,"课堂模型调用已到截止时间");
         if (!messages.isArray() || messages.isEmpty() || messages.size() > 32)
             throw new ClassroomException(502, "生成器发出了无效模型请求");
         List<ChatMessage> converted = new ArrayList<>();
@@ -100,7 +118,8 @@ public class ClassroomTutorModel {
             });
         }
         OpenAiChatModel target = PURPOSE_REVIEW.equals(purpose) && quizReviewProperties.isEnabled() ? reviewModel : model;
-        String text = target.chat(ChatRequest.builder().messages(converted).build()).aiMessage().text();
+        String text = admission.execute(Duration.ofMillis(Math.min(180_000,budgetMs)),cancellation,
+                remaining->target.chat(ChatRequest.builder().messages(converted).build()).aiMessage().text());
         if (text == null || text.isBlank()) throw new ClassroomException(502, "模型返回了空内容，请重试");
         return text;
     }

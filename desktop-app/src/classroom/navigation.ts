@@ -1,11 +1,23 @@
 /** hash 路由不依赖服务器 rewrite，微信打开课程链接也能定位原来的课堂。 */
 export function courseIdFromHash(hash: string): string | null {
-  const match = /^#\/classroom\/([^/?#]+)$/.exec(hash);
+  const match = /^#\/classroom\/([^/?#]+)(?:\?[^#]*)?$/.exec(hash);
   if (!match) return null;
   try { return decodeURIComponent(match[1]); } catch { return null; }
 }
-export function courseHash(id?: string | null): string {
-  return id ? `#/classroom/${encodeURIComponent(id)}` : '#/classroom';
+export function sceneIdFromHash(hash: string): string | null {
+  if (!courseIdFromHash(hash)) return null;
+  const query = new URLSearchParams(hash.includes('?') ? hash.slice(hash.indexOf('?') + 1) : '');
+  const scenes = query.getAll('scene');
+  return scenes.length === 1 && scenes[0].trim() && scenes[0].length <= 160 && !/[\u0000-\u001f]/.test(scenes[0]) ? scenes[0] : null;
+}
+export function courseHash(id?: string | null, sceneId?: string | null): string {
+  return id ? `#/classroom/${encodeURIComponent(id)}${sceneId ? `?scene=${encodeURIComponent(sceneId)}` : ''}` : '#/classroom';
+}
+/** 旧入口的场景映射只采信服务端返回且确实存在的ID；无法对应时使用当前课程的保存位置。 */
+export function resolveEntryScene(course: { scenes: { id: string }[]; progress?: { sceneIndex: number }; entrySceneMap?: Record<string, string> }, requested?: string | null): string | null {
+  const target = requested ? course.entrySceneMap?.[requested] || requested : null;
+  if (target && course.scenes.some(scene => scene.id === target)) return target;
+  return course.scenes[clampIndex(course.progress?.sceneIndex || 0, course.scenes.length)]?.id || null;
 }
 export function clampIndex(index: number, count: number): number {
   return Number.isFinite(index) ? Math.max(0, Math.min(Math.floor(index), Math.max(0, count - 1))) : 0;

@@ -1,44 +1,63 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import ChatWindow from './chat/ChatWindow';
+import { Component, Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
 import { useChatStore } from './chat/chatStore';
-import SettingsView from './components/SettingsView';
-import TravelView from './travel/TravelView';
-import MapView from './travel/MapView';
-import HealthView from './health/HealthView';
-import PetView from './pet/PetView';
-import LifeView from './life/LifeView';
 import { NAV_WIDTH_RANGE, useUiStore } from './store/uiStore';
 import { useResize } from './utils/useResize';
-import QuizMistakeView from './study/QuizMistakeView';
-import KnowledgeCenterView from './study/KnowledgeCenterView';
-import FileConvertView from './tools/FileConvertView';
-import EnglishView from './study/EnglishView';
-import PublicEnglishPanel from './components/PublicEnglishPanel';
-import CourseKnowledgeView from './study/CourseKnowledgeView';
-import TeacherWorkbenchView from './edu/TeacherWorkbenchView';
-import StudentReportView from './edu/StudentReportView';
-import StudentHomeworkView from './edu/StudentHomeworkView';
-import MaimemoInvoice from './tools/MaimemoInvoice';
-import WatermarkView from './tools/WatermarkView';
-import LawRagView from './tools/LawRagView';
-import CodeRunnerView from './code/CodeRunnerView';
-import KittyMusicPlayer from './components/KittyMusicPlayer';
-import RouterEvalView from './ops/RouterEvalView';
-import MetricsView from './ops/MetricsView';
-import MemoryMapView from './ops/MemoryMapView';
 import ClassroomView from './classroom/ClassroomView';
 import VoiceOrb from './components/VoiceOrb';
 import OnboardingGuide from './components/OnboardingGuide';
-import LocalMusicPanel from './components/LocalMusicPanel';
-import BrowserCodePlayground from './components/BrowserCodePlayground';
-import TeamResearchLabs from './research/TeamResearchLabs';
-import TechnologyOverview from './research/TechnologyOverview';
 import { audioCoordinator, installMediaFocusBridge } from './classroom/AudioCoordinator';
 import './App.css';
 
+// 工具在首次打开时加载；课堂入口保留同步导入，避免首屏等待不相关模块。
+const ChatWindow = lazy(() => import('./chat/ChatWindow'));
+const SettingsView = lazy(() => import('./components/SettingsView'));
+const TravelView = lazy(() => import('./travel/TravelView'));
+const MapView = lazy(() => import('./travel/MapView'));
+const HealthView = lazy(() => import('./health/HealthView'));
+const PetView = lazy(() => import('./pet/PetView'));
+const LifeView = lazy(() => import('./life/LifeView'));
+const QuizMistakeView = lazy(() => import('./study/QuizMistakeView'));
+const KnowledgeCenterView = lazy(() => import('./study/KnowledgeCenterView'));
+const FileConvertView = lazy(() => import('./tools/FileConvertView'));
+const EnglishView = lazy(() => import('./study/EnglishView'));
+const PublicEnglishPanel = lazy(() => import('./components/PublicEnglishPanel'));
+const CourseKnowledgeView = lazy(() => import('./study/CourseKnowledgeView'));
+const TeacherWorkbenchView = lazy(() => import('./edu/TeacherWorkbenchView'));
+const StudentReportView = lazy(() => import('./edu/StudentReportView'));
+const StudentHomeworkView = lazy(() => import('./edu/StudentHomeworkView'));
+const MaimemoInvoice = lazy(() => import('./tools/MaimemoInvoice'));
+const WatermarkView = lazy(() => import('./tools/WatermarkView'));
+const LawRagView = lazy(() => import('./tools/LawRagView'));
+const CodeRunnerView = lazy(() => import('./code/CodeRunnerView'));
+const KittyMusicPlayer = lazy(() => import('./components/KittyMusicPlayer'));
+const RouterEvalView = lazy(() => import('./ops/RouterEvalView'));
+const MetricsView = lazy(() => import('./ops/MetricsView'));
+const MemoryMapView = lazy(() => import('./ops/MemoryMapView'));
+const LocalMusicPanel = lazy(() => import('./components/LocalMusicPanel'));
+const BrowserCodePlayground = lazy(() => import('./components/BrowserCodePlayground'));
+const TechnologyOverview = lazy(() => import('./research/TechnologyOverview'));
+
+/** 慢网络或旧缓存导致分块不可用时，仍能关闭工具并返回课堂。 */
+function DeferredToolMessage({ title, onClose, overlay = false, failed = false }) {
+  const content = <section className="tool-load-state" role={failed ? 'alert' : 'status'}>
+    <p>{failed ? `${title}暂时没有加载成功，请刷新后再试。` : `正在打开${title}…`}</p>
+    <button onClick={onClose}>{failed ? '关闭' : '取消打开'}</button>
+    {failed && <button onClick={() => window.location.reload()}>刷新页面</button>}
+  </section>;
+  return overlay ? <div className="more-tools-overlay">{content}</div> : content;
+}
+
+class DeferredToolBoundary extends Component {
+  state = { failed: false };
+  static getDerivedStateFromError() { return { failed: true }; }
+  render() {
+    return this.state.failed ? <DeferredToolMessage {...this.props} failed /> : this.props.children;
+  }
+}
+
 // 公网课堂按已核准功能列“更多工具”；本机完整侧栏保留，不以隐藏导航替代服务端权限。
 const PUBLIC_CLASSROOM = import.meta.env.VITE_PUBLIC_CLASSROOM === 'true';
-const PUBLIC_TOOL_KEYS = new Set(['quiz', 'watermark', 'researchlabs', 'technology']);
+const PUBLIC_TOOL_KEYS = new Set(['quiz', 'watermark', 'technology']);
 
 // 侧栏板块图标（用户提供的 PNG），目前 7 张都是透明底单色 → 一律 mono: true
 // mono=true 的单色图标走 CSS mask，由 currentColor 上色，7 套主题 / hover / 选中态自动跟随；
@@ -210,7 +229,7 @@ const NAV_GROUPS = [
 // 视图 → 所属分组
 const VIEW_GROUP = {
   classroom: 'classroom',
-  browsercode: 'study', researchlabs: 'study', technology: 'study',
+  browsercode: 'study', technology: 'study',
   chat: 'chat',
   quiz: 'study', knowledge: 'study', english: 'study', code: 'study',
   tongshi: 'study', psychology: 'study',
@@ -323,14 +342,16 @@ function App() {
     const title = window.prompt('重命名会话', current?.title ?? '');
     if (title != null && title.trim()) renameChat(userId, id, title.trim());
   };
-  /** 侧栏顶部 🎵 → 切换音乐播放器显示/隐藏（KittyMusicPlayer 监听 music-toggle 事件） */
+  const showOriginalMusic = () => {
+    setOriginalMusicRequested(true);
+    // 分块尚未加载时没有事件监听器；先记录这次明确的显示意图，避免首击失效。
+    if (!musicMount.current) localStorage.setItem('music_player_hidden', '0');
+    else if (localStorage.getItem('music_player_hidden') === '1') window.dispatchEvent(new CustomEvent('music-toggle'));
+  };
+  /** 已挂载时继续沿用原播放器的显示/隐藏事件。 */
   const toggleMusic = () => {
-    if (activeViewRef.current === 'classroom' && !originalMusicRequested) {
-      setOriginalMusicRequested(true);
-      requestAnimationFrame(() => { if (localStorage.getItem('music_player_hidden') === '1') window.dispatchEvent(new CustomEvent('music-toggle')); });
-      return;
-    }
-    window.dispatchEvent(new CustomEvent('music-toggle'));
+    if (!musicMount.current) showOriginalMusic();
+    else window.dispatchEvent(new CustomEvent('music-toggle'));
   };
   const openMoreTools = () => { audioCoordinator.stopAll(); setToolsOpen(true); };
   const chooseTool = (item) => {
@@ -347,7 +368,7 @@ function App() {
       ? PUBLIC_CLASSROOM ? [{ key: 'english', label: '英语口语与语法' }]
         : ENGLISH_ITEMS.map(([module, label]) => ({ key: 'english', group: 'english', module, label })) : [item]).filter(item => !PUBLIC_CLASSROOM || PUBLIC_TOOL_KEYS.has(item.key)),
   })).filter(group => group.items.length);
-  moreGroups.unshift({ key: 'explore', title: '学习实验', items: [...(!PUBLIC_CLASSROOM ? [{ key: 'browsercode', label: 'JavaScript 浏览器练习' }] : []), { key: 'researchlabs', label: '团队成果实验室' }, { key: 'technology', label: '技术与参考' }] });
+  moreGroups.unshift({ key: 'explore', title: '学习与参考', items: [...(!PUBLIC_CLASSROOM ? [{ key: 'browsercode', label: 'JavaScript 浏览器练习' }] : []), { key: 'technology', label: '技术与参考' }] });
   const activeToolLabel = moreGroups.flatMap(group => group.items).find(item => item.key === activeView && (!item.module || item.module === (item.group === 'english' ? englishModule : item.group === 'travel' ? travelModule : item.group === 'health' ? healthModule : petModule)))?.label || '学习工具';
 
   // 导航栏手动伸缩（仅 full 模式可拖拽）
@@ -603,8 +624,9 @@ function App() {
       <main className="main-content">
         {activeView !== 'classroom' && <header className="legacy-tools-bar"><button onClick={() => setActiveView('classroom')}>← 返回学习课堂</button><strong>{activeToolLabel}</strong><div><button onClick={openMoreTools}>更多工具</button><button onClick={() => { audioCoordinator.stopAll(); setSettingsOpen(true); }}>设置与主题</button></div></header>}
         {activeView === 'classroom' && <ClassroomView onOpenNavigation={openMoreTools} />}
+        {activeView !== 'classroom' && <DeferredToolBoundary key={activeView} title={activeToolLabel} onClose={() => setActiveView('classroom')}>
+        <Suspense fallback={<DeferredToolMessage title={activeToolLabel} onClose={() => setActiveView('classroom')} />}>
         {activeView === 'browsercode' && <BrowserCodePlayground />}
-        {activeView === 'researchlabs' && <TeamResearchLabs />}
         {activeView === 'technology' && <TechnologyOverview />}
         {activeView === 'chat' && <ChatWindow userId={userId} />}
         {activeView === 'quiz' && <QuizMistakeView userId={userId} />}
@@ -630,16 +652,18 @@ function App() {
         {activeView === 'routereval' && <RouterEvalView />}
         {activeView === 'metrics' && <MetricsView />}
         {activeView === 'memorymap' && <MemoryMapView />}
+        </Suspense>
+        </DeferredToolBoundary>}
       </main>
 
       {/* ===== 设置面板 ===== */}
-      {settingsOpen && <SettingsView onClose={() => setSettingsOpen(false)} />}
+      {settingsOpen && <DeferredToolBoundary title="设置" overlay onClose={() => setSettingsOpen(false)}><Suspense fallback={<DeferredToolMessage title="设置" overlay onClose={() => setSettingsOpen(false)} />}><SettingsView onClose={() => setSettingsOpen(false)} /></Suspense></DeferredToolBoundary>}
 
       {toolsOpen && <div className="more-tools-overlay" onClick={() => setToolsOpen(false)}><section className="more-tools-panel" role="dialog" aria-modal="true" aria-label="更多工具" onClick={event => event.stopPropagation()} onKeyDown={event => { if (event.key === 'Escape') setToolsOpen(false); }}><header><div><span>保留熟悉的工具，学习仍在中央</span><h2>更多工具</h2></div><button aria-label="关闭更多工具" onClick={() => setToolsOpen(false)}>×</button></header><div className="more-tools-content">{moreGroups.map(group => <section key={group.key}><h3>{group.title}</h3><div>{group.items.map(item => <button key={item.key + (item.module || '')} onClick={() => chooseTool(item)}><span>{item.label}</span><i aria-hidden="true">↗</i></button>)}</div></section>)}</div><footer><button onClick={() => { setToolsOpen(false); setSettingsOpen(true); }}>设置 · 昵称 · 主题</button><button onClick={() => { setToolsOpen(false); setMusicOpen(true); }}>音乐与休息 ♪</button>{PUBLIC_CLASSROOM && <small>其他原有工具保留在本机版本。</small>}</footer></section></div>}
-      {musicOpen && <LocalMusicPanel onClose={() => setMusicOpen(false)} onOpenOriginal={!PUBLIC_CLASSROOM ? () => { setMusicOpen(false); setOriginalMusicRequested(true); requestAnimationFrame(() => { if (localStorage.getItem('music_player_hidden') === '1') toggleMusic(); }); } : undefined} />}
+      {musicOpen && <DeferredToolBoundary title="音乐与休息" overlay onClose={() => setMusicOpen(false)}><Suspense fallback={<DeferredToolMessage title="音乐与休息" overlay onClose={() => setMusicOpen(false)} />}><LocalMusicPanel onClose={() => setMusicOpen(false)} onOpenOriginal={!PUBLIC_CLASSROOM ? () => { setMusicOpen(false); showOriginalMusic(); } : undefined} /></Suspense></DeferredToolBoundary>}
 
       {/* 课堂使用自己的授课音频，其他工具页保留原音乐播放器。 */}
-      {!PUBLIC_CLASSROOM && (activeView !== 'classroom' || originalMusicRequested) && <div ref={attachMusic}><KittyMusicPlayer /></div>}
+      {!PUBLIC_CLASSROOM && (activeView !== 'classroom' || originalMusicRequested) && <DeferredToolBoundary title="音乐播放器" overlay onClose={() => { setOriginalMusicRequested(false); setActiveView('classroom'); }}><Suspense fallback={null}><div ref={attachMusic}><KittyMusicPlayer /></div></Suspense></DeferredToolBoundary>}
       <VoiceOrb suspended={toolsOpen || musicOpen || settingsOpen} />
       {/* 首次进入播放分步引导，走完后缩成右上角小问号随时重放；只用 localStorage 记标记。 */}
       <OnboardingGuide />

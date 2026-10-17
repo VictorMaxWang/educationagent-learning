@@ -75,19 +75,37 @@ function readZipEntry(entry: JSZip.JSZipObject, maximum: number, expected?: { si
 }
 
 async function substituteAssets(envelope: PortableEnvelope, zip: JSZip, entries: Map<string, { size: number; crc: number }>): Promise<PortableEnvelope> {
-  const images = new Map<string, string>();
+  // 先缓存进行中的Promise：同一张图片在多页出现时不能并行解压几十份。
+  const images = new Map<string, Promise<string>>();
+  let active = 0;
+  let failed: unknown;
+  const waiting: (() => void)[] = [];
+  const limited = async <T,>(operation: () => Promise<T>): Promise<T> => {
+    while (active >= 2 && !failed) await new Promise<void>(resolve => waiting.push(resolve));
+    if (failed) throw failed;
+    active++;
+    try { return await operation(); }
+    catch (error) { failed = error; throw error; }
+    finally {
+      active--; waiting.shift()?.();
+      if (failed) while (waiting.length) waiting.shift()!();
+    }
+  };
   const visit = async (value: unknown): Promise<unknown> => {
     if (typeof value === 'string' && value.startsWith('assets/')) {
       if (!ASSET_PATH.test(value)) throw new Error('课程包含不支持的资源路径');
       if (!images.has(value)) {
-        const entry = zip.file(value);
-        if (!entry) throw new Error(`课包缺少图片：${value}`);
-        const bytes = await readZipEntry(entry, EXPORT_ASSET_MAX_BYTES, entries.get(value));
-        if (bytes.byteLength > EXPORT_ASSET_MAX_BYTES) throw new Error('课包图片超过 12 MB 上限');
-        const mime = ASSET_MIME[value.split('.').pop()!.toLowerCase()];
-        images.set(value, await blobToDataUrl(new Blob([new Uint8Array(bytes)], { type: mime })));
+        images.set(value, limited(async () => {
+          const entry = zip.file(value);
+          if (!entry) throw new Error(`课包缺少图片：${value}`);
+          const bytes = await readZipEntry(entry, EXPORT_ASSET_MAX_BYTES, entries.get(value));
+          if (bytes.byteLength > EXPORT_ASSET_MAX_BYTES) throw new Error('课包图片超过 12 MB 上限');
+          const mime = ASSET_MIME[value.split('.').pop()!.toLowerCase()];
+          // 编码也占有同一名额，避免解压结束后留下很多并行Base64大副本。
+          return blobToDataUrl(new Blob([new Uint8Array(bytes)], { type: mime }));
+        }));
       }
-      return images.get(value)!;
+      return await images.get(value)!;
     }
     if (Array.isArray(value)) return Promise.all(value.map(visit));
     if (value && typeof value === 'object') return Object.fromEntries(await Promise.all(Object.entries(value).map(async ([key, item]) => [key, await visit(item)])));

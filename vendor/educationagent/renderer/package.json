@@ -36,7 +36,7 @@
   ],
   "scripts": {
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
-    "build": "rollup -c && tsc --emitDeclarationOnly --declarationDir dist",
+    "build": "rollup -c --forceExit && tsc --emitDeclarationOnly --declarationDir dist",
     "dev": "rollup -c -w",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"

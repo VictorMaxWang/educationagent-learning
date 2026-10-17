@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.annotation.PreDestroy;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +18,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.Clock;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -28,11 +30,14 @@ public class CodeJobService {
     private static final Set<String> LANGUAGES = Set.of("javascript", "python", "cpp", "java");
     private static final Set<String> FINISHED = Set.of("completed", "error", "timeout", "cancelled");
     private static final int MAX_RESPONSE = 4_500_000;
+    private static final long QUEUE_WAIT_MILLIS = Duration.ofMinutes(5).toMillis();
+    private static final long RESULT_TTL_MILLIS = Duration.ofMinutes(15).toMillis();
     private final ObjectMapper json;
     private final ClassroomCourseService courses;
     private final URI endpoint;
     private final String token;
     private final boolean enabled;
+    private final Clock clock;
     private final HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(3)).followRedirects(HttpClient.Redirect.NEVER).build();
     private final ThreadPoolExecutor executor = new ThreadPoolExecutor(1, 1, 0, TimeUnit.MILLISECONDS,
         new ArrayBlockingQueue<>(4), task -> { Thread t = new Thread(task, "classroom-code-queue"); t.setDaemon(true); return t; });
@@ -40,20 +45,28 @@ public class CodeJobService {
     private boolean closed;
     private static final class Job {
         final String owner, id;
-        final long created = System.currentTimeMillis();
+        final long created;
         final ObjectNode request;
         final CompletableFuture<Void> settled = new CompletableFuture<>();
         Runnable task;
         boolean dispatched, cancelRequested;
+        Long completedAt;
         ObjectNode view;
-        Job(String owner, String id, ObjectNode request, ObjectNode view) { this.owner=owner; this.id=id; this.request=request; this.view=view; }
+        Job(String owner, String id, ObjectNode request, ObjectNode view, long created) { this.owner=owner; this.id=id; this.request=request; this.view=view; this.created=created; }
     }
 
+    @Autowired
     public CodeJobService(ObjectMapper json, ClassroomCourseService courses,
             @Value("${classroom.code.runner-url:http://127.0.0.1:8899}") String runner,
             @Value("${classroom.code.runner-token:}") String token,
             @Value("${classroom.code.enabled:false}") boolean enabled) {
+        this(json, courses, runner, token, enabled, Clock.systemUTC());
+    }
+
+    /** 可控时钟只用于任务期限；HTTP、取消收尾仍使用真实超时，测试无需等待数分钟。 */
+    CodeJobService(ObjectMapper json, ClassroomCourseService courses, String runner, String token, boolean enabled, Clock clock) {
         this.json=json; this.courses=courses; this.token=token; this.enabled=enabled;
+        this.clock=Objects.requireNonNull(clock);
         this.endpoint=URI.create(runner);
         if (!"http".equals(endpoint.getScheme()) || !Set.of("127.0.0.1", "localhost", "[::1]").contains(endpoint.getHost())
                 || endpoint.getUserInfo()!=null || endpoint.getQuery()!=null || endpoint.getFragment()!=null || !Set.of("", "/").contains(endpoint.getPath()))
@@ -71,11 +84,12 @@ public class CodeJobService {
         long pending=jobs.values().stream().filter(j->j.owner.equals(owner)&&!finished(j)).count();
         if (pending>=2) throw new ClassroomException(429,"你已有代码任务在等待，请先完成或停止它");
         String id=UUID.randomUUID().toString();
+        long created=clock.millis();
         ObjectNode request=json.createObjectNode().put("id",id).put("language",body.path("language").asText()).put("code",source).put("stdin",stdin);
         ObjectNode view=json.createObjectNode().put("id",id).put("language",body.path("language").asText()).put("status","queued")
-            .put("stdout","").put("stderr","").put("createdAt",Instant.now().toString());
+            .put("stdout","").put("stderr","").put("createdAt",Instant.ofEpochMilli(created).toString());
         view.putArray("trace"); view.putArray("diagnostics");
-        Job job=new Job(owner,id,request,view); jobs.put(id,job);
+        Job job=new Job(owner,id,request,view,created); jobs.put(id,job);
         job.task=()->execute(job);
         try { executor.execute(job.task); }
         catch (RejectedExecutionException full) { jobs.remove(id); throw new ClassroomException(429,"代码课堂正在排队，请稍后再试"); }
@@ -87,10 +101,11 @@ public class CodeJobService {
         Job job;
         boolean running;
         synchronized(this) {
+            clean();
             job=owned(owner,id); if(finished(job)) return publicView(job);
             running=job.dispatched;
             job.cancelRequested=true;
-            job.view.put("status","cancelled").put("reason","已停止本次运行").put("completedAt",Instant.now().toString());
+            job.view.put("status","cancelled").put("reason","已停止本次运行"); markCompletedAt(job);
             if (!running && executor.remove(job.task)) job.settled.complete(null);
         }
         if(running) {
@@ -105,13 +120,18 @@ public class CodeJobService {
 
     private void execute(Job job) {
         try {
-            long deadline=System.currentTimeMillis()+300_000;
-            while(courses.hasActiveGeneration()) {
-                synchronized(this) { if(finished(job) || closed) return; }
-                if(System.currentTimeMillis()>deadline) { fail(job,"timeout","等待课堂生成完成的时间较长，请稍后重试"); return; }
+            while(true) {
+                synchronized(this) { expireQueued(job,clock.millis()); if(finished(job) || closed) return; }
+                if(!courses.hasActiveGeneration()) {
+                    synchronized(this) {
+                        // executor 队列中的时间也计入五分钟预算，派发前再核对一次。
+                        expireQueued(job,clock.millis()); if(finished(job) || closed) return;
+                        job.dispatched=true; job.view.put("status","running");
+                    }
+                    break;
+                }
                 Thread.sleep(100);
             }
-            synchronized(this) { if(finished(job) || closed) return; job.dispatched=true; job.view.put("status","running"); }
             HttpRequest request=request("/run").timeout(Duration.ofSeconds(60))
                 .POST(HttpRequest.BodyPublishers.ofString(job.request.toString())).build();
             CompletableFuture<HttpResponse<byte[]>> exchange=http.sendAsync(request, info -> new LimitedBodySubscriber(MAX_RESPONSE));
@@ -127,7 +147,7 @@ public class CodeJobService {
                     if(result.has(key)) job.view.set(key,result.get(key));
                 // 取消是不可逆的用户决定；即使完成响应迟到，也只补轨迹而不复活状态。
                 if(job.cancelRequested) job.view.put("status","cancelled").put("reason","已停止本次运行").put("truncated",true);
-                job.view.put("completedAt",Instant.now().toString());
+                markCompletedAt(job);
             }
         } catch(InterruptedException interrupted) { Thread.currentThread().interrupt(); fail(job,"cancelled","运行任务已停止"); }
         catch(TimeoutException timeout) { fail(job,"timeout","本次运行超过时间限制，已停止"); stopRemote(job.id); }
@@ -154,17 +174,28 @@ public class CodeJobService {
         } while(System.nanoTime()<deadline);
     }
     private HttpRequest.Builder request(String path) { return HttpRequest.newBuilder(endpoint.resolve(path)).header("Content-Type","application/json").header("Authorization","Bearer "+token); }
-    private synchronized void fail(Job job,String status,String reason) { if(!finished(job)) job.view.put("status",status).put("reason",reason).put("completedAt",Instant.now().toString()); }
+    private synchronized void fail(Job job,String status,String reason) { if(!finished(job)) { job.view.put("status",status).put("reason",reason); markCompletedAt(job); } }
+    private void markCompletedAt(Job job) { job.completedAt=clock.millis(); job.view.put("completedAt",Instant.ofEpochMilli(job.completedAt).toString()); }
     private Job owned(String owner,String id) { Job job=jobs.get(id); if(job==null||!job.owner.equals(owner)) throw new ClassroomException(404,"代码任务不存在或已过期"); return job; }
     /** 取消状态即时生效，最后快照可能稍后返回；客户端据此继续取尾部轨迹。 */
     private ObjectNode publicView(Job job) { return job.view.deepCopy().put("tracePending",job.cancelRequested&&!job.settled.isDone()); }
     private static boolean finished(Job job) { return FINISHED.contains(job.view.path("status").asText()); }
+    /** 在状态锁内终止尚未派发的过期任务，不能影响正在运行或正在回收轨迹的任务。 */
+    private void expireQueued(Job job,long now) {
+        if(job.dispatched || finished(job) || now-job.created<QUEUE_WAIT_MILLIS) return;
+        job.view.put("status","timeout").put("reason","等待运行的时间较长，请稍后重试"); markCompletedAt(job);
+        executor.remove(job.task);
+        job.settled.complete(null);
+    }
     private void clean() {
-        long now=System.currentTimeMillis();
-        jobs.values().removeIf(j->finished(j)&&j.settled.isDone()&&now-j.created>900_000);
+        long now=clock.millis();
+        for(Job job:jobs.values()) expireQueued(job,now);
+        jobs.values().removeIf(j->finished(j)&&j.settled.isDone()&&j.completedAt!=null&&now-j.completedAt>=RESULT_TTL_MILLIS);
         int terminal=(int)jobs.values().stream().filter(j->finished(j)&&j.settled.isDone()).count();
-        Iterator<Job> iterator=jobs.values().iterator();
-        while(terminal>16&&iterator.hasNext()) { Job job=iterator.next(); if(finished(job)&&job.settled.isDone()) { iterator.remove(); terminal--; } }
+        // 先创建的任务可能最后完成，容量淘汰不能再按插入顺序删除新结果。
+        if(terminal>16) jobs.values().stream().filter(j->finished(j)&&j.settled.isDone())
+            .sorted(Comparator.comparingLong((Job j)->j.completedAt).thenComparingLong(j->j.created))
+            .limit(terminal-16L).map(j->j.id).toList().forEach(jobs::remove);
     }
     private static String text(JsonNode body,String key,int max,boolean optional) {
         JsonNode value=body.path(key); if(optional&&(value.isMissingNode()||value.isNull())) return "";
@@ -179,7 +210,7 @@ public class CodeJobService {
             closed=true;
             for(Job job:jobs.values()) if(!job.settled.isDone()) {
                 job.cancelRequested=true;
-                if(!finished(job)) job.view.put("status","cancelled").put("reason","运行服务正在停止").put("completedAt",Instant.now().toString());
+                if(!finished(job)) { job.view.put("status","cancelled").put("reason","运行服务正在停止"); markCompletedAt(job); }
                 if(job.dispatched) running.add(job.id); else job.settled.complete(null);
             }
         }

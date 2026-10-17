@@ -180,4 +180,26 @@ class EduContentSafetyJudgeTest {
         assertFalse(CrisisGuard.isSafetyScript(null));
         assertNotNull(CrisisGuard.SCRIPT);
     }
+    @Test void realSemanticBoundarySharesQuotaButDisabledAndEmptyInputsDoNotQueue() throws Exception {
+        var limits=new com.demo.edu.classroom.ai.ClassroomModelAdmissionProperties();limits.setMaxConcurrent(1);limits.setMaxWaiting(0);limits.setMaxWait(java.time.Duration.ofMillis(40));
+        try(var admission=new com.demo.edu.classroom.ai.ClassroomModelAdmission(limits);var callers=java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor()) {
+            var entered=new java.util.concurrent.CountDownLatch(1);var release=new java.util.concurrent.CountDownLatch(1);
+            var busy=callers.submit(()->admission.execute(java.time.Duration.ofSeconds(2),null,budget->{entered.countDown();try{release.await();}catch(InterruptedException e){Thread.currentThread().interrupt();}return null;}));
+            assertTrue(entered.await(1,java.util.concurrent.TimeUnit.SECONDS));
+            EduContentSafetyProperties p=props("enforce");p.setCircuitFailThreshold(1);var judge=new EduContentSafetyJudge(p,admission);AtomicInteger calls=new AtomicInteger();
+            judge.setLlmCallerForTest(prompt->{calls.incrementAndGet();return llmResponse(true,"");});
+            p.setEnabled(false);assertEquals("content-check-disabled",judge.judge("正文").reason());
+            p.setEnabled(true);assertEquals("empty-text",judge.judge("").reason());
+            assertTrue(judge.judge("正文").reason().startsWith("model-capacity-"));assertEquals(0,calls.get());assertFalse(judge.circuitOpen());
+            release.countDown();busy.get(1,java.util.concurrent.TimeUnit.SECONDS);
+            long end=System.nanoTime()+java.util.concurrent.TimeUnit.SECONDS.toNanos(1);while(admission.snapshot().active()>0&&System.nanoTime()<end)Thread.onSpinWait();
+            assertTrue(judge.judge("正文").evaluated());assertEquals(1,calls.get());
+        }
+    }
+    @Test void skippedAdmissionReleasesHalfOpenProbeWithoutInventingProviderOutcome() {
+        var breaker=new com.demo.router.CircuitBreaker("test-content-admission",true,1,0);
+        breaker.recordFailure();assertTrue(breaker.allowRequest());assertEquals(com.demo.router.CircuitBreaker.State.HALF_OPEN,breaker.state());
+        breaker.recordNotAttempted();assertTrue(breaker.allowRequest(),"上次没有真正发出探测，不能永久锁死半开状态");
+        breaker.recordSuccess();assertEquals(com.demo.router.CircuitBreaker.State.CLOSED,breaker.state());
+    }
 }

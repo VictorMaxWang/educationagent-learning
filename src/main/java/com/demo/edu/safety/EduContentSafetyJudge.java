@@ -5,17 +5,21 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.demo.router.CircuitBreaker;
+import com.demo.edu.classroom.ai.ClassroomModelAdmission;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.time.Duration;
+import java.util.concurrent.CancellationException;
 
 /**
  * L4 后置内容校验：回答生成后，用<b>独立裁判模型</b>核查内容是否适合中小学教育场景。
@@ -55,6 +59,7 @@ public class EduContentSafetyJudge {
 
     private final EduContentSafetyProperties properties;
     private final CircuitBreaker circuitBreaker;
+    private final ClassroomModelAdmission admission;
 
     /** 长文本生成的路径可能不注入 llmRestTemplate（单测），缺失时按"无法判定"跳过。 */
     @Resource(name = "llmRestTemplate")
@@ -63,7 +68,11 @@ public class EduContentSafetyJudge {
     private volatile LlmCaller llmCaller;
 
     public EduContentSafetyJudge(EduContentSafetyProperties properties) {
+        this(properties,null);
+    }
+    @Autowired public EduContentSafetyJudge(EduContentSafetyProperties properties,ClassroomModelAdmission admission) {
         this.properties = properties;
+        this.admission=admission;
         // 复用路由那套熔断器（同一份实现：连续失败即开路，冷却后放行一次探测）
         this.circuitBreaker = new CircuitBreaker("edu-content-judge", true,
                 properties.getCircuitFailThreshold(), properties.getCircuitOpenMs());
@@ -112,14 +121,28 @@ public class EduContentSafetyJudge {
         if (!circuitBreaker.allowRequest()) {
             return Verdict.unknown("circuit-open");
         }
+        var attempted=new java.util.concurrent.atomic.AtomicBoolean();
         try {
-            String raw = caller().call(buildPrompt(text, snippets));
+            // 开关、空输入与熔断已在前面短路；只有实际语义调用占用共享模型额度。
+            LlmCaller target=caller();String prompt=buildPrompt(text,snippets);
+            String raw;
+            if(admission==null){attempted.set(true);raw=target.call(prompt);}
+            else raw=admission.execute(Duration.ofMillis(Math.max(1,Math.min(180_000,properties.getTimeoutMs()))),null,remaining->{
+                attempted.set(true);try{return target.call(prompt);}catch(RuntimeException known){throw known;}catch(Exception failure){throw new IllegalStateException("内容裁判请求未完成",failure);}
+            });
             Verdict verdict = parseVerdict(raw);
             circuitBreaker.recordSuccess();
             return verdict;
+        } catch (ClassroomModelAdmission.Rejected busy) {
+            // 资源排队不代表供应商失败，不能把本机配额拥挤写进熔断计数。
+            if(attempted.get())circuitBreaker.recordFailure();else circuitBreaker.recordNotAttempted();
+            return Verdict.unknown(attempted.get()?"llm-timeout":"model-capacity-"+busy.reason());
+        } catch (CancellationException cancelled) {
+            circuitBreaker.recordNotAttempted();
+            return Verdict.unknown("content-check-cancelled");
         } catch (Exception e) {
             circuitBreaker.recordFailure();
-            log.warn("内容裁判调用失败（按无法判定处理，不阻断）：{}", e.toString());
+            log.warn("内容裁判调用失败（按无法判定处理，不阻断）：{}", e.getClass().getSimpleName());
             return Verdict.unknown("llm-failed");
         }
     }

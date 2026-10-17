@@ -74,6 +74,16 @@ class QuizControllerBoundaryTest {
                 .andExpect(status().isServiceUnavailable()).andExpect(jsonPath("$.error").value("核对服务暂不可用"));
     }
 
+    @Test void uncertainDurableAttemptRetainsMachineReadableCodeWithoutInventingScore()throws Exception {
+        when(quizzes.submit(eq("classroom"),eq(5L),anyList(),eq("unknown-attempt")))
+                .thenThrow(new ClassroomException(409,"本次评阅结果尚未确认", "EVALUATION_UNKNOWN"));
+        mvc.perform(post("/api/desktop/quiz/submit").contentType("application/json")
+                .content("{\"quizId\":5,\"userId\":\"classroom\",\"requestId\":\"unknown-attempt\",\"answers\":[{\"no\":1,\"answer\":\"B\"}]}"))
+                .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("EVALUATION_UNKNOWN"))
+                .andExpect(jsonPath("$.error").value("本次评阅结果尚未确认")).andExpect(jsonPath("$.score").doesNotExist());
+        verify(quizzes,times(1)).submit(eq("classroom"),eq(5L),anyList(),eq("unknown-attempt"));
+    }
+
     @Test void generationCatchAllAlsoPreservesTypedBoundariesAndDoesNotConsumeTheFile()throws Exception {
         when(files.get("source-file")).thenReturn(new DesktopFileStore.FileEntry(new byte[]{1},"题目.txt","text/plain"));
         when(quizzes.generate(eq("classroom"),any(byte[].class),eq("题目.txt"),eq("txt")))

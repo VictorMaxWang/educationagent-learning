@@ -15,6 +15,8 @@ import java.util.Map;
 @RestController
 public class ClassroomQuizRevisionController {
     private final ClassroomQuizRevisionRegistry revisions;
+    @org.springframework.beans.factory.annotation.Autowired(required=false)
+    private ClassroomPublicationPolicy publication;
 
     public ClassroomQuizRevisionController(ClassroomQuizRevisionRegistry revisions) { this.revisions = revisions; }
 
@@ -24,7 +26,10 @@ public class ClassroomQuizRevisionController {
     }
 
     @GetMapping("/api/classroom/courses/{courseId}/quiz-revisions")
-    public ObjectNode list(@PathVariable String courseId) { return revisions.publicRevisions(courseId); }
+    public ObjectNode list(@PathVariable String courseId) {
+        if (publication != null) publication.requireActive(courseId);
+        return revisions.publicRevisions(courseId);
+    }
 
     @ExceptionHandler(ClassroomException.class)
     public ResponseEntity<Map<String, String>> error(ClassroomException error) {

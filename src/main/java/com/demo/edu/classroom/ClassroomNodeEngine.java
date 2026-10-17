@@ -5,20 +5,26 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Clock;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.LongSupplier;
 
 /** educationagent Node 生成器的 JSONL 桥，每个任务拥有独立进程和总超时。 */
 @Component
 public class ClassroomNodeEngine implements ClassroomEngine {
     private static final Logger log = LoggerFactory.getLogger(ClassroomNodeEngine.class);
     private static final int MAX_LINE = 2_000_000;
+    private static final long HEALTH_CACHE_MS = 30_000;
+    private static final long MODEL_MAX_MS = 180_000;
     /** 生成器可以声明的模型请求用途；不声明则走生成模型。用途是 Java 侧路由到复核模型的唯一凭据。 */
     private static final Set<String> PURPOSES = Set.of("quiz-review", "quiz-regenerate");
     private final ObjectMapper json;
@@ -26,21 +32,32 @@ public class ClassroomNodeEngine implements ClassroomEngine {
     private final String node;
     private final Path worker;
     private final long timeoutMs;
+    private final LongSupplier healthTime;
+    private final Clock clock;
+    private final Object healthMonitor = new Object();
+    private final AtomicLong healthGeneration = new AtomicLong();
+    private volatile HealthSnapshot healthSnapshot;
 
+    @Autowired
     public ClassroomNodeEngine(ObjectMapper json, ClassroomTutorModel tutor,
             @Value("${classroom.engine.node:node}") String node,
             @Value("${classroom.engine.path:course-engine/dist/worker.js}") String worker,
-            // 默认值必须与生产一致：一个练习页最多要跑「盲解复核 + 2 次单题重生成 + 重生成后再复核」，
-            // 5 次模型调用的最坏耗时下 300 秒会不够，超时会把「答案错」变成「整课生成失败」。
+            // 总期限与生产一致；worker在这份余量内决定是否继续复核/重出，不能逐次重置420秒。
             @Value("${classroom.engine.timeout-ms:420000}") long timeoutMs) {
+        this(json, tutor, node, worker, timeoutMs, System::nanoTime, Clock.systemUTC());
+    }
+
+    ClassroomNodeEngine(ObjectMapper json, ClassroomTutorModel tutor, String node, String worker,
+                        long timeoutMs, LongSupplier healthTime, Clock clock) {
         this.json=json; this.tutor=tutor; this.node=node; this.worker=Path.of(worker).toAbsolutePath().normalize();
         this.timeoutMs=Math.max(100, timeoutMs);
+        this.healthTime=healthTime; this.clock=clock;
     }
 
     @Override public JsonNode outline(ObjectNode input, ClassroomCancellation token) { return run("outline",input,null,token); }
     @Override public ObjectNode scene(ObjectNode input, JsonNode outline, ClassroomCancellation token) {
         JsonNode value=run("scene",input,outline,token);
-        if (!value.isObject()) throw new ClassroomException(502,"生成器返回的页面格式无效");
+        if (!value.isObject()) { invalidateHealth(); throw new ClassroomException(502,"生成器返回的页面格式无效"); }
         return (ObjectNode)value;
     }
 
@@ -73,10 +90,11 @@ public class ClassroomNodeEngine implements ClassroomEngine {
 
     private JsonNode runJob(String operation, ObjectNode input, JsonNode outline, ClassroomCancellation token) {
         token.check();
-        if (!Files.isRegularFile(worker)) throw new ClassroomException(503,"课堂生成器尚未构建，请先运行 course-engine 的构建命令");
+        if (!Files.isRegularFile(worker)) { invalidateHealth(); throw new ClassroomException(503,"课堂生成器尚未构建，请先运行 course-engine 的构建命令"); }
+        long deadline=System.nanoTime()+TimeUnit.MILLISECONDS.toNanos(timeoutMs);
         Process process;
         try { process=new ProcessBuilder(node,worker.toString()).directory(Path.of("").toAbsolutePath().toFile()).start(); }
-        catch(IOException e) { throw new ClassroomException(503,"无法启动课堂生成器，请检查 Node 和生成器路径"); }
+        catch(IOException e) { invalidateHealth(); throw new ClassroomException(503,"无法启动课堂生成器，请检查 Node 和生成器路径"); }
         ExecutorService io=Executors.newVirtualThreadPerTaskExecutor();
         Future<JsonNode> exchange=null;
         try {
@@ -85,10 +103,10 @@ public class ClassroomNodeEngine implements ClassroomEngine {
             io.submit(() -> { try(InputStream errors=process.getErrorStream()) { errors.transferTo(OutputStream.nullOutputStream()); } catch(IOException ignored) {} });
             String jobId=UUID.randomUUID().toString();
             ObjectNode job=json.createObjectNode().put("type","job").put("id",jobId).put("operation",operation);
+            job.put("remainingMs", remainingMillis(deadline));
             job.set("input",input);
             if(outline!=null) job.set("outline",outline.deepCopy());
-            exchange=io.submit(() -> communicate(process,job,jobId,token));
-            long deadline=System.nanoTime()+TimeUnit.MILLISECONDS.toNanos(timeoutMs);
+            exchange=io.submit(() -> communicate(process,job,jobId,token,deadline));
             while(true) {
                 token.check();
                 long remaining=deadline-System.nanoTime();
@@ -104,13 +122,16 @@ public class ClassroomNodeEngine implements ClassroomEngine {
             }
         } catch(InterruptedException e) {
             Thread.currentThread().interrupt(); throw new CancellationException("课堂生成已中断");
+        } catch (ClassroomException failed) {
+            // 取消不代表依赖损坏；启动、协议、意外退出或总超时才使下一次健康查询重新实测。
+            invalidateHealth(); throw failed;
         } finally {
             if(exchange!=null) exchange.cancel(true);
             process.destroyForcibly(); token.detach(process); io.shutdownNow();
         }
     }
 
-    private JsonNode communicate(Process process,ObjectNode job,String jobId,ClassroomCancellation token) throws IOException {
+    private JsonNode communicate(Process process,ObjectNode job,String jobId,ClassroomCancellation token,long deadline) throws IOException {
         try(BufferedReader reader=new BufferedReader(new InputStreamReader(process.getInputStream(),StandardCharsets.UTF_8));
             BufferedWriter writer=new BufferedWriter(new OutputStreamWriter(process.getOutputStream(),StandardCharsets.UTF_8))) {
             write(writer,job);
@@ -129,11 +150,20 @@ public class ClassroomNodeEngine implements ClassroomEngine {
                         // 用途由生成器声明、Java 校验后路由；未知用途失败关闭，不放行到默认模型。
                         String purpose=event.path("purpose").asText("");
                         if(!purpose.isBlank() && !PURPOSES.contains(purpose)) throw new ClassroomException(502,"生成器模型请求用途无效");
+                        JsonNode requestedTimeout=event.get("timeoutMs");
+                        if(requestedTimeout!=null && (!requestedTimeout.isIntegralNumber() || !requestedTimeout.canConvertToLong()
+                                || requestedTimeout.asLong()<=0 || requestedTimeout.asLong()>MODEL_MAX_MS))
+                            throw new ClassroomException(502,"生成器模型请求预算无效");
                         ObjectNode reply=json.createObjectNode().put("type","llm.result").put("id",id);
                         try {
                             if(event.path("images").isArray() && !event.path("images").isEmpty()) throw new ClassroomException(502,"课堂首版不支持图片模型请求");
-                            // 不带用途时仍调用单参方法，既有调用点与测试替身行为不变。
-                            String text=purpose.isBlank() ? tutor.complete(event.path("messages"))
+                            long remaining=remainingMillis(deadline);
+                            if(remaining<=0) throw new ClassroomException(504,"本页生成预算已耗尽");
+                            // 新worker明确给出单次预算；Tutor在实际网络入口处理许可和截止时间，
+                            // 这里不能再拿一次准入许可。旧协议保留原重载，仍受外层总期限约束。
+                            String text=requestedTimeout!=null
+                                    ? tutor.complete(event.path("messages"),purpose,Math.min(remaining,requestedTimeout.asLong()),token)
+                                    : purpose.isBlank() ? tutor.complete(event.path("messages"))
                                     : tutor.complete(event.path("messages"),purpose);
                             token.check(); reply.put("text",text);
                         } catch(CancellationException cancel) { throw cancel; }
@@ -144,6 +174,7 @@ public class ClassroomNodeEngine implements ClassroomEngine {
                                     unavailable.getClass().getSimpleName());
                             reply.put("error","模型请求未完成，请重试");
                         }
+                        reply.put("remainingMs", remainingMillis(deadline));
                         write(writer,reply);
                     }
                     case "result" -> {
@@ -173,7 +204,44 @@ public class ClassroomNodeEngine implements ClassroomEngine {
         return line.isEmpty()?null:line.toString();
     }
 
+    private static long remainingMillis(long deadline) { return Math.max(0,TimeUnit.NANOSECONDS.toMillis(deadline-System.nanoTime())); }
+
+    private void invalidateHealth() { healthGeneration.incrementAndGet(); healthSnapshot=null; }
+
+    private boolean fresh(HealthSnapshot snapshot,long now) {
+        long age=snapshot==null ? Long.MAX_VALUE : now-snapshot.sampledAt();
+        return snapshot!=null && snapshot.generation()==healthGeneration.get() && age>=0
+                && age<TimeUnit.MILLISECONDS.toNanos(HEALTH_CACHE_MS);
+    }
+
     @Override public Map<String,Object> health() {
+        long now=healthTime.getAsLong();
+        HealthSnapshot snapshot=healthSnapshot;
+        if(fresh(snapshot,now)) return healthResult(snapshot,true,now);
+        synchronized(healthMonitor) {
+            now=healthTime.getAsLong(); snapshot=healthSnapshot;
+            if(fresh(snapshot,now)) return healthResult(snapshot,true,now);
+            long generation=healthGeneration.get();
+            Map<String,Object> measured=probeHealth();
+            snapshot=new HealthSnapshot(measured,healthTime.getAsLong(),generation,clock.instant().toString());
+            // 任务失败可能与探测并发；旧一轮不能把失败刚清除的健康缓存重新发布。
+            if(generation==healthGeneration.get()) healthSnapshot=snapshot;
+            return healthResult(snapshot,false,snapshot.sampledAt());
+        }
+    }
+
+    private Map<String,Object> healthResult(HealthSnapshot snapshot,boolean cached,long now) {
+        Map<String,Object> result=new LinkedHashMap<>(snapshot.measured());
+        result.put("checkedAt",snapshot.checkedAt()); result.put("cached",cached);
+        result.put("cacheAgeMs",Math.max(0,TimeUnit.NANOSECONDS.toMillis(now-snapshot.sampledAt())));
+        result.put("cacheTtlMs",HEALTH_CACHE_MS);
+        return Collections.unmodifiableMap(result);
+    }
+
+    private record HealthSnapshot(Map<String,Object> measured,long sampledAt,long generation,String checkedAt) {}
+
+    /** 首次、失效或超过30秒才运行真实Node与依赖探测；缓存命中不会创建子进程。 */
+    private Map<String,Object> probeHealth() {
         boolean available=false; Process probe=null;
         try { probe=new ProcessBuilder(node,"--version").start(); available=probe.waitFor(2,TimeUnit.SECONDS)&&probe.exitValue()==0; }
         catch(Exception ignored) { if(ignored instanceof InterruptedException) Thread.currentThread().interrupt(); }

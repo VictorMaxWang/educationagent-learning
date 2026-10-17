@@ -13,9 +13,11 @@ import jakarta.annotation.PreDestroy;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.Clock;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -27,6 +29,8 @@ import java.util.concurrent.*;
 public class ClassroomRecommendationService implements AutoCloseable {
     static final String MATCHING_VERSION="video-matching-compact-v1";
     static final String SETTINGS="recommendation_settings",CACHE="recommendation_cache",DECISION="recommendation_decision";
+    static final String INTENT="recommendation_intent";
+    static final String PAGE_INTENT="recommendation_page_intent";
     static final Duration CACHE_AGE=Duration.ofHours(24);
     private final ClassroomCourseService courses;private final ClassroomStudyStore store;private final ObjectMapper json;
     private final VideoTeachingClassifier classifier;private final BilibiliVideoCatalog catalog;
@@ -34,6 +38,9 @@ public class ClassroomRecommendationService implements AutoCloseable {
     private final ScheduledExecutorService worker=Executors.newSingleThreadScheduledExecutor(r->{Thread t=new Thread(r,"classroom-video-recommendation");t.setDaemon(true);t.setPriority(Thread.MIN_PRIORITY);return t;});
     private final LinkedHashMap<String,Job> jobs=new LinkedHashMap<>();
     private final ArrayDeque<Job> queue=new ArrayDeque<>();
+    private Clock clock=Clock.systemUTC();
+    @Value("${classroom.recommendation.queue-timeout-ms:300000}") private long queueTimeoutMs=300_000;
+    private volatile boolean closed;
 
     public record RefreshRequest(String sceneId,Integer budgetMinutes,String preference,boolean manual) {
         public RefreshRequest(String sceneId,Integer budgetMinutes,String preference){this(sceneId,budgetMinutes,preference,false);}
@@ -41,7 +48,7 @@ public class ClassroomRecommendationService implements AutoCloseable {
     public record FeedbackRequest(String decisionId,String resourceId,String feedback,String requestId) {}
     private record Settings(int minutes,String preference) {}
     private record Request(ClassroomStudyContext.Snapshot context,Settings settings,List<String> targets,String key,String settingKey) {}
-    private record Job(Request request,String id,ObjectNode response,ObjectNode previous,ObjectNode working) {}
+    private record Job(Request request,String id,ObjectNode response,ObjectNode previous,ObjectNode working,ObjectNode intent,long queueDeadline) {}
     @Autowired public ClassroomRecommendationService(@Lazy ClassroomCourseService courses,ClassroomStudyStore store,ObjectMapper json,
                                          VideoTeachingClassifier classifier,BilibiliVideoCatalog catalog,ResourceSemanticFeatures semantic,ClassroomAiGateway ai) {
         this(courses,store,json,classifier,catalog,semantic,ai,true);
@@ -49,17 +56,19 @@ public class ClassroomRecommendationService implements AutoCloseable {
     ClassroomRecommendationService(ClassroomCourseService courses,ClassroomStudyStore store,ObjectMapper json,
                                    VideoTeachingClassifier classifier,BilibiliVideoCatalog catalog,ResourceSemanticFeatures semantic,ClassroomAiGateway ai,boolean schedule) {
         this.courses=courses;this.store=store;this.json=json;this.classifier=classifier;this.catalog=catalog;this.semantic=semantic;this.ai=ai;
-        if(schedule)worker.scheduleWithFixedDelay(this::tick,500,1500,TimeUnit.MILLISECONDS);
+        if(schedule)worker.scheduleWithFixedDelay(()->{try{tick();}catch(RuntimeException unavailable){/* 单次持久化失败不能终止之后所有调度；未发出的任务仍受排队截止时间限制。 */}},500,1500,TimeUnit.MILLISECONDS);
     }
 
     /** 仅入队当前节；课程生成完成后由宿主调用，不阻塞生成线程。 */
     public void prepareIfAbsent(String courseId) {try{refresh(courseId,new RefreshRequest(null,null,null));}catch(RuntimeException ignored){/* 推荐不可影响原课堂 ready。 */}}
     public ObjectNode get(String courseId,String sceneId) {
-        Request request=request(courseId,sceneId,null,false);
-        synchronized(jobs){Job active=jobs.get(request.key());if(active!=null)return active.response().deepCopy();}
-        Optional<ObjectNode> saved=store.find(CACHE,request.key());
-        if(saved.isPresent()&&fresh(saved.get()))return publicView(saved.get());
-        return base(request,"idle");
+        Request request=request(courseId,sceneId,null);
+        synchronized(jobs){
+            Job active=jobs.get(request.key());if(active!=null)return active.response().deepCopy();
+            ObjectNode unknown=unfinishedIntent(request);if(unknown!=null)return unknown;
+            Optional<ObjectNode> saved=store.find(CACHE,request.key());
+            return saved.isPresent()&&fresh(saved.get())?publicView(saved.get()):base(request,"idle");
+        }
     }
 
     /** 导出只读取本课当前内容、设置和模型身份对应的有效缓存；绝不因导出启动外搜或模型任务。 */
@@ -81,14 +90,29 @@ public class ClassroomRecommendationService implements AutoCloseable {
     }
     public ObjectNode refresh(String courseId,RefreshRequest input) {
         if(input==null)input=new RefreshRequest(null,null,null);
-        Request request=request(courseId,input.sceneId(),input,true);
+        Request request=request(courseId,input.sceneId(),input);
         synchronized(jobs) {
-            Job active=jobs.get(request.key());if(active!=null)return active.response().deepCopy();
+            if(closed)throw new ClassroomException(503,"补充资料服务正在停止");
+            Job active=jobs.get(request.key());if(active!=null){acceptExisting(request);return active.response().deepCopy();}
+            if(!input.manual()) {
+                ObjectNode unknown=unfinishedIntent(request);if(unknown!=null){acceptExisting(request,false);return unknown;}
+            }
             Optional<ObjectNode> saved=store.find(CACHE,request.key());
-            if(!input.manual()&&saved.isPresent()&&fresh(saved.get()))return publicView(saved.get());
-            if(jobs.size()>=32)throw new ClassroomException(429,"补充资料正在准备，请稍后重试");
+            if(!input.manual()&&saved.isPresent()&&fresh(saved.get())){acceptExisting(request);return publicView(saved.get());}
+            List<Job> superseded=queue.stream().filter(job->job.request().settingKey().equals(request.settingKey())).toList();
+            if(jobs.size()-superseded.size()>=32)throw new ClassroomException(429,"补充资料正在准备，请稍后重试");
             String id=UUID.randomUUID().toString();ObjectNode response=base(request,"queued").put("decisionId",id).put("nextPollMs",1500);
-            Job job=new Job(request,id,response,saved.orElse(null),json.createObjectNode());jobs.put(request.key(),job);queue.addLast(job);return response.deepCopy();
+            long deadline=clock.millis()+Math.max(1000,Math.min(900_000,queueTimeoutMs));
+            ObjectNode intent=base(request,"queued").put("requestKey",request.key()).put("settingKey",request.settingKey()).put("courseId",courseId)
+                    .put("decisionId",id).put("phase","queued").put("createdAt",Instant.ofEpochMilli(clock.millis()).toString()).put("queueDeadline",Instant.ofEpochMilli(deadline).toString());
+            List<ClassroomStudyStore.Write> writes=new ArrayList<>();
+            for(Job old:superseded)writes.addAll(queuedTerminationWrites(old,"superseded","NEWER_PAGE_REQUEST"));
+            writes.add(new ClassroomStudyStore.Write(INTENT,request.key(),courseId,intent));writes.add(settingsWrite(request));writes.add(pageIntentWrite(request));
+            // 通过容量检查后才提交设置和执行意图；429与持久化失败都不能悄悄改掉当前预算。
+            store.saveBatch(writes);
+            for(Job old:superseded){queue.remove(old);jobs.remove(old.request().key());}
+            Job job=new Job(request,id,response,saved.orElse(null),json.createObjectNode(),intent,deadline);
+            jobs.put(request.key(),job);queue.addLast(job);return response.deepCopy();
         }
     }
     public ObjectNode feedback(String courseId,FeedbackRequest input) {
@@ -110,20 +134,59 @@ public class ClassroomRecommendationService implements AutoCloseable {
         return json.createObjectNode().put("saved",true).put("requestId",input.requestId());
     }
 
-    private Request request(String courseId,String sceneId,RefreshRequest update,boolean persist) {
+    private Request request(String courseId,String sceneId,RefreshRequest update) {
         ClassroomStudyContext.Snapshot context=ClassroomStudyContext.from(courses.studySnapshot(courseId),sceneId);
         String settingKey=ClassroomStudyContext.hash(json.valueToTree(List.of(courseId,context.sceneId())));
         ObjectNode saved=store.find(SETTINGS,settingKey).orElseGet(json::createObjectNode);
         int budget=update!=null&&update.budgetMinutes()!=null?update.budgetMinutes():saved.path("budgetMinutes").asInt(10);
         String preference=update!=null&&update.preference()!=null?ClassroomStudyContext.normalize(update.preference()):saved.path("preference").asText("");
         if(!Set.of(5,10,20).contains(budget)||preference.length()>80||preference.chars().anyMatch(Character::isISOControl))throw new ClassroomException(400,"补充学习时间或用途偏好无效");
-        if(persist)store.save(SETTINGS,settingKey,courseId,json.createObjectNode().put("budgetMinutes",budget).put("preference",preference));
         List<String> targets=verifiedFeedbackTargets(context);
         ObjectNode basis=json.createObjectNode().put("courseId",courseId).put("sceneId",context.sceneId()).put("fingerprint",context.fingerprint())
                 .put("minutes",budget).put("preference",preference).put("algorithm",RecommendationOptimizer.ALGORITHM_VERSION).put("classifier",VideoTeachingClassifier.VERSION)
                 .put("catalog",BilibiliVideoCatalog.VERSION).put("matchingVersion",MATCHING_VERSION);
         basis.set("feedbackTargets",json.valueToTree(targets));basis.set("embedding",semantic.identity());
         return new Request(context,new Settings(budget,preference),targets,ClassroomStudyContext.hash(basis),settingKey);
+    }
+    private ClassroomStudyStore.Write settingsWrite(Request request){return new ClassroomStudyStore.Write(SETTINGS,request.settingKey(),request.context().courseId(),json.createObjectNode().put("sceneId",request.context().sceneId()).put("budgetMinutes",request.settings().minutes()).put("preference",request.settings().preference()));}
+    private ClassroomStudyStore.Write pageIntentWrite(Request request){return new ClassroomStudyStore.Write(PAGE_INTENT,request.settingKey(),request.context().courseId(),json.createObjectNode().put("intentKey",request.key()).put("sceneId",request.context().sceneId()).put("contentFingerprint",request.context().fingerprint()).put("budgetMinutes",request.settings().minutes()).put("preference",request.settings().preference()));}
+    private void acceptExisting(Request request){acceptExisting(request,true);}
+    private void acceptExisting(Request request,boolean replacePointer) {
+        List<Job> old=queue.stream().filter(job->job.request().settingKey().equals(request.settingKey())&&!job.request().key().equals(request.key())).toList();
+        List<ClassroomStudyStore.Write> writes=new ArrayList<>();old.forEach(job->writes.addAll(queuedTerminationWrites(job,"superseded","NEWER_PAGE_REQUEST")));
+        writes.add(settingsWrite(request));if(replacePointer)writes.add(pageIntentWrite(request));store.saveBatch(writes);
+        old.forEach(job->{queue.remove(job);jobs.remove(job.request().key());});
+    }
+
+    /** 没有本进程活跃任务但有未完成持久意图，说明前次结果未知；GET永远不会自动重发。 */
+    private ObjectNode unfinishedIntent(Request request) {
+        ObjectNode intent=store.find(INTENT,request.key()).orElse(null);
+        if(intent==null||Set.of("finished","superseded").contains(intent.path("phase").asText())) {
+            ObjectNode pointer=store.find(PAGE_INTENT,request.settingKey()).orElse(null);
+            if(pointer==null||!request.context().fingerprint().equals(pointer.path("contentFingerprint").asText())
+                    ||request.settings().minutes()!=pointer.path("budgetMinutes").asInt()||!request.settings().preference().equals(pointer.path("preference").asText()))return null;
+            String previousKey=pointer.path("intentKey").asText();
+            if(previousKey.isBlank()||jobs.containsKey(previousKey))return null;
+            intent=store.find(INTENT,previousKey).orElse(null);if(intent==null)return null;
+        }
+        String phase=intent.path("phase").asText();if(Set.of("finished","superseded").contains(phase))return null;
+        ObjectNode result=base(request,"error").put("decisionId",intent.path("decisionId").asText()).put("updatedAt",Instant.now().toString());
+        if(!Set.of("unknown","expired").contains(phase)) {
+            ObjectNode recovered=intent.deepCopy().put("phase","unknown").put("status","error").put("updatedAt",Instant.now().toString());
+            ObjectNode audit=result.deepCopy().put("courseId",request.context().courseId());audit.putObject("audit").put("failureKind","RESTART_OUTCOME_UNKNOWN");
+            String intentKey=intent.path("requestKey").asText(request.key());
+            store.saveBatch(List.of(new ClassroomStudyStore.Write(INTENT,intentKey,request.context().courseId(),recovered),
+                    new ClassroomStudyStore.Write(DECISION,intent.path("decisionId").asText(),request.context().courseId(),audit),
+                    new ClassroomStudyStore.Write(CACHE,request.key(),request.context().courseId(),audit)));
+        }
+        return result;
+    }
+    private List<ClassroomStudyStore.Write> queuedTerminationWrites(Job job,String phase,String reason) {
+        ObjectNode record=base(job.request(),"error").put("courseId",job.request().context().courseId()).put("decisionId",job.id()).put("updatedAt",Instant.now().toString());
+        record.putObject("audit").put("failureKind",reason).put("modelCalls",0);
+        ObjectNode intent=job.intent().deepCopy().put("phase",phase).put("status","error").put("updatedAt",Instant.now().toString());
+        return List.of(new ClassroomStudyStore.Write(DECISION,job.id(),job.request().context().courseId(),record),
+                new ClassroomStudyStore.Write(INTENT,job.request().key(),job.request().context().courseId(),intent));
     }
     private List<String> verifiedFeedbackTargets(ClassroomStudyContext.Snapshot context) {
         List<ObjectNode> attempts=new ArrayList<>(store.listForScene("learning_attempt",context.courseId(),context.sceneId(),30));
@@ -151,10 +214,24 @@ public class ClassroomRecommendationService implements AutoCloseable {
     }
     void tick() {
         Job job;
-        synchronized(jobs){if(queue.isEmpty())return;}
+        synchronized(jobs){
+            if(closed)return;
+            List<Job> expired=queue.stream().filter(item->clock.millis()>=item.queueDeadline()).toList();
+            if(!expired.isEmpty()) {
+                List<ClassroomStudyStore.Write> writes=new ArrayList<>();expired.forEach(item->writes.addAll(queuedTerminationWrites(item,"expired","QUEUE_WAIT_EXPIRED")));
+                store.saveBatch(writes);expired.forEach(item->{queue.remove(item);jobs.remove(item.request().key());});
+            }
+            if(queue.isEmpty())return;
+        }
         try{if(courses.hasActiveGeneration())return;}catch(RuntimeException unavailable){return;}
-        synchronized(jobs){job=queue.pollFirst();if(job==null)return;job.response().put("status","running");}
-        try{execute(job);}catch(ClassroomAiGateway.Failure error){fail(job,error.failureKind(),error.evidence());}
+        synchronized(jobs){job=queue.peekFirst();if(job==null)return;
+            ObjectNode running=job.intent().deepCopy().put("phase","running").put("status","running").put("updatedAt",Instant.now().toString());
+            store.save(INTENT,job.request().key(),job.request().context().courseId(),running);queue.removeFirst();job.response().put("status","running");}
+        try{
+            Request current=request(job.request().context().courseId(),job.request().context().sceneId(),null);
+            if(!current.key().equals(job.request().key())){store.saveBatch(queuedTerminationWrites(job,"superseded","PAGE_REQUEST_CHANGED_BEFORE_DISPATCH"));return;}
+            execute(job);
+        }catch(ClassroomAiGateway.Failure error){fail(job,error.failureKind(),error.evidence());}
         catch(ResourceSemanticFeatures.Failure error){
             ObjectNode audit=job.working().path("audit") instanceof ObjectNode existing?existing:job.working().putObject("audit");
             audit.set("embedding",error.evidence());fail(job,"MODEL_SPACE_CHANGED".equals(error.getMessage())?"MODEL_SPACE_CHANGED":"EMBEDDING_RESPONSE_UNKNOWN",null);
@@ -288,16 +365,24 @@ public class ClassroomRecommendationService implements AutoCloseable {
     private void finish(Job job,ObjectNode record,long started) {
         // 生成过程中课程被编辑时不发布旧内容的推荐；旧决策仅保留为其自身指纹下的历史证据。
         ClassroomStudyContext.Snapshot current=ClassroomStudyContext.from(courses.studySnapshot(job.request().context().courseId()),job.request().context().sceneId());
-        if(!current.fingerprint().equals(job.request().context().fingerprint())){record.put("status","hidden");record.putArray("items");record.put("obsolete",true);}
+        Request currentRequest=request(current.courseId(),current.sceneId(),null);
+        boolean obsolete=!current.fingerprint().equals(job.request().context().fingerprint())||!currentRequest.key().equals(job.request().key());
+        if(obsolete){record.put("status","hidden");record.putArray("items");record.put("obsolete",true);}
         record.put("updatedAt",Instant.now().toString()).put("elapsedMs",TimeUnit.NANOSECONDS.toMillis(System.nanoTime()-started));
-        store.save(DECISION,job.id(),current.courseId(),record);store.save(CACHE,job.request().key(),current.courseId(),record);
+        ObjectNode intent=job.intent().deepCopy().put("phase",obsolete?"superseded":"finished").put("status",record.path("status").asText()).put("updatedAt",Instant.now().toString());
+        List<ClassroomStudyStore.Write> writes=new ArrayList<>();writes.add(new ClassroomStudyStore.Write(DECISION,job.id(),current.courseId(),record));
+        if(!obsolete)writes.add(new ClassroomStudyStore.Write(CACHE,job.request().key(),current.courseId(),record));
+        writes.add(new ClassroomStudyStore.Write(INTENT,job.request().key(),current.courseId(),intent));store.saveBatch(writes);
     }
     private void fail(Job job,String kind,ObjectNode evidence) {
         try {
             ObjectNode record=job.working().isEmpty()?base(job.request(),"error"):job.working().deepCopy();record.put("status","error").putArray("items");
             record.put("courseId",job.request().context().courseId()).put("decisionId",job.id()).put("updatedAt",Instant.now().toString());
             ObjectNode audit=record.path("audit") instanceof ObjectNode existing?existing:record.putObject("audit");audit.put("failureKind",kind);if(evidence!=null)audit.set("modelCall",evidence);
-            store.save(DECISION,job.id(),job.request().context().courseId(),record);store.save(CACHE,job.request().key(),job.request().context().courseId(),record);
+            ObjectNode intent=job.intent().deepCopy().put("phase","unknown").put("status","error").put("updatedAt",Instant.now().toString());
+            store.saveBatch(List.of(new ClassroomStudyStore.Write(DECISION,job.id(),job.request().context().courseId(),record),
+                    new ClassroomStudyStore.Write(CACHE,job.request().key(),job.request().context().courseId(),record),
+                    new ClassroomStudyStore.Write(INTENT,job.request().key(),job.request().context().courseId(),intent)));
         }catch(RuntimeException ignored){/* 持久层暂不可用时不能泄漏完整异常到卡片或阻断课堂。 */}
     }
     private ObjectNode base(Request request,String status) {
@@ -325,5 +410,5 @@ public class ClassroomRecommendationService implements AutoCloseable {
     }
     private static boolean containsItem(ObjectNode decision,String resource){for(JsonNode item:decision.path("items"))if(resource.equals(item.path("id").asText()))return true;return false;}
     private static boolean validId(String value){return value!=null&&!value.isBlank()&&value.length()<=100&&value.matches("[A-Za-z0-9._:-]+");}
-    @Override @PreDestroy public void close(){worker.shutdownNow();synchronized(jobs){queue.clear();jobs.clear();}}
+    @Override @PreDestroy public void close(){closed=true;worker.shutdownNow();synchronized(jobs){queue.clear();jobs.clear();}}
 }

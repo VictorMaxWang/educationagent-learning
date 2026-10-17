@@ -25,6 +25,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Supplier;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.CancellationException;
 
 /**
  * 可跳过的先表述、再核对流程。来源M003第10页§5.3：区分自主重构、资料核对与独立理解评价。
@@ -42,6 +48,8 @@ public class LearningFeedbackService {
     private final ObjectMapper json;
     private final TransactionTemplate transactions;
     private final Object[] locks = new Object[256];
+    private final ConcurrentHashMap<String,Flight> flights=new ConcurrentHashMap<>();
+    private record Flight(String operation,CompletableFuture<ObjectNode> result){}
 
     public record CreateRequest(String sceneId, String understanding, String checkPoint, String parentAttemptId,
                                 String expectedContentFingerprint, String requestId) {}
@@ -121,10 +129,12 @@ public class LearningFeedbackService {
 
     public ObjectNode check(String id, CheckRequest request) {
         if (request != null && request.requestId() != null) token(request.requestId(), "核对标识");
-        synchronized (lock(id)) {
+        return singleFlight(id,"check",()->{
             ObjectNode attempt = load(id);
             var context = ensureCurrent(attempt);
-            if (context == null || attempt.path("status").asText().equals("checked")) return visible(attempt);
+            if (context == null) return visible(attempt);
+            if(!context.sourceComplete())return incompleteSource(attempt,context);
+            if(attempt.path("status").asText().equals("checked"))return visible(attempt);
             if (!hasEvidence(context)) return unconfirmed(attempt, "本节还没有足够的资料可供核对，你可以继续学习或稍后重试");
             attempt.put("status", "checking").put("_checkStartedAt", Instant.now().toString()); attempt.remove("error"); save(attempt);
             try {
@@ -142,7 +152,7 @@ public class LearningFeedbackService {
                 return unconfirmed(attempt, "这次核对尚未确认，原表述已保留，请稍后重试");
             }
             return visible(attempt);
-        }
+        });
     }
 
     /**
@@ -169,7 +179,7 @@ public class LearningFeedbackService {
 
     /** 前三层只指向来源、提出核对问题及部分线索；第四层才展示完整示例解释。 */
     public ObjectNode hint(String id, HintRequest request) {
-        synchronized (lock(id)) {
+        return singleFlight(id,"hint:"+(request==null||request.level()==null?"next":request.level()),()->{
             ObjectNode attempt = load(id);
             var context = ensureCurrent(attempt);
             if (context == null) return visible(attempt);
@@ -177,6 +187,7 @@ public class LearningFeedbackService {
             if (level < 1 || level > 4) throw bad("提示层级必须为1至4");
             if (level <= current) return visible(attempt);
             if (level != current + 1) throw bad("请逐层查看提示，保留自己思考的机会");
+            if(level==4&&!context.sourceComplete())return incompleteSource(attempt,context);
             if (level == 4 && sourceBlocked(attempt)) return sourceProblem(attempt);
             var anchor = chooseAnchor(context, attempt);
             if (anchor == null) { attempt.put("error", "本节还没有可核对的资料，暂时不能给出来源提示"); save(attempt); return visible(attempt); }
@@ -211,14 +222,16 @@ public class LearningFeedbackService {
             attempt.put("hintLevel", level).put("_exampleViewed", level == 4);
             attempt.remove("error"); save(attempt);
             return visible(attempt);
-        }
+        });
     }
 
     public ObjectNode selfCheck(String id, SelfCheckRequest request) {
-        synchronized (lock(id)) {
+        String operation=request==null||request.answer()==null?"self-check:prepare":"self-check:submit:"+ClassroomStudyContext.hash(json.valueToTree(request));
+        return singleFlight(id,operation,()->{
             ObjectNode attempt = load(id);
             var context = ensureCurrent(attempt);
             if (context == null) return visible(attempt);
+            if(!context.sourceComplete())return incompleteSource(attempt,context);
             if (sourceBlocked(attempt)) return sourceProblem(attempt);
             if (request == null || request.answer() == null) return prepareQuestion(attempt, context);
             String answer = userText(request.answer(), "自检答案", 4000, false);
@@ -242,6 +255,7 @@ public class LearningFeedbackService {
                     ObjectNode working = load(id);
                     var now = snapshot(working.path("courseId").asText(), working.path("sceneId").asText());
                     if (!now.fingerprint().equals(working.path("contentFingerprint").asText())) throw conflict("课堂资料已变化，请依据新版资料重新表述");
+                    if(!now.sourceComplete())throw conflict("课堂资料未完整进入核对范围，本次不计分");
                     ObjectNode scene = ((ObjectNode) working.path("_selfCheckScene")).deepCopy();
                     ObjectNode independentCourse = json.createObjectNode().put("id", now.courseId()).put("title", now.title())
                             .put("topic", now.topic());
@@ -266,10 +280,11 @@ public class LearningFeedbackService {
                 retained.put("error", "自检评阅暂未完成，请使用原答案重试"); save(retained);
                 return visible(retained);
             }
-        }
+        });
     }
 
     private ObjectNode prepareQuestion(ObjectNode attempt, ClassroomStudyContext.Snapshot context) {
+        if(!context.sourceComplete())return incompleteSource(attempt,context);
         if (attempt.path("_selfCheckScene").isObject()) return visible(attempt);
         if (!hasEvidence(context)) { attempt.put("error", "本节资料不足，暂时无法准备可靠的自检题"); save(attempt); return visible(attempt); }
         try {
@@ -380,6 +395,33 @@ public class LearningFeedbackService {
     private ObjectNode sourceProblem(ObjectNode attempt) {
         attempt.put("error", LearningFeedbackPolicy.sourceUncertainty(attempt.path("sourceAssessment")));
         save(attempt); return visible(attempt);
+    }
+    private ObjectNode incompleteSource(ObjectNode attempt,ClassroomStudyContext.Snapshot context) {
+        ObjectNode assessment=json.createObjectNode().put("status","insufficient").put("reason","资料未完整进入核对范围，请缩小资料范围后再试。");
+        assessment.putArray("evidence");rememberSourceAssessment(attempt,assessment);
+        attempt.put("status","unconfirmed").put("error",assessment.path("reason").asText());
+        attempt.withObject("_modelEvidence").putObject("sourceScope").put("mode","rule").put("attemptCount",0)
+                .put("reason","INCOMPLETE_SOURCE_SCOPE").set("details",json.valueToTree(context.incompleteSources()));
+        save(attempt);return visible(attempt);
+    }
+
+    /**
+     * 同一表述的相同进行中动作共享一份结果，其他动作立即提示等待。
+     * 网络等待完全位于条带锁之外，散列相同的不同表述不会互相阻塞45秒；失败的同批重复请求也不再付费一次。
+     */
+    private ObjectNode singleFlight(String id,String operation,Supplier<ObjectNode> action) {
+        token(id,"表述标识");Flight mine=new Flight(operation,new CompletableFuture<>());
+        Flight prior=flights.putIfAbsent(id,mine);
+        if(prior!=null) {
+            if(!prior.operation().equals(operation))throw conflict("这条思考正在核对，请等待本次结果后再继续");
+            try{return prior.result().get(50,TimeUnit.SECONDS).deepCopy();}
+            catch(InterruptedException cancelled){Thread.currentThread().interrupt();throw new CancellationException("等待学习核对已取消");}
+            catch(TimeoutException pending){throw new ClassroomException(504,"本次核对尚未返回，请稍后查看；没有发起第二次调用");}
+            catch(ExecutionException failure){if(failure.getCause() instanceof RuntimeException known)throw known;throw new ClassroomException(502,"本次核对未完成");}
+        }
+        try {ObjectNode result=action.get();mine.result().complete(result.deepCopy());return result;}
+        catch(RuntimeException|Error failure){mine.result().completeExceptionally(failure);throw failure;}
+        finally {flights.remove(id,mine);}
     }
     private ObjectNode visible(ObjectNode attempt) { return LearningFeedbackPolicy.project(attempt, json); }
     private ObjectNode load(String id) {

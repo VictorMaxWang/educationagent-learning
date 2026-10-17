@@ -11,7 +11,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import com.demo.testsupport.IsolatedSpringBootTest;
+import com.demo.testsupport.IsolatedRedisStubContext;
+import com.demo.testsupport.IsolatedTestEnvironment;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.nio.charset.StandardCharsets;
@@ -22,22 +26,20 @@ import java.util.Map;
 /**
  * 对话容量上限实测
  *
- * 测量三个不同量级的上限，输出对照数据（结果沉淀在「对话容量实测报告.md」）：
+ * 测量三个不同量级的上限；结果仅写入 target/test-isolated 下本轮专属报告目录：
  *   A. 单条消息上限  —— MySQL TEXT 字段能存多少字符
  *   B. 单次上下文上限 —— 20 轮窗口全量拼进 prompt 后有多大
  *   C. 会话累积上限  —— 一个会话能累积存多少，超出 20 轮后老消息是否还在库里
  *
  * 库里的探针数据统一用 PROBE_ 前缀，跑完自动清理。
- * 运行：mvnw test -Dtest=ConversationCapacityTest
+ * 默认跳过；显式设置 RUN_CAPACITY_BENCHMARKS=true 及 TEST_MYSQL_* 后才可运行。
  */
-@SpringBootTest(properties = {
-        "memory.store.index-path=target/test-memory-index",
-        "memory.chroma.enabled=false",
-        "bot.auto-start-count=0"
-})
+@IsolatedSpringBootTest
+@Tag("capacity-benchmark")
+@EnabledIfEnvironmentVariable(named = "RUN_CAPACITY_BENCHMARKS", matches = "(?i)true")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class ConversationCapacityTest {
+class ConversationCapacityTest extends IsolatedRedisStubContext {
 
     /** 探针数据统一前缀，便于清理 */
     private static final String PROBE = "PROBE_CAP_";
@@ -311,7 +313,7 @@ class ConversationCapacityTest {
         cleanup();
         out();
         out("探针数据已清理（chat_message / chat_messages 中 " + PROBE + " 前缀记录）");
-        java.nio.file.Path p = java.nio.file.Path.of("target", "conversation-capacity-report.txt");
+        java.nio.file.Path p = IsolatedTestEnvironment.reportPath("conversation-capacity-report.txt");
         java.nio.file.Files.createDirectories(p.getParent());
         java.nio.file.Files.writeString(p, String.join(System.lineSeparator(), REPORT),
                 StandardCharsets.UTF_8);

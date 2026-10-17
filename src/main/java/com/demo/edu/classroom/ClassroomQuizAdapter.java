@@ -95,6 +95,33 @@ public class ClassroomQuizAdapter {
 
     /** 课程与独立自检共用五题型判分；调用者负责事务与提交ID去重，未知结果抛错回滚。 */
     public QuizService.SubmitResult submit(ObjectNode scene, List<QuizService.AnswerSubmission> answers) {
+        List<QuizService.AnswerSubmission> normalized=normalizeAnswers(scene,answers);
+        QuizService.SubmitResult result=quizService.submit(ClassroomCourseService.LEARNER_ID,scene.path("quizId").asLong(),normalized);
+        return requireConfirmed(result,normalized);
+    }
+
+    /** 课堂先固定快照，随后在课程锁之外调用evaluate；requestId由宿主按课程与提交号命名。 */
+    public QuizService.PreparedSubmission prepare(ObjectNode scene,List<QuizService.AnswerSubmission> answers,String requestId) {
+        return quizService.prepareSubmission(ClassroomCourseService.LEARNER_ID,scene.path("quizId").asLong(),normalizeAnswers(scene,answers),requestId);
+    }
+
+    public QuizService.EvaluatedSubmission evaluate(QuizService.PreparedSubmission prepared) {
+        QuizService.EvaluatedSubmission evaluated=quizService.evaluateSubmission(prepared);
+        try { requireConfirmed(evaluated.result(),prepared.answers()); return evaluated; }
+        catch(RuntimeException failed){quizService.discardEvaluation(prepared,evaluated);throw failed;}
+    }
+
+    /** 与课程回执一起处于外层短事务；标准答案或修订变化由QuizService重新核对。 */
+    public QuizService.SubmitResult commit(ObjectNode scene,QuizService.PreparedSubmission prepared,QuizService.EvaluatedSubmission evaluated) {
+        if(scene.path("quizId").asLong()!=prepared.quizId())throw new ClassroomException(409,"课程关联的试卷已变化，请重新查看题目");
+        return requireConfirmed(quizService.commitPrepared(prepared,evaluated),prepared.answers());
+    }
+
+    public void discard(QuizService.PreparedSubmission prepared,QuizService.EvaluatedSubmission evaluated) {
+        quizService.discardEvaluation(prepared,evaluated);
+    }
+
+    private List<QuizService.AnswerSubmission> normalizeAnswers(ObjectNode scene,List<QuizService.AnswerSubmission> answers) {
         JsonNode questions = scene.path("content").path("questions");
         if (answers == null || answers.size() != questions.size()) throw new ClassroomException(400, "请提交本页所有题目，每题提交一次");
         Map<Integer, JsonNode> byNo = new HashMap<>();
@@ -127,12 +154,16 @@ public class ClassroomQuizAdapter {
             StringBuilder canonical = new StringBuilder(); unique.forEach(canonical::append);
             normalized.add(new QuizService.AnswerSubmission(answer.no(), canonical.toString()));
         }
-        QuizService.SubmitResult result = quizService.submit(ClassroomCourseService.LEARNER_ID, scene.path("quizId").asLong(), normalized);
-        // 外层课程事务同时覆盖题库写入。未确定的评阅整组回滚，前端可使用原提交 ID 重试。
-        if (result == null || result.results() == null || result.results().size() != questions.size()
+        return normalized;
+    }
+
+    private QuizService.SubmitResult requireConfirmed(QuizService.SubmitResult result,List<QuizService.AnswerSubmission> answers) {
+        Set<Integer> seen=answers.stream().map(QuizService.AnswerSubmission::no).collect(java.util.stream.Collectors.toSet());
+        // 未确定评阅在锁外先拒绝，既不写部分成绩，也不持有数据库事务等待重新评阅。
+        if (result == null || result.results() == null || result.results().size() != answers.size()
                 || result.results().stream().anyMatch(item -> item == null || item.correct() == null)
                 || !result.results().stream().map(QuizService.ResultItem::no).collect(java.util.stream.Collectors.toSet()).equals(seen))
-            throw new ClassroomException(502, "本组练习暂未完成评阅，答案已保留，请稍后重试");
+            throw new ClassroomException(409, "本次评阅结果未确认，答案已保留，请重新评阅", "EVALUATION_UNKNOWN");
         return result;
     }
 }

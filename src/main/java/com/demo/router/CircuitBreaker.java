@@ -88,6 +88,11 @@ public class CircuitBreaker {
         }
     }
 
+    /** 准入未通过或用户取消时释放半开探测名额；不把未发出的请求算成供应商成功或失败。 */
+    public synchronized void recordNotAttempted() {
+        if(enabled&&state==State.HALF_OPEN)halfOpenProbeInFlight=false;
+    }
+
     /** 当前状态（观测用）。 */
     public synchronized State state() {
         return state;

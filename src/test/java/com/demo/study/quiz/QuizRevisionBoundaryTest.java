@@ -41,7 +41,7 @@ class QuizRevisionBoundaryTest {
         var old=new QuizAnswerEntity("classroom",7L,11L,"A",0);old.setId(42L);
         var q=new QuizQuestionEntity();q.setId(11L);q.setPaperId(7L);q.setQuestionNo(1);q.setQType("single");q.setStem("旧题干");q.setOptions("[\"A. 48\",\"B. 240\"]");q.setAnswer("B");q.setExplanation("旧解析");
         var paper=new QuizPaperEntity();paper.setId(7L);paper.setTitle("原课程");
-        when(answers.selectList(any())).thenReturn(List.of(old));when(questions.selectBatchIds(any())).thenReturn(List.of(q));when(papers.selectBatchIds(any())).thenReturn(List.of(paper));
+        when(answers.selectUnresolvedMistakes("classroom")).thenReturn(List.of(old));when(questions.selectBatchIds(any())).thenReturn(List.of(q));when(papers.selectBatchIds(any())).thenReturn(List.of(paper));
         var navigation=new ObjectMapper().createObjectNode().put("newCourseId","new-course").put("newSceneId","new-scene").put("reason","题目已修订").put("createdAt","2026-10-16T00:00:00Z");
         when(revisions.revisionForPaper(7L)).thenReturn(navigation);
         var result=service.mistakes("classroom").getFirst();assertEquals("旧题干",result.stem());assertEquals("A",result.userAnswer());assertEquals("B",result.correctAnswer());

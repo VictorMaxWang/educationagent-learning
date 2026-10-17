@@ -54,11 +54,15 @@ class QuizServiceFiveTypesTest {
             assertEquals(-1,inserted.getValue().getIsCorrect());
         }
     }
-    @Test void uncertainRedoDoesNotInsertAnIncorrectAnswerOrRemoveMistake() {
+    @Test void uncertainRedoAppendsOnlyAnUnknownEventWithoutResolvingTheMistake() {
         when(questions.selectById(1L)).thenReturn(q(1,"short","比较基准一致"));
         response("{\"no\":1,\"correct\":null,\"correctAnswer\":\"参考\",\"explanation\":\"暂无法判断\"}");
         var result=service.mistakeRedo("classroom",8L,1L,"一样大");
-        assertNull(result.correct());assertFalse(result.removed());verifyNoInteractions(answers);
+        assertNull(result.correct());assertFalse(result.removed());
+        var inserted=ArgumentCaptor.forClass(QuizAnswerEntity.class);verify(answers).insert(inserted.capture());
+        assertEquals(-1,inserted.getValue().getIsCorrect());
+        verify(answers,never()).recordResolution(anyString(),anyLong(),anyBoolean(),anyLong(),nullable(Long.class),anyString());
+        verify(answers,never()).updateById(any(QuizAnswerEntity.class));
     }
     @Test void singleAndMultipleSubmissionNumbersAreStrict() {
         when(questions.selectList(any())).thenReturn(List.of(q(1,"single","B"),q(2,"multi","AC")));

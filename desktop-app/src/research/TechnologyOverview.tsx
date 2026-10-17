@@ -30,7 +30,7 @@ export default function TechnologyOverview() {
     }).catch(() => { if (!controller.signal.aborted) setError('技术说明暂时没有读取成功，请稍后重试。'); });
     return () => controller.abort();
   }, [reload]);
-  return <main className="technology-overview">
+  return <section className="technology-overview" aria-label="技术与参考" tabIndex={0}>
     <header className="technology-hero"><span className="technology-eyebrow">晓陶学伴 · 教学做合一</span><h1>技术与参考</h1><p>{manifest?.summary || '了解课堂如何选择工具、核对来源，以及团队成果怎样进入真实的学习流程。'}</p></header>
     {error && <div className="technology-status" role="alert">{error}<button onClick={() => setReload(value => value + 1)}>重新读取</button></div>}
     {!manifest && !error && <p className="technology-status" role="status">正在读取技术说明…</p>}
@@ -42,5 +42,5 @@ export default function TechnologyOverview() {
       <section aria-labelledby="technology-references"><h2 id="technology-references">团队成果与采用方式</h2><p className="technology-note">原文、段落截图、具体代码及评测对应关系保存在项目的团队成果参考库。这里展示来源摘要与方法边界。</p><div className="technology-references">{manifest.sources.map(source => <article id={`technology-source-${source.id}`} key={source.id}><div><span>{source.id}</span><small>{source.adoption}</small></div><h3>{source.title}</h3><p>{source.locator}</p></article>)}</div></section>
       <footer className="technology-note">技术清单版本：{manifest.version}</footer>
     </>}
-  </main>;
+  </section>;
 }

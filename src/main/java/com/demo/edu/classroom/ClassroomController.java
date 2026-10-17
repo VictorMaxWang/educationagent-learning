@@ -60,6 +60,8 @@ public class ClassroomController {
 
     @ExceptionHandler(ClassroomException.class)
     public ResponseEntity<Map<String, String>> error(ClassroomException error) {
-        return ResponseEntity.status(error.status()).body(Map.of("error", error.getMessage()));
+        Map<String,String> body=new java.util.LinkedHashMap<>();body.put("error",error.getMessage());
+        if(error.code()!=null)body.put("code",error.code());
+        return ResponseEntity.status(error.status()).body(body);
     }
 }

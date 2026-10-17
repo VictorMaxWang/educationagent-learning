@@ -12,9 +12,10 @@ import static org.junit.jupiter.api.Assertions.*;
 class ClassroomStudyStoreTest {
     private final ObjectMapper json=new ObjectMapper();
     private ClassroomStudyStore store;
+    private JdbcTemplate jdbc;
     @BeforeEach void database() {
         JdbcDataSource data=new JdbcDataSource();data.setURL("jdbc:h2:mem:"+UUID.randomUUID()+";MODE=MySQL;DB_CLOSE_DELAY=-1");
-        JdbcTemplate jdbc=new JdbcTemplate(data);
+        jdbc=new JdbcTemplate(data);
         jdbc.execute("CREATE TABLE edu_classroom_study_state(kind VARCHAR(40),entry_id VARCHAR(160),course_id VARCHAR(64),scene_id VARCHAR(80) DEFAULT '',document CLOB,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,PRIMARY KEY(kind,entry_id))");
         store=new ClassroomStudyStore(jdbc,json);
     }
@@ -40,6 +41,15 @@ class ClassroomStudyStoreTest {
         store.save("learning_attempt","first","course",json.createObjectNode().put("sceneId","scene-a").put("id","first"));
         for(int i=0;i<205;i++)store.save("learning_attempt","later-"+i,"course",json.createObjectNode().put("sceneId","scene-b"));
         assertEquals("first",store.listForScene("learning_attempt","course","scene-a",10).getFirst().path("id").asText());
+    }
+    @Test void limitedHistoryKeepsStableTieOrderAndKindWhenIdsAreReused() {
+        for(String id:java.util.List.of("c","a","b")) {
+            store.save("learning_attempt",id,"course",json.createObjectNode().put("sceneId","scene").put("id",id));
+            store.save("recommendation",id,"course",json.createObjectNode().put("sceneId","scene").put("id","wrong-kind"));
+        }
+        jdbc.update("UPDATE edu_classroom_study_state SET created_at='2026-10-17 00:00:00',updated_at='2026-10-17 00:00:00'");
+        assertEquals(java.util.List.of("a","b"),store.list("learning_attempt","course",2).stream().map(row->row.path("id").asText()).toList());
+        assertEquals(java.util.List.of("a","b"),store.listForScene("learning_attempt","course","scene",2).stream().map(row->row.path("id").asText()).toList());
     }
     @Test void onlyRebuildableVectorsWithExactModelSpaceIdentityCanBeRemoved() {
         var identity=json.createObjectNode().put("provider","compat").put("model","m").put("endpointFingerprint","one");

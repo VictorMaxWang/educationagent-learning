@@ -14,6 +14,18 @@ public interface ClassroomCourseMapper {
     @Select("SELECT document FROM edu_learning_course ORDER BY updated_at DESC LIMIT 100")
     List<String> list();
 
+    /** 首页只读摘要，一次SQL完成投影；不传输整门课HTML、图片、对话再逐项删除。 */
+    @Select("SELECT JSON_OBJECT('id',id,'title',JSON_UNQUOTE(JSON_EXTRACT(document,'$.title')),"
+            + "'topic',JSON_UNQUOTE(JSON_EXTRACT(document,'$.topic')),'grade',JSON_EXTRACT(document,'$.grade'),"
+            + "'subject',JSON_UNQUOTE(JSON_EXTRACT(document,'$.subject')),'domain',JSON_UNQUOTE(JSON_EXTRACT(document,'$.domain')),"
+            + "'direction',JSON_UNQUOTE(JSON_EXTRACT(document,'$.direction')),'status',JSON_UNQUOTE(JSON_EXTRACT(document,'$.status')),"
+            + "'createdAt',JSON_UNQUOTE(JSON_EXTRACT(document,'$.createdAt')),'updatedAt',JSON_UNQUOTE(JSON_EXTRACT(document,'$.updatedAt')),"
+            + "'revision',COALESCE(JSON_EXTRACT(document,'$.revision'),0),"
+            + "'sceneCount',COALESCE(JSON_LENGTH(JSON_EXTRACT(document,'$.scenes')),0),"
+            + "'outlineCount',COALESCE(JSON_LENGTH(JSON_EXTRACT(document,'$.outlines')),0)) "
+            + "FROM edu_learning_course ORDER BY updated_at DESC LIMIT 100")
+    List<String> listSummaries();
+
     @Insert("INSERT INTO edu_learning_course(id,document,updated_at) VALUES(#{id},#{document},CURRENT_TIMESTAMP(3)) " +
             "ON DUPLICATE KEY UPDATE document=VALUES(document),updated_at=CURRENT_TIMESTAMP(3)")
     int save(@Param("id") String id, @Param("document") String document);

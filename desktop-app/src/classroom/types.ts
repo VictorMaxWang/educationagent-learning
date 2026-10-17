@@ -63,6 +63,8 @@ export interface Scene {
   order: number;
   type: SceneType;
   quizId?: string;
+  /** 服务端公开题面指纹；客户端只原样回传，旧课程可以没有此字段。 */
+  questionVersion?: string;
   mediaRetryAvailable?: boolean;
   mediaWarnings?: string[];
   content: { type: SceneType; canvas?: Slide; questions?: Question[]; thinking?: ThinkingItem[]; html?: string; widgetType?: string; [key: string]: unknown };
@@ -99,6 +101,7 @@ export interface SupplementaryResource {
 }
 export interface Course {
   id: string;
+  entrySceneMap?: Record<string, string>;
   title: string;
   topic: string;
   grade: number;
@@ -125,6 +128,9 @@ export interface QuizResult {
   quizId: string;
   score: number;
   total: number;
+  confirmedCount?: number;
+  pendingCount?: number;
+  status?: 'confirmed' | 'pending';
   results: { no: number; correct: boolean | null; correctAnswer: string; userAnswer: string; explanation: string }[];
 }
 export const GRADE_LABELS = ['一年级', '二年级', '三年级', '四年级', '五年级', '六年级', '初一', '初二', '初三', '高一', '高二', '高三'];

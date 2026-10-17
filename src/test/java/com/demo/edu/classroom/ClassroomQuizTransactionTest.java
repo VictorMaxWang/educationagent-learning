@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.mockito.ArgumentMatchers.*;
 
-/** 使用真实数据库事务验证：一题未确定时，前面客观题的写入也必须撤回。 */
+/** 未确定整组不进入写事务；固定结果确认后才在真实数据库短事务内统一追加。 */
 class ClassroomQuizTransactionTest {
     @Test void uncertainWholeGroupRollsBackAndSameAnswersCanBeRetried() throws Exception {
         var ds=new JdbcDataSource();ds.setURL("jdbc:h2:mem:quiz_"+UUID.randomUUID()+";DB_CLOSE_DELAY=-1");
@@ -46,9 +46,13 @@ class ClassroomQuizTransactionTest {
             {"quizId":9,"content":{"questions":[{"no":1,"type":"judge"},{"no":2,"type":"short_answer"}]}}
             """);
         var answers=List.of(new QuizService.AnswerSubmission(1,"对"),new QuizService.AnswerSubmission(2,"两块菜地得一样大"));
-        assertThrows(ClassroomException.class,()->tx.execute(status->adapter.submit(scene,answers)));
+        var first=adapter.prepare(scene,answers,"same-request");
+        assertThrows(ClassroomException.class,()->adapter.evaluate(first));
         assertEquals(0,jdbc.queryForObject("SELECT COUNT(*) FROM answer_audit",Integer.class));
-        var success=tx.execute(status->adapter.submit(scene,answers));assertNotNull(success);assertEquals(2,success.score());
+        var unknownReceipt=assertThrows(ClassroomException.class,()->adapter.evaluate(adapter.prepare(scene,answers,"same-request")));
+        assertEquals("EVALUATION_UNKNOWN",unknownReceipt.code());verify(model,times(1)).chat(any(ChatRequest.class));
+        var retry=adapter.prepare(scene,answers,"explicit-new-review");var evaluated=adapter.evaluate(retry);
+        var success=tx.execute(status->adapter.commit(scene,retry,evaluated));assertNotNull(success);assertEquals(2,success.score());
         assertEquals(2,jdbc.queryForObject("SELECT COUNT(*) FROM answer_audit",Integer.class));
         assertEquals(0,jdbc.queryForObject("SELECT COUNT(*) FROM answer_audit WHERE correct=-1",Integer.class));
     }

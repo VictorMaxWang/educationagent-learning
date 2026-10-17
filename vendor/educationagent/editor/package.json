@@ -27,7 +27,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "rollup -c && tsc --emitDeclarationOnly --declarationDir dist",
+    "build": "rollup -c --forceExit && tsc --emitDeclarationOnly --declarationDir dist",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "pnpm run build"

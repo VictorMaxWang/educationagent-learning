@@ -15,11 +15,16 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BooleanSupplier;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -34,6 +39,7 @@ class CodeJobServiceTest {
     private HttpServer server;
     private ExecutorService handlers;
     private CodeJobService service;
+    private MutableClock clock;
     private String endpoint;
     private final AtomicInteger runs=new AtomicInteger(), active=new AtomicInteger(), maximumActive=new AtomicInteger();
     private final AtomicReference<String> observedAuthorization=new AtomicReference<>();
@@ -62,7 +68,8 @@ class CodeJobServiceTest {
             finally { exchange.close(); }
         });
         server.start(); endpoint="http://127.0.0.1:"+server.getAddress().getPort();
-        service=new CodeJobService(json,courses,endpoint,TOKEN,true);
+        clock=new MutableClock();
+        service=new CodeJobService(json,courses,endpoint,TOKEN,true,clock);
     }
     @AfterEach void cleanup() {
         if(service!=null) service.close();
@@ -147,6 +154,62 @@ class CodeJobServiceTest {
         assertEquals(5,runs.get()); assertEquals(1,maximumActive.get());
     }
 
+    @Test void queueDeadlineIncludesExecutorWaitAndPollingFreesAllExpiredQueueSlots() throws Exception {
+        CountDownLatch entered=new CountDownLatch(1), release=new CountDownLatch(1);
+        runner=(exchange,request)->{ entered.countDown(); release.await(5,TimeUnit.SECONDS); send(exchange,200,result("completed","done")); };
+        String running=service.create(OWNER_A,submission()).path("id").asText(); assertTrue(entered.await(3,TimeUnit.SECONDS));
+        String queued=service.create(OWNER_A,submission()).path("id").asText();
+        service.create(OWNER_B,submission()); service.create(OWNER_B,submission()); service.create(OWNER_C,submission());
+        clock.advance(Duration.ofMinutes(5));
+        assertEquals("timeout",service.get(OWNER_A,queued).path("status").asText());
+        assertEquals("running",service.get(OWNER_A,running).path("status").asText());
+        assertFalse(service.get(OWNER_A,queued).path("tracePending").asBoolean());
+        String replacement=service.create(OWNER_B,submission()).path("id").asText();
+        release.countDown(); terminal(OWNER_A,running); terminal(OWNER_B,replacement);
+        assertEquals(2,runs.get(),"过期 executor 队列项不得再发给 runner");
+    }
+
+    @Test void anExpiredGenerationWaitCannotDispatchWhenGenerationJustEnded() throws Exception {
+        when(courses.hasActiveGeneration()).thenReturn(true);
+        String id=service.create(OWNER_A,submission()).path("id").asText();
+        clock.advance(Duration.ofMinutes(5));
+        when(courses.hasActiveGeneration()).thenReturn(false);
+        assertEquals("timeout",terminal(OWNER_A,id).path("status").asText());
+        assertEquals(0,runs.get());
+    }
+
+    @Test void completedResultReceivesFullFifteenMinuteTtlAfterLongQueueWait() throws Exception {
+        when(courses.hasActiveGeneration()).thenReturn(true);
+        String id=service.create(OWNER_A,submission()).path("id").asText();
+        clock.advance(Duration.ofMinutes(4).plusSeconds(59));
+        when(courses.hasActiveGeneration()).thenReturn(false);
+        ObjectNode view=terminal(OWNER_A,id);
+        assertEquals(clock.instant().toString(),view.path("completedAt").asText());
+        // 下一任务完成说明前一任务已经退出执行线程，清理可安全读取其 settled 状态。
+        terminal(OWNER_B,service.create(OWNER_B,submission()).path("id").asText());
+        clock.advance(Duration.ofMinutes(14).plusSeconds(59));
+        assertEquals("completed",service.get(OWNER_A,id).path("status").asText());
+        clock.advance(Duration.ofSeconds(1));
+        assertEquals(404,assertThrows(ClassroomException.class,()->service.get(OWNER_A,id)).status());
+    }
+
+    @Test void terminalCapacityEvictsOldestCompletionRatherThanOldestCreation() throws Exception {
+        CountDownLatch entered=new CountDownLatch(1), release=new CountDownLatch(1);
+        runner=(exchange,request)->{ entered.countDown(); release.await(5,TimeUnit.SECONDS); send(exchange,200,result("completed","last completed")); };
+        String firstCreated=service.create(OWNER_A,submission()).path("id").asText(); assertTrue(entered.await(3,TimeUnit.SECONDS));
+        String newestCancelled=null;
+        for(int i=0;i<17;i++) {
+            clock.advance(Duration.ofSeconds(1));
+            newestCancelled=service.create(OWNER_B,submission()).path("id").asText();
+            service.cancel(OWNER_B,newestCancelled);
+        }
+        clock.advance(Duration.ofSeconds(1)); release.countDown();
+        assertEquals("completed",terminal(OWNER_A,firstCreated).path("status").asText());
+        // GET 会触发容量清理；先创建、最后完成的任务必须仍然可读。
+        assertEquals("cancelled",service.get(OWNER_B,newestCancelled).path("status").asText());
+        assertEquals("completed",service.get(OWNER_A,firstCreated).path("status").asText());
+    }
+
     @Test void cancelKeepsPartialTraceAndLateCompletedStatusCannotReviveJobOrChangeNextJob() throws Exception {
         CountDownLatch entered=new CountDownLatch(1), stopped=new CountDownLatch(1);
         runner=(exchange,request)->{
@@ -217,4 +280,12 @@ class CodeJobServiceTest {
     }
     private static Set<String> fieldNames(JsonNode node) { var names=new java.util.HashSet<String>(); node.fieldNames().forEachRemaining(names::add); return names; }
     private record CloseableService(CodeJobService value) implements AutoCloseable { @Override public void close() { value.close(); } }
+    private static final class MutableClock extends Clock {
+        private final AtomicLong millis=new AtomicLong(Instant.parse("2026-10-17T00:00:00Z").toEpochMilli());
+        void advance(Duration duration) { millis.addAndGet(duration.toMillis()); }
+        @Override public ZoneId getZone() { return ZoneOffset.UTC; }
+        @Override public Clock withZone(ZoneId zone) { return this; }
+        @Override public Instant instant() { return Instant.ofEpochMilli(millis.get()); }
+        @Override public long millis() { return millis.get(); }
+    }
 }

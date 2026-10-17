@@ -6,7 +6,8 @@ import com.demo.metrics.MetricsController;
 import com.demo.router.RouterEvalController;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import com.demo.testsupport.IsolatedSpringBootTest;
+import com.demo.testsupport.IsolatedRedisStubContext;
 
 import java.util.List;
 import java.util.Map;
@@ -31,12 +32,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * 之后每一次记忆写入都静默失败——脑图永远是空的，日志里却只有一行 WARN。
  * 实测踩过一次：跑测试把运行中的后端写坏了。
  */
-@SpringBootTest(properties = {
-        "memory.store.index-path=target/test-memory-index",
-        "memory.chroma.enabled=false",
-        "bot.auto-start-count=0"
-})
-class OpsEndpointsTest {
+@IsolatedSpringBootTest
+class OpsEndpointsTest extends IsolatedRedisStubContext {
 
     @Autowired
     private RouterEvalController routerEvalController;

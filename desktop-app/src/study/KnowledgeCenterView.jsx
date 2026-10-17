@@ -271,16 +271,17 @@ function MasteryTab({ userId }) {
     } catch (err) { console.error(err); }
   };
 
-  const accClass = a => (a < 60 ? 'weak' : a < 80 ? 'mid' : 'strong');
+  const accClass = a => (a == null ? 'pending' : a < 60 ? 'weak' : a < 80 ? 'mid' : 'strong');
 
-  // 按正确率排序 + 分档（薄弱 <60% / 待巩固 60-80% / 已掌握 >=80%）
-  const sorted = [...knowledge].sort((a, b) => a.accuracy - b.accuracy);
+  // 未确认结果不代表答错；只有已确认的知识点参与分档和平均正确率。
+  const pending = knowledge.filter(k => k.accuracy == null);
+  const sorted = knowledge.filter(k => k.accuracy != null).sort((a, b) => a.accuracy - b.accuracy);
   const weak = sorted.filter(k => k.accuracy < 60);
   const mid = sorted.filter(k => k.accuracy >= 60 && k.accuracy < 80);
   const strong = sorted.filter(k => k.accuracy >= 80);
   const avg = sorted.length
     ? Math.round(sorted.reduce((s, k) => s + (k.accuracy || 0), 0) / sorted.length)
-    : 0;
+    : null;
 
   /** 单个知识点行：进度条 + 正确率 + 题数 + 收藏 + 可展开题目 */
   const renderKp = (k) => (
@@ -293,8 +294,14 @@ function MasteryTab({ userId }) {
           <div className={`knowledge-bar-fill knowledge-bar-${accClass(k.accuracy)}`}
             style={{ width: Math.min(100, k.accuracy || 0) + '%' }} />
         </div>
-        <span className={`knowledge-acc ${accClass(k.accuracy)}`}>{k.accuracy}%</span>
-        <span className="knowledge-count">{k.correctCount}/{k.questionCount}</span>
+        <span className={`knowledge-acc ${accClass(k.accuracy)}`}>{k.accuracy == null ? '待确认' : `${k.accuracy}%`}</span>
+        <span className="knowledge-count">
+          {/* 兼容旧接口；新接口的总题数包含待确认题，不能用作正确率分母。 */}
+          {k.confirmedCount == null ? `${k.correctCount}/${k.questionCount}` : <>
+            {k.confirmedCount > 0 && `${k.correctCount}/${k.confirmedCount} · `}共 {k.questionCount} 题
+            {k.pendingCount > 0 && ` · 待确认 ${k.pendingCount} 题`}
+          </>}
+        </span>
         <button className={`fav-btn ${k.isFav ? 'fav' : ''}`} onClick={() => toggleKpFav(k.knowledgePoint)}>
           {k.isFav ? '⭐' : '☆'}
         </button>
@@ -360,15 +367,16 @@ function MasteryTab({ userId }) {
           <div className="mastery-overview">
             <div className="mastery-overview-head">
               <span className="mastery-overview-title">📊 整体掌握度</span>
-              <span className="mastery-overview-pct">{avg}%</span>
+              <span className="mastery-overview-pct">{avg == null ? '待确认' : `${avg}%`}</span>
             </div>
             <div className="mastery-bar">
-              <div className="mastery-bar-fill" style={{ width: avg + '%' }} />
+              <div className="mastery-bar-fill" style={{ width: (avg ?? 0) + '%' }} />
             </div>
             <div className="mastery-overview-tiers">
               <span className="tier-chip tier-chip-weak">🔴 薄弱 {weak.length}</span>
               <span className="tier-chip tier-chip-mid">🟡 待巩固 {mid.length}</span>
               <span className="tier-chip tier-chip-strong">🟢 已掌握 {strong.length}</span>
+              {pending.length > 0 && <span className="tier-chip">⏳ 待确认 {pending.length}</span>}
             </div>
             {weak.length > 0 && (
               <div className="mastery-suggest">🎯 建议优先复习：薄弱知识点 {weak.length} 个</div>
@@ -379,6 +387,7 @@ function MasteryTab({ userId }) {
           {renderTier('weak', '🔴', '薄弱区', weak)}
           {renderTier('mid', '🟡', '待巩固区', mid)}
           {renderTier('strong', '🟢', '已掌握区', strong)}
+          {pending.length > 0 && renderTier('pending', '⏳', '待确认区', pending)}
         </>
       )}
 

@@ -12,6 +12,32 @@
 		request_body @desktopUpload {
 			max_size 42MB
 		}
+		# JSON 在进入 Java 解析前设独立预算；multipart 资料仍沿用既有 10MiB 规则。
+		@courseImportJson {
+			method POST
+			path /api/classroom/courses/import
+			header_regexp importJsonType Content-Type "(?i)^application/(json|[^;[:space:]]+[+]json)([[:space:]]*;|[[:space:]]*$)"
+		}
+		request_body @courseImportJson {
+			max_size 67108864
+		}
+		@sceneRuntimeJson {
+			method PUT PATCH
+			path_regexp sceneJsonPath ^/api/classroom/courses/[^/]+/(scenes/[^/]+|runtime)/?$
+			header_regexp sceneJsonType Content-Type "(?i)^application/(json|[^;[:space:]]+[+]json)([[:space:]]*;|[[:space:]]*$)"
+		}
+		request_body @sceneRuntimeJson {
+			max_size 8388608
+		}
+		@ordinaryPublicJson {
+			method POST PUT PATCH DELETE
+			path /api/classroom /api/classroom/* /api/desktop/quiz/* /api/desktop/psychology/* /api/desktop/lifesafety/* /api/desktop/sexedu/* /api/maimemo/config /api/maimemo/speech-preset /api/maimemo/grammar-quiz /api/maimemo/speech-evaluate /api/maimemo/speech-dialogue /api/desktop/watermark/add /api/desktop/watermark/remove
+			header_regexp ordinaryJsonType Content-Type "(?i)^application/(json|[^;[:space:]]+[+]json)([[:space:]]*;|[[:space:]]*$)"
+			expression `!(method('POST') && path('/api/classroom/courses/import')) && !((method('PUT') || method('PATCH')) && path_regexp('^/api/classroom/courses/[^/]+/(scenes/[^/]+|runtime)/?$'))`
+		}
+		request_body @ordinaryPublicJson {
+			max_size 1048576
+		}
 		header {
 			X-Content-Type-Options nosniff
 			Referrer-Policy strict-origin-when-cross-origin

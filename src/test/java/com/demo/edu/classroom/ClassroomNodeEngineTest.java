@@ -7,7 +7,10 @@ import org.junit.jupiter.api.io.TempDir;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.time.Clock;
+import java.util.List;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicLong;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -169,6 +172,72 @@ class ClassroomNodeEngineTest {
         Path valid = script("process.stdout.write(JSON.stringify({type:'ready',engine:'educationagent'}));");
         var ready = new ClassroomNodeEngine(json, tutor, "node", valid.toString(), 5000);
         assertEquals(true, ready.health().get("ready"));
+        verifyNoInteractions(tutor);
+    }
+
+    @Test void healthCachesForThirtySecondsAndReportsWhenTheRealCheckWasMade() throws Exception {
+        Path valid = script("if(process.argv.includes('--check')){require('node:fs').appendFileSync(__filename+'.checks','x');process.stdout.write(JSON.stringify({type:'ready',engine:'educationagent'}));}");
+        AtomicLong now = new AtomicLong();
+        var bridge = new ClassroomNodeEngine(json, mock(ClassroomTutorModel.class), "node", valid.toString(), 5000, now::get, Clock.systemUTC());
+        var first = bridge.health();
+        assertEquals(true, first.get("ready"));
+        assertEquals(false, first.get("cached"));
+        assertNotNull(first.get("checkedAt"));
+        var cached = bridge.health();
+        assertEquals(true, cached.get("cached"));
+        assertEquals(first.get("checkedAt"), cached.get("checkedAt"));
+        assertEquals("x", Files.readString(Path.of(valid + ".checks")));
+        now.set(TimeUnit.SECONDS.toNanos(30));
+        assertEquals(false, bridge.health().get("cached"));
+        assertEquals("xx", Files.readString(Path.of(valid + ".checks")));
+    }
+
+    @Test void parallelHealthRequestsShareOneRealProbe() throws Exception {
+        Path valid = script("if(process.argv.includes('--check')){require('node:fs').appendFileSync(__filename+'.checks','x');Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,150);process.stdout.write(JSON.stringify({type:'ready',engine:'educationagent'}));}");
+        var bridge = new ClassroomNodeEngine(json, mock(ClassroomTutorModel.class), "node", valid.toString(), 5000);
+        CountDownLatch ready = new CountDownLatch(6), start = new CountDownLatch(1);
+        try (var pool = Executors.newVirtualThreadPerTaskExecutor()) {
+            List<Future<java.util.Map<String,Object>>> calls = java.util.stream.IntStream.range(0,6).mapToObj(index -> pool.submit(() -> {
+                ready.countDown(); start.await(); return bridge.health();
+            })).toList();
+            assertTrue(ready.await(3, TimeUnit.SECONDS)); start.countDown();
+            for (var call : calls) assertEquals(true, call.get(8, TimeUnit.SECONDS).get("ready"));
+        }
+        assertEquals("x", Files.readString(Path.of(valid + ".checks")));
+    }
+
+    @Test void aWorkerProtocolFailureInvalidatesCachedHealthWithoutAffectingOtherProcesses() throws Exception {
+        Path worker = script("if(process.argv.includes('--check')){require('node:fs').appendFileSync(__filename+'.checks','x');process.stdout.write(JSON.stringify({type:'ready',engine:'educationagent'}));}else{process.stdin.once('data',()=>process.stdout.write('bad protocol\\n'));process.stdin.resume();}");
+        var bridge = new ClassroomNodeEngine(json, mock(ClassroomTutorModel.class), "node", worker.toString(), 5000);
+        assertEquals(true, bridge.health().get("ready"));
+        assertThrows(ClassroomException.class, () -> bridge.outline(input(), new ClassroomCancellation()));
+        assertEquals(false, bridge.health().get("cached"));
+        assertEquals("xx", Files.readString(Path.of(worker + ".checks")));
+    }
+
+    @Test void remainingJobBudgetBoundsTheTutorCallAndIsReturnedToTheWorker() throws Exception {
+        Path worker = script("""
+            const rl=require('node:readline').createInterface({input:process.stdin});let job;
+            rl.on('line',line=>{const msg=JSON.parse(line);
+              if(msg.type==='job'){job=msg;if(!(msg.remainingMs>0&&msg.remainingMs<=5000))throw Error('missing budget');process.stdout.write(JSON.stringify({type:'llm.request',id:'budget-call',purpose:'quiz-review',timeoutMs:1000,messages:[{role:'user',content:'复核'}]})+'\\n');}
+              else{if(!(msg.remainingMs>=0&&msg.remainingMs<=job.remainingMs))throw Error('budget extended');process.stdout.write(JSON.stringify({type:'result',id:job.id,value:[{title:msg.text}]})+'\\n');}
+            });
+            """);
+        var tutor = mock(ClassroomTutorModel.class);
+        when(tutor.complete(any(), eq("quiz-review"), anyLong(), any())).thenReturn("budgeted");
+        var bridge = new ClassroomNodeEngine(json, tutor, "node", worker.toString(), 5000);
+        assertEquals("budgeted", bridge.outline(input(), new ClassroomCancellation()).get(0).path("title").asText());
+        var budget = org.mockito.ArgumentCaptor.forClass(Long.class);
+        verify(tutor).complete(any(), eq("quiz-review"), budget.capture(), any());
+        assertTrue(budget.getValue() > 0 && budget.getValue() <= 1000);
+        verify(tutor, never()).complete(any());
+    }
+
+    @Test void invalidPerCallBudgetsFailClosedBeforeTheTutorIsInvoked() throws Exception {
+        Path worker = script("const rl=require('node:readline').createInterface({input:process.stdin});rl.on('line',()=>process.stdout.write(JSON.stringify({type:'llm.request',id:'x',timeoutMs:999999999,messages:[{role:'user',content:'x'}]})+'\\n'));");
+        var tutor = mock(ClassroomTutorModel.class);
+        var bridge = new ClassroomNodeEngine(json, tutor, "node", worker.toString(), 5000);
+        assertEquals(502, assertThrows(ClassroomException.class, () -> bridge.outline(input(), new ClassroomCancellation())).status());
         verifyNoInteractions(tutor);
     }
 

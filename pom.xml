@@ -15,6 +15,8 @@
     <description/>
     <properties>
         <java.version>21</java.version>
+        <!-- 默认路径保持兼容；本机目录被同步软件占用时，测试可显式使用独立输出目录。 -->
+        <educationagent.build.directory>${project.basedir}/target</educationagent.build.directory>
     </properties>
     <dependencies>
         <!-- 统一用web依赖，解决接口映射失败 -->
@@ -219,6 +221,7 @@
     </dependencies>
 
     <build>
+        <directory>${educationagent.build.directory}</directory>
         <plugins>
             <!-- JDK 23+ 不再自动扫描注解处理器；显式启用现有 Lombok，仍生成 Java 21 字节码。 -->
             <plugin>

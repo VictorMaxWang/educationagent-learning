@@ -10,6 +10,7 @@ interface CanvasShortcutEvent {
   readonly altKey: boolean;
   readonly repeat: boolean;
   readonly target: unknown;
+  readonly defaultPrevented?: boolean;
   preventDefault: () => void;
 }
 
@@ -35,6 +36,12 @@ function isEditableTarget(target: unknown): boolean {
   );
 }
 
+function isInertTarget(target: unknown): boolean {
+  if (!target || typeof target !== 'object') return false;
+  // 原生inert只阻止直接交互，宿主的document级快捷键还必须主动尊重弹层/保存态。
+  return Boolean((target as { closest?: (selector: string) => unknown }).closest?.('[inert]'));
+}
+
 export function handleCanvasShortcut(
   event: CanvasShortcutEvent,
   commands: CanvasCommands,
@@ -43,7 +50,9 @@ export function handleCanvasShortcut(
   if (
     options.enabled === false ||
     options.pickActive ||
+    event.defaultPrevented ||
     event.repeat ||
+    isInertTarget(event.target) ||
     isEditableTarget(event.target)
   ) {
     return false;

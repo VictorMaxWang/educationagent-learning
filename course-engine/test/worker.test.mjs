@@ -27,8 +27,11 @@ function runJob(job, answers, options = {}) {
       if (value.type === 'llm.request') {
         if (options.closeInput) { child.stdin.end(); return; }
         const answer = answers[requestCount++];
-        if (answer instanceof Error) child.stdin.write(JSON.stringify({ type: 'llm.result', id: value.id, error: answer.message }) + '\n');
-        else child.stdin.write(JSON.stringify({ type: 'llm.result', id: value.id, text: typeof answer === 'string' ? answer : JSON.stringify(answer) }) + '\n');
+        const budget = options.remainingAfterReply?.[requestCount - 1];
+        const response = answer instanceof Error ? { type: 'llm.result', id: value.id, error: answer.message }
+          : { type: 'llm.result', id: value.id, text: typeof answer === 'string' ? answer : JSON.stringify(answer) };
+        if (budget !== undefined) response.remainingMs = budget;
+        child.stdin.write(JSON.stringify(response) + '\n');
       }
     });
     child.on('close', (code) => { clearTimeout(timer); resolve({ code, received, stderr }); });
@@ -135,8 +138,7 @@ test('host quiz supports all five types and retains semantic grading guidance', 
     [{ id: 'course-1-scene-1-q1', answer: 'A', confidence: 'high', reason: '四份取两份' },
       { id: 'course-1-scene-1-q2', answer: ['A', 'B'], confidence: 'high', reason: '两者皆为偶数' },
       { id: 'course-1-scene-1-q3', answer: '对', confidence: 'high', reason: '基准必须一致' },
-      { id: 'course-1-scene-1-q4', answer: '24', confidence: 'high', reason: '8×3=24' },
-      { id: 'course-1-scene-1-q5', answer: 'NONE', confidence: 'low', reason: '简答按要点另行语义判分' }],
+      { id: 'course-1-scene-1-q4', answer: '24', confidence: 'high', reason: '8×3=24' }],
     [{ type: 'text', content: '先独立完成，再检查思路。' }],
   ]);
   assert.equal(result.code, 0, result.received.at(-1)?.message);
@@ -405,4 +407,25 @@ test('a quiz scene keeps its model request count bounded', async () => {
   const requests = result.received.filter((item) => item.type === 'llm.request');
   // 出题 1 + 复核 1 + 重生成 1 + 重生成后复核 1 + 讲授动作 1 = 5。
   assert.ok(requests.length <= 6, `实际发出 ${requests.length} 次模型请求`);
+});
+
+test('worker propagates a bounded call budget and only shortens the job on parent remaining-time updates', async () => {
+  const result = await runJob({ operation: 'scene', remainingMs: 420_000, outline: outline('quiz') },
+    [[wrongKeyQuiz], disagree], { remainingAfterReply: [900_000, 10_000] });
+  assert.equal(result.code, 0, result.received.at(-1)?.message);
+  const calls = result.received.filter(item => item.type === 'llm.request');
+  assert.equal(calls.length, 2);
+  for (const call of calls) assert.ok(Number.isInteger(call.timeoutMs) && call.timeoutMs > 0 && call.timeoutMs <= 180_000);
+  const scene = result.received.at(-1).value;
+  assert.equal(scene.content.questions.length, 0);
+  assert.equal(scene.content.thinking.length, 1);
+  assert.match(scene.content.thinking[0].review.reason, /预算/);
+  assert.ok(scene.actions.some(action => action.type === 'speech'));
+});
+
+test('an exhausted parent job budget cannot trigger a model request', async () => {
+  const result = await runJob({ operation: 'outline', remainingMs: 0 }, []);
+  assert.equal(result.code, 1);
+  assert.equal(result.received.filter(item => item.type === 'llm.request').length, 0);
+  assert.match(result.received.at(-1).message, /预算|时限/);
 });

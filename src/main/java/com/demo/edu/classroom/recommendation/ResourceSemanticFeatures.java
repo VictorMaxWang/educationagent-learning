@@ -120,7 +120,7 @@ public class ResourceSemanticFeatures {
             if(known.size()<=1)return;
             evidence.put("failureKind","MODEL_SPACE_CHANGED");ObjectNode invalidation=evidence.putObject("cacheInvalidation");
             invalidation.put("scope","recommendation_vector:same-identity");
-            try{invalidation.put("cleared",true).put("removedRows",store.deleteRecommendationVectors(identity));}
+            try{int removed=store.deleteRecommendationVectors(identity);invalidation.put("cleared",true);if(removed>=0)invalidation.put("removedRows",removed);else invalidation.putNull("removedRows");}
             catch(RuntimeException unavailable){invalidation.put("cleared",false).putNull("removedRows");}
             throw new Failure("MODEL_SPACE_CHANGED",evidence);
         }

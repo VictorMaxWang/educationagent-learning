@@ -61,7 +61,6 @@ public class ClassroomCourseService {
     private final DocKnowledgeRegistry knowledge;
     private final TransactionTemplate transactions;
     private final ExecutorService jobs;
-    private final ConcurrentMap<String, Object> locks = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, ClassroomCancellation> running = new ConcurrentHashMap<>();
     private ClassroomMediaService media;
     private ClassroomTeachingReview teachingReview;
@@ -72,6 +71,9 @@ public class ClassroomCourseService {
     private QuizQuestionMapper quizQuestionMapper;
     private QuizAnswerMapper quizAnswerMapper;
     @Autowired(required=false) private ClassroomQuizRevisionRegistry quizRevisions;
+    private ClassroomPublicationPolicy publication;
+    @Autowired(required=false)
+    public void setPublicationPolicy(ClassroomPublicationPolicy publication) { this.publication = publication; }
 
     public record CreateRequest(String topic, Integer grade, String subject, String domain, String sourceText, String sourceName, String direction) {
         public CreateRequest(String topic,Integer grade,String subject,String domain,String sourceText,String sourceName) {
@@ -82,7 +84,12 @@ public class ClassroomCourseService {
                               JsonNode interactiveState, String intent) {
         public ChatRequest(String sceneId,String text,String speaker) { this(sceneId,text,speaker,null,null,null); }
     }
-    public record AnswerRequest(String sceneId, String submissionId, List<QuizService.AnswerSubmission> answers) {}
+    public record AnswerRequest(String sceneId, String submissionId, List<QuizService.AnswerSubmission> answers,
+                                String expectedQuestionVersion) {
+        public AnswerRequest(String sceneId,String submissionId,List<QuizService.AnswerSubmission> answers) {
+            this(sceneId,submissionId,answers,null);
+        }
+    }
     public record SceneEditRequest(Long expectedRevision,JsonNode content,JsonNode actions) {}
     public record RuntimeRequest(Long expectedRevision,String operationId,String sceneId,JsonNode whiteboard,
                                  JsonNode interactiveState,JsonNode acknowledgedActionIds,JsonNode actionResults) {}
@@ -128,27 +135,37 @@ public class ClassroomCourseService {
 
     public List<ObjectNode> list() {
         List<ObjectNode> result = new ArrayList<>();
-        for (String document : mapper.list()) {
+        for (String document : mapper.listSummaries()) {
             ObjectNode c = parse(document);
-            synchronized (lock(c.path("id").asText())) {
-                c = load(c.path("id").asText());
-                ObjectNode summary = publicCourse(c);
-                summary.put("sceneCount", c.path("scenes").size());
-                summary.put("outlineCount", c.path("outlines").size());
-                summary.remove(List.of("scenes", "outlines", "messages", "sources", "runtime"));
-                result.add(summary);
+            // 数据库返回摘要；内存数据库夹具也可传全对象，但不再次load或持有课程锁。
+            if (c.has("scenes")) c.put("sceneCount", c.path("scenes").size());
+            if (c.has("outlines")) c.put("outlineCount", c.path("outlines").size());
+            c.remove(List.of("scenes", "outlines", "messages", "sources", "runtime", "sourceText", "generationContext", "history", "submissions", "runtimeOperations"));
+            c.put("direction", checkedDirection(c.hasNonNull("direction") ? c.path("direction").asText() : null,c.path("domain").asText("general")));
+            if (ACTIVE.contains(c.path("status").asText()) && !running.containsKey(c.path("id").asText())) {
+                c.put("status", "error"); c.put("error", "上次生成被中断，可以继续生成，已有页面会保留");
             }
+            result.add(c);
         }
-        return result;
+        return publication == null ? result : publication.publicSummaries(result);
     }
 
     public ObjectNode get(String id) {
-        synchronized (lock(id)) { return publicCourse(load(id)); }
+        ClassroomPublicationPolicy.Entry entry = publication == null ? null : publication.resolve(id);
+        String current = entry == null ? id : entry.courseId();
+        synchronized (lock(current)) {
+            ObjectNode result = visibleCourse(load(current));
+            if (entry != null && !entry.sceneMap().isEmpty()) result.set("entrySceneMap", entry.sceneMap());
+            return result;
+        }
     }
 
     /** 仅供服务端教学分析读取完整资料；不注册为公开接口，不含运行配置或供应商凭据。 */
     public ObjectNode studySnapshot(String id) {
-        synchronized (lock(id)) { return load(id).deepCopy(); }
+        synchronized (lock(id)) {
+            ObjectNode copy = load(id).deepCopy();
+            return publication == null ? copy : publication.decorate(copy);
+        }
     }
 
     /**
@@ -193,7 +210,7 @@ public class ClassroomCourseService {
             running.put(id, cancellation);
             try { save(c); enqueue(id, cancellation, true); }
             catch (RuntimeException e) { running.remove(id, cancellation); throw e; }
-            return publicCourse(c);
+            return visibleCourse(c);
         }
     }
 
@@ -209,7 +226,7 @@ public class ClassroomCourseService {
                     ((ObjectNode)outline).set("mediaGenerations",prior.path("mediaGenerations").deepCopy());
             }
             c.set("outlines", checked); c.put("status", "outline_ready"); c.remove("error"); ClassroomEditingSupport.bump(c); save(c);
-            return publicCourse(c);
+            return visibleCourse(c);
         }
     }
 
@@ -217,10 +234,10 @@ public class ClassroomCourseService {
     public ObjectNode generate(String id) {
         synchronized (lock(id)) {
             ObjectNode c = load(id);
-            if (running.containsKey(id)) return publicCourse(c);
+            if (running.containsKey(id)) return visibleCourse(c);
             boolean outlineOnly = c.path("outlines").isEmpty();
             if (!outlineOnly && c.path("scenes").size() == c.path("outlines").size()) {
-                c.put("status", "ready"); c.remove("error"); save(c); return publicCourse(c);
+                c.put("status", "ready"); c.remove("error"); save(c); return visibleCourse(c);
             }
             if (running.size() >= 8) throw new ClassroomException(429, "当前生成任务较多，请稍后重试");
             ClassroomCancellation cancellation = new ClassroomCancellation();
@@ -228,7 +245,7 @@ public class ClassroomCourseService {
             c.put("status", outlineOnly ? "outlining" : "generating"); c.remove("error");
             try { save(c); enqueue(id, cancellation, outlineOnly); }
             catch (RuntimeException e) { running.remove(id, cancellation); throw e; }
-            return publicCourse(c);
+            return visibleCourse(c);
         }
     }
 
@@ -239,7 +256,7 @@ public class ClassroomCourseService {
             if (token != null) {
                 token.cancel(); c.put("status", "cancelled"); c.remove("error"); save(c);
             }
-            return publicCourse(c);
+            return visibleCourse(c);
         }
     }
 
@@ -250,7 +267,7 @@ public class ClassroomCourseService {
             int actions = c.path("scenes").get(sceneIndex).path("actions").size();
             if (actionIndex > actions) throw bad("讲授动作位置无效");
             ((ObjectNode) c.path("progress")).put("sceneIndex", sceneIndex).put("actionIndex", actionIndex);
-            save(c); return publicCourse(c);
+            save(c); return visibleCourse(c);
         }
     }
 
@@ -259,30 +276,61 @@ public class ClassroomCourseService {
         if (request == null) throw bad("作答内容不能为空");
         String submission = required(request.submissionId(), "提交标识", 80);
         if (!submission.matches("[A-Za-z0-9_-]+")) throw bad("提交标识格式无效");
+        // 版本是新作答的前置条件，不改变旧三字段回执身份；升级后仍可读取原成功结果。
+        ObjectNode requestIdentity=json.createObjectNode().put("sceneId",request.sceneId()).put("submissionId",request.submissionId());
+        requestIdentity.set("answers",json.valueToTree(request.answers()));
+        String requestFingerprint = requestIdentity.toString();
+        QuizService.PreparedSubmission prepared;
+        String sceneFingerprint;
         synchronized (lock(id)) {
-            ObjectNode preRead=findScene(load(id),request.sceneId());
+            ObjectNode original=internalDocument(id);
+            JsonNode saved=original.path("submissions").path(submission);
+            if(saved.isObject()) {
+                if(!requestFingerprint.equals(saved.path("request").asText()))throw conflict("同一提交标识不能用于不同答案");
+                return json.convertValue(saved.path("result"),QuizService.SubmitResult.class);
+            }
+            if(publication!=null)publication.requireActive(id);
+            ObjectNode preRead=findScene(original,request.sceneId());
             if(!"quiz".equals(preRead.path("type").asText())||preRead.path("quizId").asLong()<=0)throw bad("当前页没有可提交的练习");
-            // 先锁试卷再开启事务，避免课程load先建立MySQL RR快照，等修订登记提交后仍读到旧指针。
-            return QuizMutationGuard.withPaper(preRead.path("quizId").asLong(),()-> {
+            // 先拒绝停留在旧题面的客户端，再创建评阅票据，避免旧答案按新题计分或产生模型费用。
+            String expected=request.expectedQuestionVersion();
+            if(expected!=null&&!expected.isBlank()&&!expected.equals(publicQuestionVersion(preRead)))
+                throw new ClassroomException(409,"练习题目已更新，请刷新题面后重新作答","QUESTION_VERSION_CHANGED");
+            if(original.path("submissions").size()>=1000)throw conflict("本课程提交次数已达上限，请在错题复习中继续练习");
+            sceneFingerprint=ClassroomStudyContext.hash(preRead.path("content").path("questions"));
+            String ticketId="classroom-"+ClassroomStudyContext.hash(json.valueToTree(List.of(id,submission)));
+            prepared=QuizMutationGuard.withPaper(preRead.path("quizId").asLong(),()-> {
                 if(quizRevisions!=null)quizRevisions.assertScorable(preRead.path("quizId").asLong());
-                return transaction(() -> {
-                ObjectNode c = load(id);
-                ObjectNode scene = findScene(c, request.sceneId());
-                if (!"quiz".equals(scene.path("type").asText()) || !scene.has("quizId")) throw bad("当前页没有可提交的练习");
-                ObjectNode submissions = (ObjectNode) c.path("submissions");
-                String fingerprint = json.valueToTree(request).toString();
-                if (submissions.has(submission)) {
-                    JsonNode old = submissions.get(submission);
-                    if (!fingerprint.equals(old.path("request").asText())) throw conflict("同一提交标识不能用于不同答案");
-                    return json.convertValue(old.path("result"), QuizService.SubmitResult.class);
-                }
-                if (submissions.size() >= 1000) throw conflict("本课程提交次数已达上限，请在错题复习中继续练习");
-                QuizService.SubmitResult result = quizzes.submit(scene, request.answers());
-                ObjectNode entry = submissions.putObject(submission); entry.put("request", fingerprint); entry.set("result", json.valueToTree(result));
-                save(c); return result;
-                });
+                return quizzes.prepare(preRead,request.answers(),ticketId);
             });
         }
+        // 所有短答网络评阅都在课程锁、试卷锁和事务之外，读取/进度/取消不等待模型。
+        QuizService.EvaluatedSubmission evaluated=quizzes.evaluate(prepared);
+        try {
+            synchronized(lock(id)) {
+                ObjectNode current=internalDocument(id);
+                JsonNode saved=current.path("submissions").path(submission);
+                if(saved.isObject()) {
+                    if(!requestFingerprint.equals(saved.path("request").asText()))throw conflict("同一提交标识不能用于不同答案");
+                    return json.convertValue(saved.path("result"),QuizService.SubmitResult.class);
+                }
+                if(publication!=null)publication.requireActive(id);
+                // 先取得paper锁，再开启RR事务；修订登记与首次作答不能互相穿过提交边界。
+                return QuizMutationGuard.withPaper(prepared.quizId(),()->{
+                    if(quizRevisions!=null)quizRevisions.assertScorable(prepared.quizId());
+                    return transaction(()->{
+                        ObjectNode course=internalDocument(id);
+                        ObjectNode scene=findScene(course,request.sceneId());
+                        if(!sceneFingerprint.equals(ClassroomStudyContext.hash(scene.path("content").path("questions"))))
+                            throw conflict("评阅期间题目已更新，请查看当前题目后重新提交");
+                        QuizService.SubmitResult result=quizzes.commit(scene,prepared,evaluated);
+                        ObjectNode entry=((ObjectNode)course.path("submissions")).putObject(submission);
+                        entry.put("request",requestFingerprint);entry.set("result",json.valueToTree(result));
+                        save(course);return result;
+                    });
+                });
+            }
+        } finally {quizzes.discard(prepared,evaluated);}
     }
 
     /** 只替换目标页的内容和讲稿；不接受客户端回写整份课程或覆盖题库历史。 */
@@ -300,7 +348,7 @@ public class ClassroomCourseService {
                 ClassroomEditingSupport.bump(course);
                 ClassroomValidationEvidence.record(edited,ClassroomEditingSupport.revision(course),"edit"); save(course);
             }
-            return publicCourse(course);
+            return visibleCourse(course);
         }
     }
 
@@ -328,7 +376,7 @@ public class ClassroomCourseService {
                 scenes.set(i,repaired);
                 ClassroomEditingSupport.bump(course);
                 ClassroomValidationEvidence.record(repaired,ClassroomEditingSupport.revision(course),"media-repair");
-                save(course); return publicCourse(course);
+                save(course); return visibleCourse(course);
             }
             throw new ClassroomException(404,"课程页面不存在");
         }
@@ -345,7 +393,7 @@ public class ClassroomCourseService {
             ObjectNode course=load(id); ObjectNode operations=(ObjectNode)course.path("runtimeOperations");
             if(operations.has(operationId)) {
                 if(!fingerprint.equals(operations.path(operationId).asText())) throw conflict("同一操作标识不能用于不同状态");
-                return publicCourse(course);
+                return visibleCourse(course);
             }
             ClassroomEditingSupport.requireRevision(course,request.expectedRevision(),false);
             ObjectNode scene=findScene(course,request.sceneId());
@@ -354,14 +402,19 @@ public class ClassroomCourseService {
             ObjectNode runtime=(ObjectNode)course.path("runtime");
             if(!next.equals(runtime.path(request.sceneId()))) { runtime.set(request.sceneId(),next); ClassroomEditingSupport.bump(course); }
             if(operations.size()>=2000) throw conflict("本课程运行操作已达上限，请导出课件后导入为新课程继续");
-            operations.put(operationId,fingerprint); save(course); return publicCourse(course);
+            operations.put(operationId,fingerprint); save(course); return visibleCourse(course);
         }
     }
 
     /** 可移植快照明确含标准答案，但不携带学生对话、成绩、实验状态或原始材料全文。 */
     public ObjectNode portable(String id) {
+        return publication == null ? portableCurrent(id) : publication.withCurrentRules(() -> portableCurrent(id));
+    }
+    private ObjectNode portableCurrent(String id) {
+        if (publication != null) id = publication.resolve(id).courseId();
         synchronized(lock(id)) {
             ObjectNode copy=load(id).deepCopy();
+            if(publication!=null)publication.decorate(copy);
             copy.put("direction",checkedDirection(copy.hasNonNull("direction")?copy.path("direction").asText():null,copy.path("domain").asText("general")));
             copy.remove(List.of("history","submissions","messages","runtimeOperations","sourceText","generationContext","error"));
             for(JsonNode outline:copy.path("outlines")) if(outline.isObject()) ((ObjectNode)outline).remove("mediaGenerations");
@@ -403,11 +456,15 @@ public class ClassroomCourseService {
 
     /** 导入只做数据验证与建卷，不启动生成器、不调用模型、不执行互动脚本。 */
     public ObjectNode importPortable(JsonNode envelope) {
+        return publication == null ? importCurrent(envelope) : publication.withCurrentRules(() -> importCurrent(envelope));
+    }
+    private ObjectNode importCurrent(JsonNode envelope) {
         if(envelope==null || !envelope.isObject() || !"educationagent.classroom".equals(envelope.path("format").asText())
                 || !envelope.path("version").isIntegralNumber() || envelope.path("version").asInt()!=1)
             throw bad("不支持的课件文件格式或版本");
         JsonNode source=envelope.path("course");
         if(!source.isObject()||envelope.toString().length()>16_000_000) throw bad("课件内容为空或超过大小限制");
+        if(publication!=null)source=publication.applyCorrections((ObjectNode)source);
         JsonNode sourceScenes=source.path("scenes");
         if(!sourceScenes.isArray()||sourceScenes.isEmpty()||sourceScenes.size()>64) throw bad("课件须包含1至64个页面");
         String topic=required(source.path("topic").asText(source.path("title").asText()),"学习主题",200);
@@ -431,7 +488,7 @@ public class ClassroomCourseService {
             String oldId=ClassroomEditingSupport.requiredText(raw,"id",128);
             if(!originals.add(oldId)) throw bad("导入课件页面 ID 重复");
             String newId=UUID.randomUUID().toString(); sceneIds.put(oldId,newId);
-            ObjectNode scene=(ObjectNode)raw.deepCopy(); scene.remove(List.of("quizId","_pendingMediaRepair","validation","mediaRetryAvailable","_teachingReview","teachingReview")); scene.put("id",newId);
+            ObjectNode scene=(ObjectNode)raw.deepCopy(); scene.remove(List.of("quizId","questionVersion","_pendingMediaRepair","validation","mediaRetryAvailable","_teachingReview","teachingReview")); scene.put("id",newId);
             ObjectNode outline=json.createObjectNode().put("id",newId).put("title",scene.path("title").asText())
                     .put("type",scene.path("type").asText()).put("description",scene.path("title").asText()).put("order",scenes.size());
             if("quiz".equals(scene.path("type").asText())) for(JsonNode q:scene.path("content").path("questions")) {
@@ -474,7 +531,7 @@ public class ClassroomCourseService {
                 for(JsonNode scene:scenes) quizzes.attach(course,(ObjectNode)scene);
                 ClassroomEditingSupport.bump(course);
                 for(JsonNode scene:scenes) ClassroomValidationEvidence.record((ObjectNode)scene,ClassroomEditingSupport.revision(course),"import");
-                save(course); return publicCourse(course);
+                save(course); return visibleCourse(course);
             });
         }
     }
@@ -893,7 +950,7 @@ public class ClassroomCourseService {
     }
     private Object lock(String id) {
         if (id == null || !id.matches("[a-fA-F0-9-]{36}")) throw bad("课程 ID 无效");
-        return locks.computeIfAbsent(id, ignored -> new Object());
+        return ClassroomCourseLocks.lock(id);
     }
     /**
      * 只读补审用：列出全部课程文档（**未脱敏**，含标答与解析）。
@@ -1060,6 +1117,11 @@ public class ClassroomCourseService {
     }
 
     private ObjectNode load(String id) {
+        if (publication != null) publication.requireActive(id);
+        return loadInternal(id);
+    }
+    /** 成功回执及内部流程可读取旧原文；不能据此跳过新写入时的发布状态核对。 */
+    private ObjectNode loadInternal(String id) {
         String stored = mapper.find(id);
         if (stored == null) throw new ClassroomException(404, "课程不存在");
         ObjectNode c = parse(stored);
@@ -1119,6 +1181,10 @@ public class ClassroomCourseService {
             runtime.set("actionResults",kept);
         }
     }
+    private ObjectNode visibleCourse(ObjectNode internal) {
+        ObjectNode copy = publicCourse(internal);
+        return publication == null ? copy : publication.decorate(copy);
+    }
     static ObjectNode publicCourse(ObjectNode internal) {
         ObjectNode copy = internal.deepCopy();
         copy.put("direction",checkedDirection(copy.hasNonNull("direction")?copy.path("direction").asText():null,copy.path("domain").asText("general")));
@@ -1133,6 +1199,7 @@ public class ClassroomCourseService {
     /** 普通GET与聊天返回的新场景共用公开投影，避免绕过私有核对证据和标准答案的清理。 */
     static ObjectNode publicScene(ObjectNode internal) {
         ObjectNode scene=internal.deepCopy();
+        scene.remove("questionVersion");
         scene.put("mediaRetryAvailable",scene.path("_pendingMediaRepair").isObject());scene.remove("_pendingMediaRepair");
         publishTeachingReview(scene);ClassroomSlideSanitizer.cleanScene(scene);
         if("quiz".equals(scene.path("type").asText())&&scene.path("content").isObject()) {
@@ -1142,8 +1209,26 @@ public class ClassroomCourseService {
             // 思考题仅公开题干；复核证据可能包含答案，所有返回路径统一剥离。
             for(JsonNode item:content.path("thinking"))
                 ((ObjectNode)item).remove(List.of("review","answer","analysis","options","gradingPoints"));
+            scene.put("questionVersion",publicQuestionVersion(scene));
         }
         return scene;
+    }
+    /** 只散列公开题面白名单；隐藏答案或评分证据不能进入可离线枚举的公开指纹。 */
+    private static String publicQuestionVersion(JsonNode scene) {
+        ArrayNode questions=JsonNodeFactory.instance.arrayNode();
+        for(JsonNode question:scene.path("content").path("questions")) {
+            ObjectNode visible=questions.addObject();
+            for(String key:List.of("id","no","type","question","hasAnswer")) {
+                JsonNode value=question.get(key);
+                if(value!=null&&value.isValueNode())visible.set(key,value);
+            }
+            if(question.path("options").isArray()) {
+                ArrayNode options=visible.putArray("options");
+                for(JsonNode option:question.path("options"))
+                    options.addObject().put("label",option.path("label").asText()).put("value",option.path("value").asText());
+            }
+        }
+        return ClassroomStudyContext.hash(questions);
     }
     private static void publishTeachingReview(ObjectNode scene) {
         JsonNode internal=scene.remove("_teachingReview");

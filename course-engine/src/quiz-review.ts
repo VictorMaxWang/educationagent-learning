@@ -22,7 +22,7 @@ import type { HostQuizQuestion } from './engine.js';
  */
 
 /** 提示词版本；改动任一提示词时递增，使误报率只在同版本内可比。 */
-export const PROMPT_VERSION = 'quiz-review-v2';
+export const PROMPT_VERSION = 'quiz-review-v3';
 
 /** 单次盲解复核最多送入的题目数，与 engine.ts 的 1–5 题上限一致。 */
 const MAX_REVIEW_QUESTIONS = 5;
@@ -162,6 +162,9 @@ export function buildReSolvePrompt(questions: HostQuizQuestion[]): { system: str
   for (const [index, question] of questions.entries()) {
     // 旧课堂由调用方按五题分批；本次未送出的 ID 必须明确可见，不能默默遗漏。
     if (index >= MAX_REVIEW_QUESTIONS) { skipped.push(question.id); continue; }
+    // 盲解的答案一致性不适用于简答和文本填空；这些题仍由原来的语义判分路径处理。
+    // 只在本地据参考答案决定可比性，参考答案本身绝不进入盲解请求。
+    if (normalizeForCompare(question.type, question.answer) === null) { skipped.push(question.id); continue; }
     const stem = normalizeText(question.question);
     const options = question.options?.map(option => ({ value: normalizeText(option.value), label: normalizeText(option.label) }));
     // 选项的末尾可能包含否定、单位或额外条件，不能截掉以后还判定「答案一致」。

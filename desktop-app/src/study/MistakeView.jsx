@@ -1,9 +1,10 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { getMistakes, redoMistake, removeMistake } from '../api/chatApi';
+import { courseHash, newLocalId } from '../classroom/navigation';
 
 const TYPE_LABEL = { single: '单选题', multi: '多选题', judge: '判断题', fill: '填空题', short: '简答题' };
 const revisionHref = revision => typeof revision?.newCourseId === 'string' && /^[A-Za-z0-9_-]{1,80}$/.test(revision.newCourseId)
-  ? `#/classroom/${encodeURIComponent(revision.newCourseId)}` : null;
+  ? courseHash(revision.newCourseId, typeof revision.newSceneId === 'string' && /^[A-Za-z0-9_-]{1,80}$/.test(revision.newSceneId) ? revision.newSceneId : null) : null;
 
 function parseOption(opt) {
   const m = String(opt).match(/^([A-Za-z])[.、．)\s]*\s*(.*)$/);
@@ -31,23 +32,32 @@ function mistakeDateLabel(iso) {
  */
 function MistakeView({ userId, embedded }) {
   const [mistakes, setMistakes] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [listLoading, setListLoading] = useState(false);
+  const [redoBusy, setRedoBusy] = useState(false);
+  const loading = listLoading || redoBusy;
   const [redoId, setRedoId] = useState(null);      // 正在重做的 questionId
   const [redoSelected, setRedoSelected] = useState([]);
   const [redoText, setRedoText] = useState('');
   const [feedback, setFeedback] = useState(null);  // 重做判分结果
   const [typeFilter, setTypeFilter] = useState('all'); // 题型筛选：all|single|multi|judge|fill|short
   const [collapsed, setCollapsed] = useState({});   // 折叠的日期组 { label: true }
+  const alive = useRef(true), activeUser = useRef(userId), loadRun = useRef(0), redoRun = useRef(0), currentRedo = useRef(null), redoBusyRef = useRef(false);
+  const redoRequests = useRef(new Map()), removing = useRef(new Set());
+  activeUser.current = userId;
+  useEffect(() => { alive.current = true; return () => { alive.current = false; loadRun.current++; redoRun.current++; }; }, []);
+  useEffect(() => { redoRun.current++; currentRedo.current = null; redoBusyRef.current = false; setRedoId(null); setRedoBusy(false); setFeedback(null); setMistakes([]); redoRequests.current.clear(); }, [userId]);
 
   const load = useCallback(async () => {
-    setLoading(true);
+    const run = ++loadRun.current, owner = userId;
+    const current = () => alive.current && owner === activeUser.current && run === loadRun.current;
+    setListLoading(true);
     try {
       const res = await getMistakes({ userId });
-      setMistakes(Array.isArray(res) ? res : []);
+      if (current()) setMistakes(Array.isArray(res) ? res : []);
     } catch (err) {
-      alert('加载错题失败：' + err.message);
+      if (current()) alert('加载错题失败：' + err.message);
     } finally {
-      setLoading(false);
+      if (current()) setListLoading(false);
     }
   }, [userId]);
 
@@ -76,11 +86,15 @@ function MistakeView({ userId, embedded }) {
 
   const toggleRedo = (m) => {
     if (m.revision) return;
+    // 切题立即撤销旧响应对界面的所有权，不能把A题的解析显示在B题下面。
+    redoRun.current++; redoBusyRef.current = false; setRedoBusy(false);
     if (redoId === m.questionId) {
+      currentRedo.current = null;
       setRedoId(null);
       setFeedback(null);
       return;
     }
+    currentRedo.current = m.questionId;
     setRedoId(m.questionId);
     setRedoSelected([]);
     setRedoText('');
@@ -102,33 +116,52 @@ function MistakeView({ userId, embedded }) {
   };
 
   const submitRedo = async (m) => {
-    if (m.revision) return;
+    if (m.revision || redoBusyRef.current || currentRedo.current !== m.questionId) return;
     const answer = answerOf(m);
     if (!answer) return;
-    setLoading(true);
+    const run = ++redoRun.current, owner = userId;
+    const owned = () => alive.current && activeUser.current === owner && redoRun.current === run;
+    const current = () => owned() && currentRedo.current === m.questionId;
+    const previous = redoRequests.current.get(m.questionId);
+    const request = previous?.answer === answer ? previous : { answer, requestId: newLocalId() };
+    redoRequests.current.set(m.questionId, request);
+    redoBusyRef.current = true; setRedoBusy(true);
     try {
-      const res = await redoMistake({ userId, quizId: m.quizId, questionId: m.questionId, answer });
+      const res = await redoMistake({ userId, quizId: m.quizId, questionId: m.questionId, answer, requestId: request.requestId });
+      // 普通错题重做的明确待确认回执已处理完该请求；主动重新核对须创建新编号。
+      // 网络异常则保留编号恢复未知结果。即使切到别题，迟到回执也只结清自己的请求，
+      // 不能删除同题后来提交的新请求；界面反馈仍由下面的 current() 判定归属。
+      if (res?.correct === null && alive.current && activeUser.current === owner
+          && redoRequests.current.get(m.questionId) === request) redoRequests.current.delete(m.questionId);
+      if (!current()) return;
       setFeedback(res);
       if (res.removed) {
         // 答对 → 移出错题本
+        loadRun.current++; setListLoading(false);
         setMistakes(prev => prev.filter(x => x.questionId !== m.questionId));
-        setRedoId(null);
+        currentRedo.current = null; setRedoId(null);
       }
     } catch (err) {
-      alert('重做失败：' + err.message);
+      if (current()) alert('重做失败：' + err.message);
     } finally {
-      setLoading(false);
+      if (owned()) { redoBusyRef.current = false; setRedoBusy(false); }
     }
   };
 
   const handleRemove = async (m) => {
+    if (removing.current.has(m.questionId)) return;
     if (!window.confirm('确定将该题移出错题本？')) return;
+    const owner = userId; removing.current.add(m.questionId);
     try {
       await removeMistake({ userId, questionId: m.questionId });
+      if (!alive.current || owner !== activeUser.current) return;
+      // 使删除之前发出的列表读取失效，迟到列表不能把已移除项插回来。
+      loadRun.current++; setListLoading(false);
       setMistakes(prev => prev.filter(x => x.questionId !== m.questionId));
+      if (currentRedo.current === m.questionId) { redoRun.current++; currentRedo.current = null; redoBusyRef.current = false; setRedoId(null); setRedoBusy(false); setFeedback(null); }
     } catch (err) {
-      alert('移除失败：' + err.message);
-    }
+      if (alive.current && owner === activeUser.current) alert('移除失败：' + err.message);
+    } finally { removing.current.delete(m.questionId); }
   };
 
   const answerText = (m) => {
@@ -180,7 +213,7 @@ function MistakeView({ userId, embedded }) {
       ) : (
         Object.entries(groups).map(([label, list]) => (
           <div key={label} className="mistake-group">
-            <div className="mistake-group-date" onClick={() => toggleGroup(label)}>
+            <div className="mistake-group-date" role="button" tabIndex={0} aria-expanded={!collapsed[label]} onClick={() => toggleGroup(label)} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggleGroup(label); } }}>
               <span className="mistake-group-arrow">{collapsed[label] ? '▶' : '▼'}</span>
               🗓 {label}
               <span className="mistake-group-count">{list.length} 题</span>
@@ -194,7 +227,7 @@ function MistakeView({ userId, embedded }) {
                 <span>{m.knowledgePoint ? `🏷 ${m.knowledgePoint}` : ''}</span>
               </div>
               <div className="quiz-r-line"><b>题目：</b>{m.stem}</div>
-              {m.revision && <div className="quiz-feedback info" role="status"><strong>历史题目已修订</strong><p>{m.revision.reason || '原练习存在题面或答案问题。'}这条记录保留当时的作答，不用它判断现在是否掌握。</p>{revisionHref(m.revision) && <a className="quiz-btn" href={revisionHref(m.revision)}>打开修订版课堂</a>}</div>}
+              {m.revision && <div className="quiz-feedback info" role="status"><strong>内容已更新</strong><p>这条记录保留当时的作答，不用它判断现在是否掌握。可以打开当前练习继续学习。</p>{revisionHref(m.revision) && <a className="quiz-btn" href={revisionHref(m.revision)}>打开当前练习</a>}</div>}
               {m.options?.length > 0 && (
                 <div className="quiz-r-line">
                   {m.options.map((o, idx) => {
@@ -211,7 +244,7 @@ function MistakeView({ userId, embedded }) {
                   {m.type === 'judge' ? (
                     ['对', '错'].map(v => (
                       <label key={v} className={`quiz-option ${redoSelected.includes(v) ? 'checked' : ''}`}>
-                        <input type="radio" checked={redoSelected.includes(v)} onChange={() => handleSelect(m, v)} />
+                        <input type="radio" name={`redo-${m.questionId}`} checked={redoSelected.includes(v)} onChange={() => handleSelect(m, v)} />
                         <span>{v}</span>
                       </label>
                     ))
@@ -221,28 +254,28 @@ function MistakeView({ userId, embedded }) {
                       const checked = redoSelected.includes(letter);
                       return (
                         <label key={letter || 'o' + idx} className={`quiz-option ${checked ? 'checked' : ''}`}>
-                          <input type={m.type === 'multi' ? 'checkbox' : 'radio'} checked={checked} onChange={() => handleSelect(m, letter)} />
+                          <input type={m.type === 'multi' ? 'checkbox' : 'radio'} name={`redo-${m.questionId}`} checked={checked} onChange={() => handleSelect(m, letter)} />
                           <span className="quiz-opt-letter">{letter}.</span>
                           <span>{text}</span>
                         </label>
                       );
                     })
                   ) : (
-                    <textarea className="quiz-textarea" value={redoText} onChange={e => setRedoText(e.target.value)}
+                    <textarea className="quiz-textarea" value={redoText} maxLength={m.type === 'fill' ? 2000 : 4000} onChange={e => setRedoText(e.target.value)}
                       placeholder={m.type === 'fill' ? '填写答案...' : '作答...'} rows={m.type === 'short' ? 3 : 1} />
                   )}
 
                   <div className="quiz-actions" style={{ marginTop: 10 }}>
                     <button className="quiz-btn" onClick={() => toggleRedo(m)}>取消</button>
                     <button className="quiz-btn primary" onClick={() => submitRedo(m)} disabled={loading || !answerOf(m)}>
-                      {loading ? '⏳ 判分中...' : '📝 提交重做'}
+                      {loading ? '⏳ 判分中...' : feedback?.correct === null ? '🔄 重新核对' : '📝 提交重做'}
                     </button>
                   </div>
 
                   {feedback && (
                     <div className={`quiz-feedback ${feedback.correct === true ? 'correct' : feedback.correct === false ? 'wrong' : 'info'}`}>
                       <div className="quiz-fb-head">
-                        {feedback.correct === true ? '✅ 重做正确，已移出错题本！' : feedback.correct === false ? '❌ 仍未答对' : '📖 无法判分'}
+                        {feedback.correct === true ? '✅ 重做正确，已移出错题本！' : feedback.correct === false ? '❌ 仍未答对' : feedback.correct === null ? '⏳ 待确认（不计为答错）' : '📖 无法判分'}
                       </div>
                       {feedback.correctAnswer && <div className="quiz-fb-line">正确答案：{feedback.correctAnswer}</div>}
                       {feedback.explanation && <div className="quiz-fb-line">解析：{feedback.explanation}</div>}

@@ -372,6 +372,48 @@ class LearningFeedbackServiceTest {
         assertEquals(0, jdbc.queryForObject("SELECT COUNT(*) FROM quiz_audit", Integer.class)); verifyNoInteractions(quiz);
     }
 
+    @Test void incompleteSourcesBlockDirectSelfCheckFinalHintAndScoringWithoutModel() {
+        course.put("sourceText","长方形的面积等于长乘宽。"+"补充材料".repeat(6000));
+        String id=create("incomplete-direct","面积关系",null).path("id").asText();
+        assertFalse(ClassroomStudyContext.from(course,"s").sourceComplete());
+        assertEquals("unconfirmed",service.check(id,null).path("status").asText());
+        assertFalse(service.selfCheck(id,null).has("selfCheck"));
+        for(int level=1;level<=3;level++)service.hint(id,new LearningFeedbackService.HintRequest(level));
+        assertEquals(3,service.hint(id,new LearningFeedbackService.HintRequest(4)).path("hintLevel").asInt());
+        assertFalse(service.selfCheck(id,new LearningFeedbackService.SelfCheckRequest("对","incomplete-grade")).has("selfCheckResult"));
+        assertEquals(0,modelCalls.get());verifyNoInteractions(quiz);assertEquals(0,jdbc.queryForObject("SELECT COUNT(*) FROM quiz_audit",Integer.class));
+    }
+
+    @Test void concurrentDuplicateChecksShareTheSameUnknownResultWithoutSecondCall() throws Exception {
+        String id=create("single-flight","面积理解",null).path("id").asText();
+        var entered=new java.util.concurrent.CountDownLatch(1);var release=new java.util.concurrent.CountDownLatch(1);
+        when(gateway.structured(anyString(),anyString(),anyString(),any(Duration.class),any())).thenAnswer(call->{modelCalls.incrementAndGet();entered.countDown();release.await(2,java.util.concurrent.TimeUnit.SECONDS);throw new ClassroomException(504,"未知");});
+        try(var pool=java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor()) {
+            var first=pool.submit(()->service.check(id,new LearningFeedbackService.CheckRequest("same")));
+            assertTrue(entered.await(1,java.util.concurrent.TimeUnit.SECONDS));
+            var second=pool.submit(()->service.check(id,new LearningFeedbackService.CheckRequest("same")));
+            assertEquals(409,assertThrows(ClassroomException.class,()->service.hint(id,new LearningFeedbackService.HintRequest(1))).status());
+            Thread.sleep(60);assertEquals(1,modelCalls.get());release.countDown();
+            assertEquals(first.get(2,java.util.concurrent.TimeUnit.SECONDS),second.get(2,java.util.concurrent.TimeUnit.SECONDS));assertEquals(1,modelCalls.get());
+        } finally {release.countDown();}
+    }
+
+    @Test void hashCollisionDoesNotHoldUnrelatedAttemptBehindNetworkCall() throws Exception {
+        var seen=new java.util.HashMap<Integer,String>();String left=null,right=null;
+        for(int index=0;index<1000;index++) {
+            String request="collision-"+index;String id=UUID.nameUUIDFromBytes(("learning-attempt\nc\n"+request).getBytes(java.nio.charset.StandardCharsets.UTF_8)).toString();
+            int slot=(id.hashCode()&Integer.MAX_VALUE)%256;String old=seen.putIfAbsent(slot,request);if(old!=null){left=old;right=request;break;}
+        }
+        assertNotNull(left);String a=create(left,"面积理解A",null).path("id").asText(),b=create(right,"面积理解B",null).path("id").asText();
+        var entered=new java.util.concurrent.CountDownLatch(2);var release=new java.util.concurrent.CountDownLatch(1);
+        when(gateway.structured(anyString(),anyString(),anyString(),any(Duration.class),any())).thenAnswer(call->{entered.countDown();release.await(2,java.util.concurrent.TimeUnit.SECONDS);return new ClassroomAiGateway.Result(analysis(),json.createObjectNode());});
+        try(var pool=java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor()) {
+            var first=pool.submit(()->service.check(a,null));var second=pool.submit(()->service.check(b,null));
+            assertTrue(entered.await(1,java.util.concurrent.TimeUnit.SECONDS),"两个相同条带的请求必须能同时到达模型边界");release.countDown();
+            assertEquals("checked",first.get(2,java.util.concurrent.TimeUnit.SECONDS).path("status").asText());assertEquals("checked",second.get(2,java.util.concurrent.TimeUnit.SECONDS).path("status").asText());
+        } finally {release.countDown();}
+    }
+
     ObjectNode create(String requestId, String understanding, String parent) {
         String fingerprint = ClassroomStudyContext.from(course, "s").fingerprint();
         return service.create("c", new LearningFeedbackService.CreateRequest("s", understanding, "面积关系", parent, fingerprint, requestId));

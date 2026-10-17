@@ -59,7 +59,7 @@ class ClassroomQuizAdapterTest {
         when(quiz.submit(anyString(),anyLong(),anyList())).thenReturn(new QuizService.SubmitResult(10L,2,3,List.of(
             new QuizService.ResultItem(1,true,"对","对",""),new QuizService.ResultItem(2,true,"24","24",""),new QuizService.ResultItem(3,null,"基准相同","都是一样大",""))));
         var answers=List.of(new QuizService.AnswerSubmission(1,"对"),new QuizService.AnswerSubmission(2,"24"),new QuizService.AnswerSubmission(3,"都是一样大"));
-        assertEquals(502,assertThrows(ClassroomException.class,()->adapter.submit(scene,answers)).status());
+        assertEquals(409,assertThrows(ClassroomException.class,()->adapter.submit(scene,answers)).status());
         // 判分失败后题库插入由课程外层事务回滚；此处保持原答案供同一提交 ID 再试。
         verify(quiz).submit(eq("classroom"),eq(10L),eq(answers));
     }

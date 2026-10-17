@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.annotation.PreDestroy;
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.ByteArrayOutputStream;
 import java.net.URI;
@@ -42,8 +43,8 @@ public class ClassroomAiGateway implements AutoCloseable {
     private final AiChatProperties properties;
     private final ObjectMapper json;
     private final HttpClient http;
-    private final ExecutorService workers = Executors.newThreadPerTaskExecutor(
-            Thread.ofVirtual().name("classroom-ai-", 0).factory());
+    private final ClassroomModelAdmission admission;
+    private final boolean ownsAdmission;
 
     public record Result(ObjectNode value, ObjectNode evidence) {}
 
@@ -87,7 +88,14 @@ public class ClassroomAiGateway implements AutoCloseable {
     }
 
     public ClassroomAiGateway(AiChatProperties properties) {
+        this(properties,new ClassroomModelAdmission(new ClassroomModelAdmissionProperties()),true);
+    }
+    @Autowired public ClassroomAiGateway(AiChatProperties properties,ClassroomModelAdmission admission) {
+        this(properties,admission,false);
+    }
+    private ClassroomAiGateway(AiChatProperties properties,ClassroomModelAdmission admission,boolean ownsAdmission) {
         this.properties = properties;
+        this.admission=admission;this.ownsAdmission=ownsAdmission;
         this.json = new ObjectMapper(JsonFactory.builder()
                 .enable(StreamReadFeature.STRICT_DUPLICATE_DETECTION)
                 .streamReadConstraints(StreamReadConstraints.builder().maxNestingDepth(64)
@@ -136,30 +144,23 @@ public class ClassroomAiGateway implements AutoCloseable {
             throw new Cancelled(trace.snapshot("request-cancelled"));
         if (!properties.hasApiKey()) throw failure(trace, "missing-env", 503, "课堂模型尚未配置");
         AtomicReference<CompletableFuture<?>> transport = new AtomicReference<>();
-        Future<Result> worker = workers.submit(() -> perform(system, input, validator, trace, deadline, transport, maxAttempts, cancellation));
         try {
-            // 轮询仅用于取消传播；不是重发请求。预算同时约束网络正文、JSON解析及业务validator。
-            while (true) {
-                if (Thread.currentThread().isInterrupted() || cancellation != null && cancellation.isCancelled())
-                    throw new Cancelled(trace.snapshot("request-cancelled"));
-                long remaining = deadline - System.nanoTime();
-                if (remaining <= 0) throw failure(trace, "request-timeout", 504, "课堂模型响应超时，请稍后手动重试");
-                try { return worker.get(Math.min(remaining, TimeUnit.MILLISECONDS.toNanos(40)), TimeUnit.NANOSECONDS); }
-                catch (TimeoutException ignored) { /* 同一调用仍在等待，不建立第二次网络请求。 */ }
-            }
-        } catch (InterruptedException interrupted) {
-            Thread.currentThread().interrupt();
+            return admission.execute(budget,cancellation,remaining->{
+                try {return perform(system,input,validator,trace,Math.min(deadline,System.nanoTime()+remaining.toNanos()),transport,maxAttempts,cancellation);}
+                catch(RuntimeException known){throw known;}
+                catch(Exception unknown){throw failure(trace,"provider-response",502,"课堂模型调用未完成，请稍后手动重试");}
+                finally {cancelTransport(transport);}
+            });
+        } catch (ClassroomModelAdmission.Rejected rejected) {
+            throw failure(trace,rejected.reason().equals("deadline")?"request-timeout":"admission-"+rejected.reason(),rejected.status(),rejected.getMessage());
+        } catch (CancellationException cancelled) {
             throw new Cancelled(trace.snapshot("request-cancelled"));
-        } catch (ExecutionException execution) {
-            if (execution.getCause() instanceof Failure failure) throw failure;
-            if (execution.getCause() instanceof CancellationException) throw new Cancelled(trace.snapshot("request-cancelled"));
-            throw failure(trace, "provider-response", 502, "课堂模型调用未完成，请稍后手动重试");
         } finally {
-            if (!worker.isDone()) worker.cancel(true);
-            CompletableFuture<?> current = transport.get();
-            if (current != null && !current.isDone()) current.cancel(true);
+            // 取消可能早于HTTP future登记；实际工作线程也执行相同清理，许可不随调用方提前退出而释放。
+            cancelTransport(transport);
         }
     }
+    private static void cancelTransport(AtomicReference<CompletableFuture<?>> transport){CompletableFuture<?> current=transport.get();if(current!=null&&!current.isDone())current.cancel(true);}
 
     private Result perform(String system, String input, Consumer<JsonNode> validator, Trace trace,
                            long deadline, AtomicReference<CompletableFuture<?>> transport, int maxAttempts,
@@ -351,5 +352,5 @@ public class ClassroomAiGateway implements AutoCloseable {
         public void onComplete() { body.complete(bytes.toByteArray()); }
     }
 
-    @Override @PreDestroy public void close() { workers.shutdownNow(); http.shutdownNow(); }
+    @Override @PreDestroy public void close() { http.shutdownNow(); if(ownsAdmission)admission.close(); }
 }
