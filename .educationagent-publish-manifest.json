@@ -1,6 +1,6 @@
 {
   "Producer": "educationagent/Prepare-GitHubSnapshot.ps1",
-  "CreatedAtUtc": "2026-10-17T03:29:18.0420835Z",
+  "CreatedAtUtc": "2026-10-17T05:14:00.6756313Z",
   "SecretCheck": "PASS",
   "Files": [
     ".gitattributes",
@@ -330,6 +330,7 @@
     "docs/习题审核与补审_20261016.md",
     "docs/乡村学习课堂_代码分析与实施计划.md",
     "docs/晓陶学伴重整与代码可视化.md",
+    "docs/B站朗诵引文校验修复_20261017.md",
     "docs/B站搜索恢复_20261016.md",
     "docs/gen_memory_graph.py",
     "docs/GitHub发布边界.md",
@@ -941,6 +942,7 @@
     "src/test/java/com/demo/edu/classroom/recommendation/BilibiliWholeVideoFallbackTest.java",
     "src/test/java/com/demo/edu/classroom/recommendation/ClassroomRecommendationServiceTest.java",
     "src/test/java/com/demo/edu/classroom/recommendation/FirstHitAuditTest.java",
+    "src/test/java/com/demo/edu/classroom/recommendation/RecitationMatchContractRecoveryTest.java",
     "src/test/java/com/demo/edu/classroom/recommendation/RecommendationEmbeddingBatchTest.java",
     "src/test/java/com/demo/edu/classroom/recommendation/RecommendationOptimizerTest.java",
     "src/test/java/com/demo/edu/classroom/recommendation/ResourceSemanticFeaturesTest.java",

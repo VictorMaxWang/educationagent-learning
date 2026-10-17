@@ -316,6 +316,7 @@ public class ClassroomRecommendationService implements AutoCloseable {
             purpose:'recitation'|'pronunciation'|'listening'|'observation'|'procedure'|'concept'|'worked_example',
             reason:一句简短补充理由(不超过80字),metadataQuote:标题/分P标题/简介中最短且足以支持匹配的连续原文(不超过120字),preferenceMatch:boolean}。
             不复述整段简介，不引用视频外信息。合格项必须goals非空、明确适龄、有真实metadataQuote；不得为缩短输出放宽合格标准。
+            metadataQuote只从同一视频的一个字段逐字摘取连续原文；不能把标题与简介或分散片段拼接，也不能额外插入...或…来省略中间文字。
             preferenceMatch只表示是否符合用户explicitPreference；没有偏好时false。不提供置信度或推断用户能力。
             """,input.toString(),budget,value->validateMatches(value,targets,videos));
         audit.set("matchingCall",result.evidence());audit.set("matching",result.value());List<Matched> matches=new ArrayList<>();
@@ -330,17 +331,24 @@ public class ClassroomRecommendationService implements AutoCloseable {
     static void validateMatches(JsonNode value,Set<String> targets,List<BilibiliVideoCatalog.Video> videos) {
         if(!value.path("candidates").isArray()||value.path("candidates").size()!=videos.size())throw new IllegalArgumentException("candidate coverage");
         Map<String,BilibiliVideoCatalog.Video> byId=new HashMap<>();videos.forEach(v->byId.put(v.id(),v));Set<String> seen=new HashSet<>();
-        for(JsonNode item:value.path("candidates")) {
+        List<Integer> invalidQuoteIndexes=new ArrayList<>();
+        for(int candidateIndex=0;candidateIndex<value.path("candidates").size();candidateIndex++) {
+            JsonNode item=value.path("candidates").get(candidateIndex);
             String id=item.path("id").asText();BilibiliVideoCatalog.Video video=byId.get(id);
             if(video==null||!seen.add(id)||!item.path("eligible").isBoolean())throw new IllegalArgumentException("candidate identity");
             if(!item.path("eligible").asBoolean())continue;
             if(!"compatible".equals(item.path("gradeCompatibility").asText())||!VideoTeachingClassifier.PURPOSES.containsKey(item.path("purpose").asText())
                     ||!item.path("goals").isArray()||item.path("goals").isEmpty()||!item.path("preferenceMatch").isBoolean())throw new IllegalArgumentException("candidate compatibility");
             for(JsonNode goal:item.path("goals"))if(!goal.isTextual()||!targets.contains(goal.asText()))throw new IllegalArgumentException("unrelated goal");
-            String quote=VideoTeachingClassifier.requireText(item,"metadataQuote",600);
-            if(quote.length()<2||!ClassroomStudyContext.normalize(video.metadataText()).contains(quote))throw new IllegalArgumentException("metadata quote");
+            String quote=null;
+            try {quote=VideoTeachingClassifier.requireText(item,"metadataQuote",600);}
+            catch(IllegalArgumentException invalidQuote){invalidQuoteIndexes.add(candidateIndex);}
+            // 原来的连续子串条件保持不变；只把具体失败字段反馈给模型并记入不含正文的审计。
+            if(quote!=null&&(quote.length()<2||!ClassroomStudyContext.normalize(video.metadataText()).contains(quote)))invalidQuoteIndexes.add(candidateIndex);
             VideoTeachingClassifier.requireText(item,"reason",200);
         }
+        // 一次反馈全部同类字段，不因逐条修订而增加模型请求次数；任何一个错误仍拒绝整份匹配结果。
+        if(!invalidQuoteIndexes.isEmpty())throw new ClassroomAiGateway.ContractViolation(ClassroomAiGateway.ContractCode.VIDEO_METADATA_QUOTE_INVALID,invalidQuoteIndexes);
     }
     static Map<String,String> duplicateGroups(List<BilibiliVideoCatalog.Video> videos) {
         Map<String,String> parent=new HashMap<>();videos.forEach(v->parent.put(v.id(),v.id()));
